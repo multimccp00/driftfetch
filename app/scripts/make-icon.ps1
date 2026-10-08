@@ -1,12 +1,10 @@
-# Builds the app icons from resources/driftfetch-icon.png:
-#   resources/icon.ico  Windows icon (exe, installer, shortcuts), 16-256 px
-#   public/icon.png     256 px, used by the window, tray and in-app logo. Committed as the D alone on a
-#                       transparent background (the navy square is cut away); this script would write the square back.
-# Run once after changing the source image: powershell -File scripts/make-icon.ps1
+# Builds resources/icon.ico (Windows icon for the exe, installer, shortcuts and taskbar, 16-256 px)
+# from public/icon.png, the D alone on a transparent background. Edit that PNG, then run:
+#   powershell -File scripts/make-icon.ps1
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
 $root = Split-Path $PSScriptRoot -Parent
-$source = [System.Drawing.Image]::FromFile((Join-Path $root 'resources\driftfetch-icon.png'))
+$source = [System.Drawing.Image]::FromFile((Join-Path $root 'public\icon.png'))
 
 function Resize([int]$size) {
   $bitmap = New-Object System.Drawing.Bitmap $size, $size, ([System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
@@ -40,7 +38,5 @@ for ($i = 0; $i -lt $sizes.Count; $i++) {
 foreach ($image in $images) { $w.Write($image) }
 $w.Flush()
 [System.IO.File]::WriteAllBytes((Join-Path $root 'resources\icon.ico'), $out.ToArray())
-New-Item -ItemType Directory -Force (Join-Path $root 'public') | Out-Null
-[System.IO.File]::WriteAllBytes((Join-Path $root 'public\icon.png'), $images[-1])
 $source.Dispose()
-Write-Output "Wrote resources/icon.ico ($($sizes -join ', ') px) and public/icon.png"
+Write-Output "Wrote resources/icon.ico ($($sizes -join ', ') px)"
