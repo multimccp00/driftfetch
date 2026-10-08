@@ -3,11 +3,11 @@ export const site = {
   name: "DriftFetch",
   version: "0.2.1", // keep in step with ../package.json
   owner: "[Your name]", // TODO: footer / legal notice
-  email: "hello@driftfetch.app", // TODO: confirm or remove
+  email: "driftfetch@proton.me",
   url: (import.meta.env.SITE ?? "https://driftfetch.app").replace(/\/$/, ""),
   // GitHub "owner/repo". Empty until the repo exists; links fall back to "#".
   repo: "multimccp00/driftfetch",
-  bmc: "", // Buy Me a Coffee page, e.g. "https://buymeacoffee.com/yourname"
+  bmc: "https://buymeacoffee.com/driftfetch", // Buy Me a Coffee page
 };
 
 const gh = (p: string) => (site.repo ? `https://github.com/${site.repo}${p}` : "#");
