@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><meta name="design_doc_mode" content="canvas"><style>body{margin:0;background:#e9eaee;font-family:'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif}a{color:#0b54d6;text-decoration:none}a:hover{color:#012fc8}.dv-turn{padding:40px 44px 32px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 20px}.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px;text-decoration:none}.dv-tname{font:600 13px/1.2 system-ui,sans-serif;color:#1a1a1a}.dv-opts{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}.dv-opt{flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px}.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1a1a1a;border-radius:5px;text-decoration:none}.dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 11px/1.3 system-ui,sans-serif;color:rgba(0,0,0,.6)}.dv-card{max-width:100%;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden}.dv-opt:target .dv-oid{background:#0b67fe;color:#fff}.dv-next{margin:22px 0 0;font:12px/1.5 system-ui,sans-serif;color:rgba(0,0,0,.55)}</style></helmet>
+<section class="dv-turn" id="t1">
+  <div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">DriftFetch redesign — design system, Downloads, picker, details, settings</span></div>
+
+  <div style="max-width:1380px;margin:0 0 28px;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;font-size:13px;line-height:20px;color:#2a2f3a">
+    <div><div style="font-weight:600;color:#111;margin-bottom:4px">Direction</div>Calm navy-black surfaces with a hint of the icon’s blue. Electric blue is the one action colour (primary buttons, selection, links); cyan is reserved for live motion — progress and focus. Status colours carry meaning only.</div>
+    <div><div style="font-weight:600;color:#111;margin-bottom:4px">What changed</div>Layout matches the current app: brand block and workspace nav, listening strip, stat cards, list card with tabs, filters and footer. The change is the palette (from the new icon), plainer copy, real thumbnail slots, and rate limits counted as Active instead of Failed.</div>
+    <div><div style="font-weight:600;color:#111;margin-bottom:4px">Build notes</div>Segoe UI Variable (ships with Windows) + Cascadia Mono (OFL, bundle it) — no web fonts. Lucide icons at 1.75 stroke. Every value below maps to a CSS variable. Artboards 1c–1l are live: click tabs, rows, checkboxes, toggles, settings sections.</div>
+  </div>
+
+  <div class="dv-opts">
+    <div class="dv-opt" id="1a">
+      <div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>Design tokens</div>
+      <div class="dv-card" style="width:1380px;background:#0b0e17;color:#e9ecf4;padding:36px 40px;box-sizing:border-box">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:28px">
+          <img src="assets/driftfetch-icon.png" alt="" style="width:40px;height:40px;border-radius:10px">
+          <div><div style="font-size:20px;line-height:28px;font-weight:600">DriftFetch tokens</div><div style="font-size:12.5px;color:#a6adbe">Dark theme is primary. Light values shown for the optional theme.</div></div>
+        </div>
+        <sc-for list="{{ swGroups }}" as="g" hint-placeholder-count="4">
+          <div style="margin-bottom:26px">
+            <div style="font-size:12px;font-weight:600;color:#a6adbe;margin-bottom:10px">{{ g.title }}</div>
+            <div style="display:flex;flex-wrap:wrap;gap:14px">
+              <sc-for list="{{ g.items }}" as="s" hint-placeholder-count="6">
+                <div style="width:146px;display:flex;flex-direction:column;gap:6px">
+                  <div style="height:52px;border-radius:8px;background:{{ s.c }};box-shadow:inset 0 0 0 1px rgba(255,255,255,0.08);display:flex;align-items:flex-end;padding:6px 8px;box-sizing:border-box;font-size:11px;font-weight:600;color:{{ s.ink }}">{{ s.sample }}</div>
+                  <div style="font-family:'Cascadia Mono',ui-monospace,Consolas,monospace;font-size:11px;color:#e9ecf4">{{ s.n }}</div>
+                  <div style="font-family:'Cascadia Mono',ui-monospace,Consolas,monospace;font-size:10.5px;color:#7f879a">{{ s.c }}</div>
+                  <div style="font-size:11px;line-height:15px;color:#a6adbe">{{ s.use }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+        <div style="display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:32px;border-top:1px solid #1d2331;padding-top:24px">
+          <div>
+            <div style="font-size:12px;font-weight:600;color:#a6adbe;margin-bottom:12px">Type · Segoe UI Variable / Cascadia Mono</div>
+            <sc-for list="{{ type }}" as="t" hint-placeholder-count="7">
+              <div style="display:flex;align-items:baseline;gap:16px;padding:6px 0;border-bottom:1px solid #151a25">
+                <span style="width:150px;flex:none;font-family:'Cascadia Mono',ui-monospace,monospace;font-size:10.5px;color:#7f879a">{{ t.n }} · {{ t.spec }}</span>
+                <span style="font-size:{{ t.fs }};font-weight:{{ t.fw }};font-family:{{ t.ff }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.sample }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:600;color:#a6adbe;margin-bottom:12px">Spacing · 4 px base</div>
+            <sc-for list="{{ space }}" as="s" hint-placeholder-count="8">
+              <div style="display:flex;align-items:center;gap:10px;height:22px"><span style="width:76px;font-family:'Cascadia Mono',ui-monospace,monospace;font-size:10.5px;color:#7f879a">{{ s.n }}</span><span style="height:8px;width:{{ s.w }};background:#0b67fe;border-radius:2px"></span><span style="font-size:11px;color:#a6adbe">{{ s.v }}</span></div>
+            </sc-for>
+            <div style="font-size:12px;font-weight:600;color:#a6adbe;margin:18px 0 10px">Radius</div>
+            <div style="display:flex;gap:12px">
+              <sc-for list="{{ radii }}" as="r" hint-placeholder-count="5">
+                <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><span style="width:40px;height:40px;background:#181e2b;border:1px solid #2a3142;border-radius:{{ r.v }}"></span><span style="font-family:'Cascadia Mono',ui-monospace,monospace;font-size:10px;color:#7f879a">{{ r.n }}</span><span style="font-size:10.5px;color:#a6adbe">{{ r.v }}</span></div>
+              </sc-for>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:600;color:#a6adbe;margin-bottom:12px">Elevation</div>
+            <div style="display:flex;gap:14px;margin-bottom:22px">
+              <div style="flex:1;height:64px;border-radius:8px;background:#11151f;border:1px solid #262d3d;box-shadow:0 6px 16px rgba(0,0,0,0.35);display:flex;align-items:flex-end;padding:8px;box-sizing:border-box;font-family:'Cascadia Mono',ui-monospace,monospace;font-size:10px;color:#7f879a">--shadow-pop</div>
+              <div style="flex:1;height:64px;border-radius:12px;background:#11151f;border:1px solid #262d3d;box-shadow:0 24px 64px rgba(0,0,0,0.55);display:flex;align-items:flex-end;padding:8px;box-sizing:border-box;font-family:'Cascadia Mono',ui-monospace,monospace;font-size:10px;color:#7f879a">--shadow-dialog</div>
+            </div>
+            <div style="font-size:12px;font-weight:600;color:#a6adbe;margin-bottom:10px">Motion</div>
+            <sc-for list="{{ motion }}" as="m" hint-placeholder-count="4">
+              <div style="display:flex;gap:10px;padding:5px 0;border-bottom:1px solid #151a25;font-size:11.5px"><span style="width:110px;flex:none;font-family:'Cascadia Mono',ui-monospace,monospace;font-size:10.5px;color:#7f879a">{{ m.n }}</span><span style="color:#e9ecf4;width:110px;flex:none">{{ m.v }}</span><span style="color:#a6adbe">{{ m.use }}</span></div>
+            </sc-for>
+            <div style="font-size:11.5px;line-height:17px;color:#a6adbe;margin-top:10px">Reduce motion: transitions drop to 0 ms, spinners and the indeterminate bar stop; progress still updates.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dv-opt" id="1b">
+      <div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>Components</div>
+      <div class="dv-card" style="width:1380px;background:#0b0e17;color:#e9ecf4;padding:36px 40px;box-sizing:border-box;font-size:13px;line-height:20px">
+        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:36px 40px">
+          <div>
+            <div style="font-size:12px;font-weight:600;color:#a6adbe;margin-bottom:12px">Buttons · 32 px, radius 6</div>
+            <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+              <button style="display:flex;align-items:center;gap:6px;height:32px;padding:0 14px 0 10px;border:none;border-radius:6px;background:#0b67fe;color:#fff;font-family:inherit;font-size:13px;font-weight:600"><dc-import name="Icon" n="plus" size="16" stroke="2" hint-size="16px,16px"></dc-import>Primary</button>
+              <button style="height:32px;padding:0 14px;border:1px solid #2a3142;border-radius:6px;background:#181e2b;color:#e9ecf4;font-family:inherit;font-size:13px;font-weight:500">Secondary</button>
+              <button style="height:32px;padding:0 12px;border:none;border-radius:6px;background:transparent;color:#a6adbe;font-family:inherit;font-size:13px;font-weight:500">Quiet</button>
+              <button style="display:flex;align-items:center;gap:6px;height:32px;padding:0 12px;border:1px solid #3a2a2e;border-radius:6px;background:transparent;color:#f2847b;font-family:inherit;font-size:13px;font-weight:500"><dc-import name="Icon" n="trash-2" size="15" hint-size="15px,15px"></dc-import>Danger</button>
+              <button aria-label="Pause" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:none;border-radius:6px;background:#1c2333;color:#e9ecf4;padding:0"><dc-import name="Icon" n="pause" size="16" hint-size="16px,16px"></dc-import></button>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px">
+              <button style="height:32px;padding:0 14px;border:none;border-radius:6px;background:#2a7bff;color:#fff;font-family:inherit;font-size:13px;font-weight:600">Hover</button>
+              <button style="height:32px;padding:0 14px;border:none;border-radius:6px;background:#0b67fe;color:#fff;font-family:inherit;font-size:13px;font-weight:600;outline:2px solid #0cf3fe;outline-offset:2px">Keyboard focus</button>
+              <button style="height:32px;padding:0 14px;border:1px solid #1d2331;border-radius:6px;background:#121722;color:#5a6274;font-family:inherit;font-size:13px;font-weight:500">Disabled</button>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:600;color:#a6adbe;margin-bottom:12px">Inputs & select</div>
+            <div style="display:flex;flex-direction:column;gap:10px;max-width:340px">
+              <div style="display:flex;align-items:center;gap:6px;height:32px;box-sizing:border-box;padding:0 10px;background:#0b0e17;border:1px solid #2a3142;border-radius:6px;color:#7f879a"><dc-import name="Icon" n="search" size="14" hint-size="14px,14px"></dc-import>Search</div>
+              <div style="display:flex;align-items:center;height:32px;box-sizing:border-box;padding:0 10px;background:#0b0e17;border:1px solid #0b67fe;box-shadow:0 0 0 3px rgba(11,103,254,0.22);border-radius:6px">Holiday videos<span style="width:1px;height:16px;background:#e9ecf4;margin-left:1px"></span></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;height:32px;box-sizing:border-box;padding:0 8px 0 10px;background:#181e2b;border:1px solid #2a3142;border-radius:6px">Up to 1080p<dc-import name="Icon" n="chevron-down" size="14" hint-size="14px,14px"></dc-import></div>
+              <div><div style="display:flex;align-items:center;height:32px;box-sizing:border-box;padding:0 10px;background:#0b0e17;border:1px solid #f2847b;border-radius:6px">short</div><div style="font-size:12px;color:#f2847b;margin-top:4px">Use at least 12 characters.</div></div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:600;color:#a6adbe;margin-bottom:12px">Toggle · checkbox · radio · segmented</div>
+            <div style="display:flex;gap:18px;align-items:center;margin-bottom:14px">
+              <span style="width:32px;height:18px;border-radius:9px;background:#0b67fe;position:relative"><span style="position:absolute;top:2px;left:16px;width:14px;height:14px;border-radius:50%;background:#fff"></span></span>
+              <span style="width:32px;height:18px;border-radius:9px;background:#2a3142;position:relative"><span style="position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#8b93a6"></span></span>
+              <span style="width:16px;height:16px;box-sizing:border-box;border-radius:4px;border:1.5px solid #3a4256"></span>
+              <span style="width:16px;height:16px;box-sizing:border-box;border-radius:4px;background:#0b67fe;display:flex;align-items:center;justify-content:center;color:#fff"><dc-import name="Icon" n="check" size="11" stroke="3" hint-size="11px,11px"></dc-import></span>
+              <span style="width:16px;height:16px;box-sizing:border-box;border-radius:4px;background:#0b67fe;display:flex;align-items:center;justify-content:center"><span style="width:8px;height:2px;background:#fff;border-radius:1px"></span></span>
+              <span style="width:16px;height:16px;box-sizing:border-box;border-radius:50%;border:5px solid #0b67fe"></span>
+              <span style="width:16px;height:16px;box-sizing:border-box;border-radius:50%;border:1.5px solid #3a4256"></span>
+            </div>
+            <div style="display:flex;gap:6px;border-bottom:1px solid #1a1f2c;margin-bottom:12px">
+              <span style="display:flex;align-items:center;gap:7px;height:40px;padding:0 8px;border-bottom:2px solid #6aa6ff;box-sizing:border-box;font-size:13px;font-weight:500">All downloads<span style="min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:5px;background:rgba(106,166,255,0.18);color:#c9d8ff;font-size:11px;line-height:18px;font-weight:600;text-align:center">11</span></span>
+              <span style="display:flex;align-items:center;gap:7px;height:40px;padding:0 8px;color:#a6adbe;font-size:13px;font-weight:500">Active<span style="min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:5px;background:#161b27;color:#a6adbe;font-size:11px;line-height:18px;font-weight:600;text-align:center">5</span></span>
+              <span style="display:flex;align-items:center;gap:7px;height:40px;padding:0 8px;color:#a6adbe;font-size:13px;font-weight:500">Failed<span style="min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:5px;background:rgba(242,132,123,0.14);color:#f2847b;font-size:11px;line-height:18px;font-weight:600;text-align:center">1</span></span>
+            </div>
+            <div style="font-size:11.5px;color:#7f879a">Underline tabs, as in the current app. Arrow keys move; counts use tabular figures.</div>
+          </div>
+
+          <div>
+            <div style="font-size:12px;font-weight:600;color:#a6adbe;margin-bottom:12px">Status · dot + label, colour = meaning</div>
+            <div style="display:flex;flex-direction:column;gap:9px">
+              <sc-for list="{{ pills }}" as="s" hint-placeholder-count="8">
+                <div style="display:flex;align-items:center;gap:10px">
+                  <span style="display:flex;align-items:center;gap:6px;width:200px;font-size:12.5px;font-weight:500;color:{{ s.c }}"><span style="width:6px;height:6px;border-radius:50%;background:{{ s.c }}"></span>{{ s.l }}</span>
+                  <span style="font-size:11.5px;color:#7f879a">{{ s.use }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:14px;align-items:center">
+              <span style="height:16px;padding:0 5px;border-radius:4px;border:1px solid #2b3345;color:#b4bbcb;font-size:10.5px;font-weight:600;line-height:14px;box-sizing:border-box">2160p</span>
+              <span style="height:16px;padding:0 5px;border-radius:4px;border:1px solid #2b3345;color:#b4bbcb;font-size:10.5px;font-weight:600;line-height:14px;box-sizing:border-box">1080p</span>
+              <span style="height:16px;padding:0 5px;border-radius:4px;border:1px solid rgba(233,180,90,0.5);color:#e9b45a;font-size:10.5px;font-weight:600;line-height:14px;box-sizing:border-box">480p · low</span>
+              <span style="font-size:11.5px;color:#7f879a">Quality badge; amber when under your warning threshold.</span>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:600;color:#a6adbe;margin-bottom:12px">Progress · 4 px in rows, 6 px in panel</div>
+            <div style="display:flex;flex-direction:column;gap:14px;max-width:340px">
+              <div><div style="display:flex;justify-content:space-between;font-size:12px;color:#a6adbe;margin-bottom:5px"><span>Downloading</span><span style="color:#e9ecf4">46%</span></div><div style="height:4px;border-radius:2px;background:#1e2433"><div style="height:100%;width:46%;border-radius:2px;background:linear-gradient(90deg,#0b67fe,#0cf3fe)"></div></div></div>
+              <div><div style="font-size:12px;color:#a6adbe;margin-bottom:5px">Paused at 12%</div><div style="height:4px;border-radius:2px;background:#1e2433"><div style="height:100%;width:12%;border-radius:2px;background:#5a6274"></div></div></div>
+              <div><div style="font-size:12px;color:#a6adbe;margin-bottom:5px">Unknown total (profile) — sweeping highlight, “128 files saved”</div><div style="height:4px;border-radius:2px;background:#1e2433;position:relative;overflow:hidden"><div style="position:absolute;left:30%;top:0;bottom:0;width:35%;background:linear-gradient(90deg,transparent,#0cf3fe,transparent)"></div></div></div>
+              <div><div style="font-size:12px;color:#a6adbe;margin-bottom:5px">Countdown (rate limit) — fills toward resume</div><div style="height:6px;border-radius:3px;background:rgba(255,255,255,0.07)"><div style="height:100%;width:38%;border-radius:3px;background:#e9b45a"></div></div></div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:600;color:#a6adbe;margin-bottom:12px">Thumbnail slot · 64 × 36 (16:9), radius 6</div>
+            <div style="display:flex;flex-wrap:wrap;gap:16px">
+              <sc-for list="{{ thumbs }}" as="t" hint-placeholder-count="6">
+                <div style="display:flex;flex-direction:column;gap:6px;width:76px">
+                  <div style="position:relative;width:64px;height:36px;margin-top:4px">
+                    <sc-if value="{{ t.stack }}"><div style="position:absolute;top:-4px;left:5px;right:5px;height:36px;border-radius:6px;background:#2a3244"></div></sc-if>
+                    <div style="position:absolute;inset:0;border-radius:6px;background:{{ t.bg }};opacity:{{ t.op }};box-shadow:inset 0 0 0 1px rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;color:#6f788c"><sc-if value="{{ t.icon }}"><dc-import name="Icon" n="{{ t.icon }}" size="16" hint-size="16px,16px"></dc-import></sc-if></div>
+                    <sc-if value="{{ t.stack }}"><span style="position:absolute;right:3px;bottom:3px;height:14px;padding:0 4px;border-radius:3px;background:rgba(5,7,12,0.78);color:#fff;font-size:10px;font-weight:600;line-height:14px">18</span></sc-if>
+                  </div>
+                  <span style="font-size:11px;line-height:14px;color:#a6adbe">{{ t.l }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="font-size:11.5px;line-height:17px;color:#7f879a;margin-top:10px">No image is the common case: a quiet diagonal hatch plus a Lucide glyph for the kind (film, images, user, link) — never a letter tile.</div>
+          </div>
+
+          <div>
+            <div style="font-size:12px;font-weight:600;color:#a6adbe;margin-bottom:12px">Toast · bottom centre, Undo for 30 s</div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;align-items:center;gap:12px;height:44px;padding:0 8px 0 14px;background:#1a2030;border:1px solid #2a3142;border-radius:8px;box-shadow:0 6px 16px rgba(0,0,0,0.35);width:360px;box-sizing:border-box;position:relative;overflow:hidden">
+                <dc-import name="Icon" n="trash-2" size="15" hint-size="15px,15px"></dc-import><span style="flex:1">Removed 2 downloads</span>
+                <button style="height:28px;padding:0 10px;border:none;border-radius:6px;background:transparent;color:#6aa6ff;font-family:inherit;font-size:13px;font-weight:600">Undo</button>
+                <span style="position:absolute;left:0;bottom:0;height:2px;width:64%;background:#6aa6ff"></span>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;height:44px;padding:0 14px;background:#1a2030;border:1px solid #2a3142;border-radius:8px;width:360px;box-sizing:border-box"><span style="color:#5fcf98;display:flex"><dc-import name="Icon" n="circle-check" size="15" hint-size="15px,15px"></dc-import></span><span style="flex:1">Diagnostic report copied</span></div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:600;color:#a6adbe;margin-bottom:12px">Capture popup · 340 px, near the tray</div>
+            <div style="width:340px;background:#11151f;border:1px solid #262d3d;border-radius:12px;box-shadow:0 24px 64px rgba(0,0,0,0.55);overflow:hidden">
+              <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid #1d2331;font-size:12px;color:#a6adbe"><img src="assets/driftfetch-icon.png" alt="" style="width:14px;height:14px;border-radius:3px">Link captured<span style="flex:1"></span><dc-import name="Icon" n="x" size="14" hint-size="14px,14px"></dc-import></div>
+              <div style="display:flex;gap:12px;padding:12px">
+                <div style="width:80px;height:45px;flex:none;border-radius:6px;background:linear-gradient(160deg,#0f3b4a 0%,#1d6b6a 55%,#0b1f33 100%)"></div>
+                <div style="min-width:0"><div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Northern Lights Timelapse — Iceland 4K</div><div style="display:flex;gap:6px;align-items:center;font-size:12px;color:#7f879a">youtube.com <span style="height:16px;padding:0 5px;border-radius:4px;border:1px solid #2b3345;color:#b4bbcb;font-size:10.5px;font-weight:600;line-height:14px;box-sizing:border-box">2160p</span> 13:04</div><div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#5fe3ee;margin-top:2px"><span style="width:6px;height:6px;border-radius:50%;background:#5fe3ee"></span>Starting download</div></div>
+              </div>
+              <div style="display:flex;gap:6px;padding:0 12px 12px">
+                <button style="flex:1;height:30px;border:1px solid #2a3142;border-radius:6px;background:#181e2b;color:#e9ecf4;font-family:inherit;font-size:12.5px">Choose quality</button>
+                <button style="flex:1;height:30px;border:1px solid #2a3142;border-radius:6px;background:#181e2b;color:#e9ecf4;font-family:inherit;font-size:12.5px">Open DriftFetch</button>
+                <button style="height:30px;padding:0 10px;border:none;border-radius:6px;background:transparent;color:#f2847b;font-family:inherit;font-size:12.5px">Cancel</button>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:600;color:#a6adbe;margin-bottom:12px">Title bar · 36 px, whole bar drags</div>
+            <div style="height:36px;display:flex;align-items:center;background:#090c14;border:1px solid #1a1f2c;border-radius:8px;overflow:hidden">
+              <div style="display:flex;align-items:center;gap:8px;padding:0 12px;flex:1"><img src="assets/driftfetch-icon.png" alt="" style="width:16px;height:16px;border-radius:4px"><span style="font-size:12px;font-weight:600;color:#c9cfdc">DriftFetch</span></div>
+              <span style="width:46px;height:36px;display:flex;align-items:center;justify-content:center;color:#a6adbe"><dc-import name="Icon" n="minus" size="14" stroke="1.5" hint-size="14px,14px"></dc-import></span>
+              <span style="width:46px;height:36px;display:flex;align-items:center;justify-content:center;color:#a6adbe"><dc-import name="Icon" n="square" size="11" stroke="1.5" hint-size="11px,11px"></dc-import></span>
+              <span style="width:46px;height:36px;display:flex;align-items:center;justify-content:center;background:#c42b1c;color:#fff"><dc-import name="Icon" n="x" size="15" stroke="1.5" hint-size="15px,15px"></dc-import></span>
+            </div>
+            <div style="font-size:11.5px;line-height:17px;color:#7f879a;margin-top:10px">Close (red on hover) hides to the tray; tooltip says “Close to tray”. Controls follow Windows 11 sizing.</div>
+            <div style="font-size:12px;font-weight:600;color:#a6adbe;margin:20px 0 8px">Dialog vs side panel</div>
+            <div style="font-size:12px;line-height:18px;color:#a6adbe">Dialogs (picker, Add links, privacy): 12 px radius, scrim 62 %, focus trapped, Esc closes. Details uses a 420 px side sheet with a lighter 50 % scrim so the list stays readable — see <a href="#1g" style="color:#6aa6ff">1g</a>.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dv-opt" id="1c">
+      <div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a>Downloads · current layout, new palette · every row state (click rows, tabs, checkboxes)</div>
+      <div class="dv-card" style="width:1380px;height:880px"><dc-import name="DriftFetchApp" style="width:1380px;height:880px" hint-size="1380px,880px"></dc-import></div>
+    </div>
+    <div class="dv-opt" id="1d">
+      <div class="dv-olabel"><a class="dv-oid" href="#1d">1d</a>Minimum window · 1020 × 680 · rail sidebar, 2 rows selected</div>
+      <div class="dv-card" style="width:1020px;height:680px"><dc-import name="DriftFetchApp" compact="{{ true }}" selected="{{ true }}" style="width:1020px;height:680px" hint-size="1020px,680px"></dc-import></div>
+    </div>
+    <div class="dv-opt" id="1e">
+      <div class="dv-olabel"><a class="dv-oid" href="#1e">1e</a>Empty state</div>
+      <div class="dv-card" style="width:1380px;height:880px"><dc-import name="DriftFetchApp" screen="empty" style="width:1380px;height:880px" hint-size="1380px,880px"></dc-import></div>
+    </div>
+    <div class="dv-opt" id="1f">
+      <div class="dv-olabel"><a class="dv-oid" href="#1f">1f</a>Collection picker · 12 per page</div>
+      <div class="dv-card" style="width:1380px;height:880px"><dc-import name="DriftFetchApp" dialog="picker" style="width:1380px;height:880px" hint-size="1380px,880px"></dc-import></div>
+    </div>
+    <div class="dv-opt" id="1g">
+      <div class="dv-olabel"><a class="dv-oid" href="#1g">1g</a>Details · downloading (technical details open)</div>
+      <div class="dv-card" style="width:1380px;height:880px"><dc-import name="DriftFetchApp" panel="downloading" tech-open="{{ true }}" style="width:1380px;height:880px" hint-size="1380px,880px"></dc-import></div>
+    </div>
+    <div class="dv-opt" id="1h">
+      <div class="dv-olabel"><a class="dv-oid" href="#1h">1h</a>Details · ready, with format choice</div>
+      <div class="dv-card" style="width:1380px;height:880px"><dc-import name="DriftFetchApp" panel="ready" style="width:1380px;height:880px" hint-size="1380px,880px"></dc-import></div>
+    </div>
+    <div class="dv-opt" id="1i">
+      <div class="dv-olabel"><a class="dv-oid" href="#1i">1i</a>Details · rate limited (live countdown)</div>
+      <div class="dv-card" style="width:1380px;height:880px"><dc-import name="DriftFetchApp" panel="rate" style="width:1380px;height:880px" hint-size="1380px,880px"></dc-import></div>
+    </div>
+    <div class="dv-opt" id="1j">
+      <div class="dv-olabel"><a class="dv-oid" href="#1j">1j</a>Details · failed</div>
+      <div class="dv-card" style="width:1380px;height:880px"><dc-import name="DriftFetchApp" panel="failed" style="width:1380px;height:880px" hint-size="1380px,880px"></dc-import></div>
+    </div>
+    <div class="dv-opt" id="1k">
+      <div class="dv-olabel"><a class="dv-oid" href="#1k">1k</a>Settings · Downloads (4 sections replace 8 tabs, click to switch)</div>
+      <div class="dv-card" style="width:1380px;height:880px"><dc-import name="DriftFetchApp" screen="settings" style="width:1380px;height:880px" hint-size="1380px,880px"></dc-import></div>
+    </div>
+    <div class="dv-opt" id="1k2">
+      <div class="dv-olabel"><a class="dv-oid" href="#1k2">1k2</a>Settings · Quality &amp; files</div>
+      <div class="dv-card" style="width:1380px;height:880px"><dc-import name="DriftFetchApp" screen="settings" section="quality" style="width:1380px;height:880px" hint-size="1380px,880px"></dc-import></div>
+    </div>
+    <div class="dv-opt" id="1l">
+      <div class="dv-olabel"><a class="dv-oid" href="#1l">1l</a>Settings · Sites &amp; sign-ins</div>
+      <div class="dv-card" style="width:1380px;height:880px"><dc-import name="DriftFetchApp" screen="settings" section="sites" style="width:1380px;height:880px" hint-size="1380px,880px"></dc-import></div>
+    </div>
+    <div class="dv-opt" id="1m">
+      <div class="dv-olabel"><a class="dv-oid" href="#1m">1m</a>Settings · Advanced (engine, extensions, backup, privacy buried here)</div>
+      <div class="dv-card" style="width:1380px;height:880px"><dc-import name="DriftFetchApp" screen="settings" section="advanced" style="width:1380px;height:880px" hint-size="1380px,880px"></dc-import></div>
+    </div>
+    <div class="dv-opt" id="1n">
+      <div class="dv-olabel"><a class="dv-oid" href="#1n">1n</a>Add links dialog (optional)</div>
+      <div class="dv-card" style="width:1380px;height:880px"><dc-import name="DriftFetchApp" dialog="add" style="width:1380px;height:880px" hint-size="1380px,880px"></dc-import></div>
+    </div>
+  </div>
+  <p class="dv-next">Try next: "add the light theme to <a class="dv-oid" href="#1c">1c</a>" · "History, Review queue and Recent captures in this style" · "first-launch privacy dialog"</p>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const sw = (n, c, use, ink, sample) => ({ n, c, use, ink: ink || '#e9ecf4', sample: sample || '' });
+    const swGroups = [
+      { title: 'Surfaces & lines (dark)', items: [
+        sw('--bg-app', '#0b0e17', 'Window, main content'), sw('--bg-titlebar', '#090c14', 'Title bar'), sw('--bg-sidebar', '#0d111a', 'Sidebar'),
+        sw('--bg-list', '#0e121b', 'List & settings cards'), sw('--bg-panel', '#11151f', 'Side panel, dialogs'), sw('--bg-raised', '#181e2b', 'Secondary buttons, selects'),
+        sw('--bg-hover', '#1c2333', 'Hover, active tab'), sw('--border', '#1d2331', 'Dividers'), sw('--border-strong', '#2a3142', 'Control borders')
+      ] },
+      { title: 'Text', items: [
+        sw('--text-1', '#e9ecf4', 'Titles, values · 15.6:1', '#0b0e17', 'Aa'), sw('--text-2', '#a6adbe', 'Body, labels · 8.4:1', '#0b0e17', 'Aa'), sw('--text-3', '#7f879a', 'Meta, hints · 5.1:1', '#0b0e17', 'Aa')
+      ] },
+      { title: 'Brand & accents — from the icon', items: [
+        sw('--brand-navy', '#010930', 'Icon ground, rare large fills'), sw('--accent', '#0b67fe', 'Primary button, selection · white text 4.8:1', '#fff', 'Add links'), sw('--accent-hover', '#2a7bff', 'Hover'), sw('--accent-press', '#0044ee', 'Pressed'),
+        sw('--accent-text', '#6aa6ff', 'Links, active icons on dark · 7.2:1', '#0b0e17', 'Link'), sw('--cyan', '#0cf3fe', 'Progress, focus ring only', '#0b0e17', 'Focus'), sw('--cyan-text', '#5fe3ee', 'Downloading label', '#0b0e17', 'Live')
+      ] },
+      { title: 'Status', items: [
+        sw('--ok', '#5fcf98', 'Saved, engine ready', '#0b0e17', 'Saved'), sw('--wait', '#e9b45a', 'Rate limited — self-resolving', '#0b0e17', 'Wait'), sw('--danger', '#f2847b', 'Failed, destructive', '#0b0e17', 'Failed'), sw('--neutral', '#a6adbe', 'Waiting, paused, checking', '#0b0e17', 'Idle')
+      ] },
+      { title: 'Light theme (optional)', items: [
+        sw('--bg-app', '#f6f7fa', 'Window', '#121624', 'Aa'), sw('--bg-panel', '#ffffff', 'Panels', '#121624', 'Aa'), sw('--border', '#dfe3ec', 'Dividers', '#121624'), sw('--text-1', '#121624', 'Text'), sw('--text-3', '#5e667a', 'Meta · 5.6:1'), sw('--accent', '#0b5ae6', 'Primary', '#fff', 'Add links'), sw('--cyan', '#0090a8', 'Progress')
+      ] }
+    ];
+    const ui = "'Segoe UI Variable Display','Segoe UI',system-ui,sans-serif", tx = "'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif", mono = "'Cascadia Mono',ui-monospace,Consolas,monospace";
+    const type = [
+      ['--type-title', '20/28 · 600', '20px', 600, ui, 'Downloads'], ['--type-dialog', '17/24 · 600', '17px', 600, ui, 'Choose images to download'], ['--type-heading', '15/22 · 600', '15px', 600, tx, 'No downloads yet'],
+      ['--type-body', '13/20 · 400', '13px', 400, tx, 'Copy a link and DriftFetch picks it up.'], ['--type-label', '13/20 · 500', '13px', 500, tx, 'Northern Lights Timelapse'],
+      ['--type-small', '12/16 · 400', '12px', 400, tx, 'youtube.com · 13:04 · 6.4 MB/s'], ['--type-mono', '11.5/16 · Cascadia', '11.5px', 400, mono, 'C:\\Users\\you\\Downloads']
+    ].map(([n, spec, fs, fw, ff, sample]) => ({ n, spec, fs, fw, ff, sample }));
+    const space = [['--sp-1', 4], ['--sp-2', 8], ['--sp-3', 12], ['--sp-4', 16], ['--sp-5', 20], ['--sp-6', 24], ['--sp-8', 32], ['--sp-10', 40]].map(([n, v]) => ({ n, v: v + 'px', w: v * 3 + 'px' }));
+    const radii = [['--r-xs', '4px'], ['--r-sm', '6px'], ['--r-md', '8px'], ['--r-lg', '10px'], ['--r-xl', '12px']].map(([n, v]) => ({ n, v }));
+    const motion = [['--dur-fast', '120 ms', 'Hover, toggles'], ['--dur-base', '180 ms', 'Panel slide, tabs'], ['--dur-slow', '240 ms', 'Dialogs in'], ['--ease', 'cubic-bezier(.2,.8,.2,1)', 'All of the above']].map(([n, v, use]) => ({ n, v, use }));
+    const pills = [
+      ['#a6adbe', 'Checking link', 'Resolving — spinner'], ['#6aa6ff', 'Ready to start', 'Needs a click (auto off)'], ['#a6adbe', 'Waiting · next in line', 'Queued'], ['#5fe3ee', 'Downloading · 38 s left', 'Live'],
+      ['#a6adbe', 'Paused', 'Stopped by you'], ['#6aa6ff', 'Choose items', 'Collection'], ['#e9b45a', 'Rate limited · resumes in 4:32', 'Not an error'], ['#f2847b', 'Sign-in needed', 'Failed — short reason'], ['#5fcf98', 'Saved', 'Done'], ['#a6adbe', 'Already in list', 'Duplicate']
+    ].map(([c, l, use]) => ({ c, l, use }));
+    const STRIPE = 'repeating-linear-gradient(135deg,#171c29 0 5px,#121722 5px 10px)';
+    const thumbs = [
+      { l: 'Image', bg: 'linear-gradient(160deg,#0f3b4a 0%,#1d6b6a 55%,#0b1f33 100%)', icon: '', op: 1 },
+      { l: 'No image', bg: STRIPE, icon: 'film', op: 1 },
+      { l: 'Collection', bg: 'linear-gradient(160deg,#6b4a2a 0%,#c79a5a 60%,#3a2a1a 100%)', icon: '', op: 1, stack: true },
+      { l: 'Profile', bg: STRIPE, icon: 'user-round', op: 1 },
+      { l: 'Checking', bg: STRIPE, icon: 'link', op: 1 },
+      { l: 'Duplicate', bg: 'linear-gradient(160deg,#0f3b4a 0%,#1d6b6a 55%,#0b1f33 100%)', icon: '', op: 0.45 }
+    ];
+    return { swGroups, type, space, radii, motion, pills, thumbs };
+  }
+}
+</script>
+</body>
+</html>

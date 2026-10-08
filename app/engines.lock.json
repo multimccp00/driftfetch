@@ -1,0 +1,60 @@
+{
+  "yt-dlp.exe": {
+    "version": "2026.08.19",
+    "sha256": "66674953fe251b89f4d08c5f0e35e0728679bd67ab3d7d05c0562af101dd3e7a",
+    "source": "https://github.com/yt-dlp/yt-dlp/releases/download/2026.08.19/yt-dlp.exe"
+  },
+  "deno.exe": {
+    "version": "v2.9.6",
+    "sha256": "2ff9493dfa356be2975f477025ea770088e9e9cb2c83d983236d13561b96b7a6",
+    "source": "https://github.com/denoland/deno/releases/download/v2.9.6/deno-x86_64-pc-windows-msvc.zip",
+    "archiveSha256": "15e5300b0ba3c3695a7621d90160a746ec9e710228cee639afa9d580f6e3cd11"
+  },
+  "gallery-dl.exe": {
+    "version": "v1.32.12",
+    "sha256": "0b36ae6734ed41e12be6be1b33d3165a450b3e0a811fc1b8c664c032f7f13b2c",
+    "source": "https://codeberg.org/mikf/gallery-dl/releases/download/v1.32.12/gallery-dl.exe"
+  },
+  "avcodec-63.dll": {
+    "version": "n9.0.2-remux-only",
+    "sha256": "c94b68cf7f110b3c1670eeaf5ba4b3ccbf8cc0699a8905ebf86244bb71d72be2",
+    "source": "built from source by scripts/build-ffmpeg.sh (remux-only)",
+    "commit": "946fcce07b6dcd0331c8cc609192aeff5e1924f8"
+  },
+  "avfilter-12.dll": {
+    "version": "n9.0.2-remux-only",
+    "sha256": "cc30fee02a7b9e6cd6164b98732f420c62ef61d74d2d9ac7e53c4062115d4c0f",
+    "source": "built from source by scripts/build-ffmpeg.sh (remux-only)",
+    "commit": "946fcce07b6dcd0331c8cc609192aeff5e1924f8"
+  },
+  "avformat-63.dll": {
+    "version": "n9.0.2-remux-only",
+    "sha256": "210afec2036796dde739369a122bd66e6b449fe364d970035dc191d3f5ffc051",
+    "source": "built from source by scripts/build-ffmpeg.sh (remux-only)",
+    "commit": "946fcce07b6dcd0331c8cc609192aeff5e1924f8"
+  },
+  "avutil-61.dll": {
+    "version": "n9.0.2-remux-only",
+    "sha256": "08edaf6dd09731ade287b9c56dc4405b922895a6d3fc9609bb99e21722a602a7",
+    "source": "built from source by scripts/build-ffmpeg.sh (remux-only)",
+    "commit": "946fcce07b6dcd0331c8cc609192aeff5e1924f8"
+  },
+  "ffmpeg.exe": {
+    "version": "n9.0.2-remux-only",
+    "sha256": "46611c6032921d5061a19660ca4df60f6f2609d54e0c1c802e8a069f42f99682",
+    "source": "built from source by scripts/build-ffmpeg.sh (remux-only)",
+    "commit": "946fcce07b6dcd0331c8cc609192aeff5e1924f8"
+  },
+  "ffprobe.exe": {
+    "version": "n9.0.2-remux-only",
+    "sha256": "d3957bd9652350bc88814d71ef99cf2d6a8651f42e97072339aa527f1170c2e0",
+    "source": "built from source by scripts/build-ffmpeg.sh (remux-only)",
+    "commit": "946fcce07b6dcd0331c8cc609192aeff5e1924f8"
+  },
+  "swresample-7.dll": {
+    "version": "n9.0.2-remux-only",
+    "sha256": "3a03fb0db29033037eeaf35035416a360a7578bae37be4b61e04784bb608fe9b",
+    "source": "built from source by scripts/build-ffmpeg.sh (remux-only)",
+    "commit": "946fcce07b6dcd0331c8cc609192aeff5e1924f8"
+  }
+}

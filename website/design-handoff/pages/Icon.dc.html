@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script><style>@keyframes dfspin{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){svg{animation:none!important}}</style></helmet><span style="display:flex;flex:none;align-items:center;justify-content:center;line-height:0">{{ svg }}</span>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:24,&quot;height&quot;:24},&quot;n&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;download&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;size&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:16,&quot;tsType&quot;:&quot;number&quot;},&quot;stroke&quot;:{&quot;editor&quot;:&quot;float&quot;,&quot;default&quot;:1.75,&quot;tsType&quot;:&quot;number&quot;},&quot;spin&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  componentDidMount() {
+    if (!window.lucide) this.t = setInterval(() => { if (window.lucide) { clearInterval(this.t); this.forceUpdate(); } }, 80);
+  }
+  componentWillUnmount() { clearInterval(this.t); }
+  renderVals() {
+    const n = this.props.n || 'circle', s = +(this.props.size || 16), sw = +(this.props.stroke || 1.75);
+    const L = window.lucide;
+    let svg = React.createElement('span', { style: { width: s, height: s, display: 'inline-block' } });
+    if (L) {
+      const key = String(n).split('-').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join('');
+      const ic = (L.icons && L.icons[key]) || L[key];
+      if (ic) {
+        const kids = Array.isArray(ic) && ic[0] === 'svg' ? ic[2] : ic;
+        const camel = a => { const o = {}; for (const k in a) o[k.replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = a[k]; return o; };
+        svg = React.createElement('svg', { width: s, height: s, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: sw, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true, style: this.props.spin ? { animation: 'dfspin 1s linear infinite' } : undefined },
+          kids.map(([t, a], i) => React.createElement(t, { ...camel(a), key: i })));
+      }
+    }
+    return { svg };
+  }
+}
+</script>
+</body>
+</html>

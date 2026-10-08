@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><title>DriftFetch – Free video and image downloader for Windows</title><meta name="description" content="Copy a link and DriftFetch saves the video or gallery to your PC. Free, open source (MIT) and private: no account, no ads, no tracking. For Windows 10 and 11."><link rel="canonical" href="https://driftfetch.app/"><meta name="robots" content="index,follow"><meta name="theme-color" content="#010930"><link rel="icon" type="image/png" href="assets/driftfetch-icon.png"><meta property="og:type" content="website"><meta property="og:site_name" content="DriftFetch"><meta property="og:title" content="DriftFetch – Copy a link. That’s the whole interface."><meta property="og:description" content="A free, private video and image downloader for Windows. No account, no ads, no tracking."><meta property="og:url" content="https://driftfetch.app/"><meta property="og:image" content="https://driftfetch.app/og-image.png"><meta property="og:image:alt" content="The DriftFetch downloads list on Windows"><meta name="twitter:card" content="summary_large_image"><script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"DriftFetch","operatingSystem":"Windows 10, Windows 11","applicationCategory":"MultimediaApplication","softwareVersion":"0.2.1","description":"A free, open-source video and image downloader for Windows that picks up links you copy.","license":"https://opensource.org/licenses/MIT","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"downloadUrl":"https://driftfetch.app/download","url":"https://driftfetch.app/"}</script><script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Is DriftFetch really free?","acceptedAnswer":{"@type":"Answer","text":"Yes. DriftFetch is MIT-licensed open source with no ads, trials or paid features."}},{"@type":"Question","name":"Which sites does it work with?","acceptedAnswer":{"@type":"Answer","text":"Sites supported by yt-dlp and gallery-dl, such as YouTube, Vimeo, Internet Archive and Dailymotion. Some sites need you to sign in once inside the app."}},{"@type":"Question","name":"Do I need an account?","acceptedAnswer":{"@type":"Answer","text":"No. There is nothing to sign up for and no DriftFetch server."}},{"@type":"Question","name":"Does it work on Mac or Linux?","acceptedAnswer":{"@type":"Answer","text":"Not yet. DriftFetch is built and tested for Windows 10 and 11."}},{"@type":"Question","name":"Where do my files go?","acceptedAnswer":{"@type":"Answer","text":"To Downloads\\DriftFetch by default, sorted into a folder per site. You can change this in Settings."}},{"@type":"Question","name":"Is downloading allowed?","acceptedAnswer":{"@type":"Answer","text":"Only save content you have the right to keep, and follow each site’s terms. DriftFetch does not remove DRM or get around paywalls."}}]}</script><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""><link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500;1,600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"><style>html{scroll-behavior:smooth}body{margin:0;background:#f3f5fa;color:#010930;-webkit-font-smoothing:antialiased}a{color:#0a55d6;text-decoration:none}a:hover{color:#010930}::selection{background:#0b67fe;color:#fff}@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}</style></helmet>
+<div ref="{{ rootRef }}" style="position:relative;min-height:100vh;background:#f3f5fa;font-family:'Schibsted Grotesk',system-ui,sans-serif;font-size:17px;line-height:1.55;color:#010930;overflow-x:clip">
+  <a href="#main" style="position:absolute;left:-9999px;top:8px;z-index:50;padding:10px 14px;background:#fff;color:#010930;border-radius:6px" style-focus="left:8px">Skip to content</a>
+  <header style="position:relative;z-index:30;padding:0 clamp(20px,4vw,48px);background:#010930">
+    <div style="max-width:1180px;margin:0 auto;height:76px;display:flex;align-items:center;gap:32px;border-bottom:1px solid rgba(255,255,255,0.1)">
+      <a href="#top" aria-label="DriftFetch home" style="display:flex;align-items:center;gap:10px;color:#fff">
+        <img src="assets/driftfetch-icon.png" alt="" width="28" height="28" style="width:28px;height:28px;border-radius:7px;display:block">
+        <span style="font-size:18px;font-weight:700;letter-spacing:-0.02em">DriftFetch</span>
+      </a>
+      <div style="flex:1"></div>
+      <nav aria-label="Main" style="display:flex;align-items:center;gap:22px;flex-wrap:wrap;font-size:15px;font-weight:500">
+        <a href="Sites.dc.html" style="color:#b7c1e0" style-hover="color:#fff">Sites</a>
+        <a href="FAQ.dc.html" style="color:#b7c1e0" style-hover="color:#fff">FAQ</a>
+        <a href="Privacy.dc.html" style="color:#b7c1e0" style-hover="color:#fff">Privacy</a>
+        <a href="Donate.dc.html" style="color:#b7c1e0" style-hover="color:#fff">Donate</a>
+        <a href="Download.dc.html" style="display:flex;align-items:center;gap:8px;height:38px;padding:0 14px;border-radius:8px;background:#0b67fe;color:#fff;font-weight:600" style-hover="background:#2a7bff;color:#fff"><dc-import name="Icon" n="arrow-down-to-line" size="16" stroke="2" hint-size="16px,16px"></dc-import>Download</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <div ref="{{ jRef }}" style="position:relative">
+
+      <section id="top" ref="{{ heroRef }}" aria-labelledby="h-hero" style="position:relative;background:#010930;color:#f2f5ff;padding:clamp(56px,8vw,112px) clamp(20px,4vw,48px) 150px">
+        <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto;box-sizing:border-box;padding-right:{{ padR }};padding-left:{{ padL }}">
+          <h1 id="h-hero" style="margin:0;font-size:clamp(44px,6vw,86px);line-height:1;font-weight:700;letter-spacing:-0.04em;max-width:11ch;text-wrap:balance">Copy a link and it’s on your PC.</h1>
+          <div style="margin-top:44px;display:flex">
+            <button ref="{{ linkRef }}" onClick="{{ heroCopy }}" title="Copy this link" style="max-width:100%;padding:3px 6px;border:none;border-radius:2px;background:#0cf3fe;color:#010930;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:clamp(17px,2vw,26px);line-height:1.3;text-align:left;overflow-wrap:anywhere;cursor:pointer;user-select:text" style-hover="background:#6ff8ff">youtube.com/watch?v=aBcD123</button>
+          </div>
+          <sc-if value="{{ notPicked }}" hint-placeholder-val="{{ true }}">
+            <p style="margin:14px 0 0;display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:15px;color:#8a96bd">That’s the whole interface. Click the link, or select it and press <span style="padding:2px 8px;border-radius:5px;background:#0e1a4a;box-shadow:0 0 0 1px rgba(255,255,255,0.16),0 2px 0 rgba(255,255,255,0.16);font-weight:600;color:#f2f5ff;font-size:13px">Ctrl</span>+<span style="padding:2px 8px;border-radius:5px;background:#0e1a4a;box-shadow:0 0 0 1px rgba(255,255,255,0.16),0 2px 0 rgba(255,255,255,0.16);font-weight:600;color:#f2f5ff;font-size:13px">C</span></p>
+          </sc-if>
+          <sc-if value="{{ picked }}" hint-placeholder-val="{{ false }}">
+            <p role="status" style="margin:14px 0 0;display:flex;align-items:center;gap:8px;font-size:15px;color:#5fcf98"><dc-import name="Icon" n="check" size="16" stroke="2" hint-size="16px,16px"></dc-import>Copied. DriftFetch would already be saving it. It’s waiting in the demo further down.</p>
+          </sc-if>
+          <p style="margin:64px 0 0;max-width:28em;font-size:clamp(18px,1.6vw,20px);line-height:1.55;color:#c7cfea;text-wrap:pretty">DriftFetch waits in your tray. When you copy a video or gallery link, it finds the best version and saves it. No account, no ads, and nobody watching.</p>
+          <div style="margin-top:28px;display:flex;flex-direction:column;gap:10px;align-items:flex-start">
+            <a href="#download" style="display:flex;align-items:center;gap:10px;height:52px;padding:0 22px 0 18px;border-radius:8px;background:#0b67fe;color:#fff;font-size:16px;font-weight:600" style-hover="background:#2a7bff;color:#fff"><dc-import name="Icon" n="arrow-down-to-line" size="18" stroke="2" hint-size="18px,18px"></dc-import>Download for Windows</a>
+            <span style="font-size:14px;color:#8a96bd">Free and open source · Windows 10 and 11 · Version 0.2.1</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="how" ref="{{ howRef }}" aria-labelledby="h-how" style="position:relative;background:#fff;padding:150px clamp(20px,4vw,48px) 120px">
+        <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto;box-sizing:border-box;padding-right:{{ padR }};padding-left:{{ padL }}">
+          <h2 id="h-how" style="margin:0;font-size:clamp(36px,4.4vw,58px);line-height:1;font-weight:800;letter-spacing:-0.04em;text-wrap:balance;max-width:14ch;margin-bottom:40px">Three steps. You only do the <span style="background:linear-gradient(transparent 64%,#0cf3fe 64%,#0cf3fe 90%,transparent 90%);padding:0 2px">first one</span>.</h2>
+          <ol style="list-style:none;margin:0;padding:0">
+          <li style="padding:28px 0 34px;border-top:1px solid rgba(1,9,48,0.12)">
+            <div style="display:flex;align-items:baseline;gap:16px"><span style="font-size:15px;font-weight:700;color:#0a55d6">01</span><h3 style="margin:0;font-size:clamp(26px,2.6vw,34px);font-weight:700;letter-spacing:-0.025em">Copy a link</h3></div>
+            <p style="margin:14px 0 0 34px;max-width:30em;color:#353d5c;font-size:18px;text-wrap:pretty">From your browser, a chat or an email. Anywhere Windows lets you copy. That’s your part done.</p>
+          </li>
+          <li style="padding:28px 0 34px;border-top:1px solid rgba(1,9,48,0.12)">
+            <div style="display:flex;align-items:baseline;gap:16px"><span style="font-size:15px;font-weight:700;color:#0a55d6">02</span><h3 style="margin:0;font-size:clamp(26px,2.6vw,34px);font-weight:700;letter-spacing:-0.025em">DriftFetch finds it</h3></div>
+            <p style="margin:14px 0 0 34px;max-width:30em;color:#353d5c;font-size:18px;text-wrap:pretty">It checks what the link points to and picks the best quality the site offers. Albums and playlists wait for you to choose.</p>
+          </li>
+          <li style="padding:28px 0 34px;border-top:1px solid rgba(1,9,48,0.12)">
+            <div style="display:flex;align-items:baseline;gap:16px"><span style="font-size:15px;font-weight:700;color:#0a55d6">03</span><h3 style="margin:0;font-size:clamp(26px,2.6vw,34px);font-weight:700;letter-spacing:-0.025em">It’s on your PC</h3></div>
+            <p style="margin:14px 0 0 34px;max-width:30em;color:#353d5c;font-size:18px;text-wrap:pretty">Saved to Downloads\\DriftFetch, sorted by site. Open the file or its folder straight from the list.</p>
+          </li>
+          </ol>
+        </div>
+      </section>
+
+      <section id="try" ref="{{ tryRef }}" aria-labelledby="h-try" style="position:relative;padding:150px clamp(20px,4vw,48px) 150px;background:#e4e9f4;color:#010930">
+        <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto;display:grid;grid-template-columns:{{ tryCols }};gap:56px 60px;align-items:center">
+          <div style="min-width:0">
+          <h2 id="h-try" style="margin:0;font-size:clamp(36px,4.4vw,58px);line-height:1;font-weight:800;letter-spacing:-0.04em;text-wrap:balance;max-width:13ch">Go on, try it on <span style="background:linear-gradient(transparent 64%,#0cf3fe 64%,#0cf3fe 90%,transparent 90%);padding:0 2px">this page</span>.</h2>
+          <p style="margin:20px 0 0;color:#353d5c;max-width:30em;font-size:18px;text-wrap:pretty">This page listens for copied links the way the app does. Click a link below, or select one and press Ctrl+C, and watch it land.</p>
+          <ul style="list-style:none;margin:32px 0 0;padding:0;display:flex;flex-direction:column;gap:8px">
+            <sc-for list="{{ chips }}" as="c" hint-placeholder-count="4">
+              <li style="display:flex"><button onClick="{{ c.go }}" title="Copy this link" style="display:flex;align-items:center;gap:12px;max-width:100%;height:48px;padding:0 16px;border-radius:10px;border:1px solid rgba(1,9,48,0.18);background:#fff;color:#010930;font-family:'JetBrains Mono',monospace;font-size:13.5px;cursor:pointer;user-select:text;text-align:left" style-hover="border-color:#0b67fe;background:#fff">
+                <span style="color:#0a55d6;display:flex;flex:none"><dc-import name="Icon" n="{{ c.icon }}" size="15" hint-size="15px,15px"></dc-import></span><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.label }}</span><span style="font-family:'Schibsted Grotesk',sans-serif;font-size:13px;color:#596180;flex:none;margin-left:8px">{{ c.hint }}</span>
+              </button></li>
+            </sc-for>
+          </ul>
+          </div>
+          <div style="min-width:0;order:{{ demoOrder }}">
+        <div role="region" aria-label="DriftFetch demo" style="position:relative;border-radius:12px;background:#0b0e17;overflow:hidden;box-shadow:0 0 0 1px rgba(1,9,48,0.25),0 30px 70px rgba(1,9,48,0.4);font-family:'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif;font-size:13px;line-height:20px;color:#e9ecf4">
+          <div style="height:36px;display:flex;align-items:center;background:#090c14;border-bottom:1px solid #1a1f2c">
+            <div style="display:flex;align-items:center;gap:8px;padding:0 12px;flex:1;min-width:0"><img src="assets/driftfetch-icon.png" alt="" style="width:16px;height:16px;border-radius:4px;display:block"><span style="font-size:12px;font-weight:600;color:#c9cfdc">DriftFetch</span></div>
+            <span style="width:40px;display:flex;justify-content:center;color:#7f879a"><dc-import name="Icon" n="minus" size="13" stroke="1.5" hint-size="13px,13px"></dc-import></span>
+            <span style="width:40px;display:flex;justify-content:center;color:#7f879a"><dc-import name="Icon" n="square" size="10" stroke="1.5" hint-size="10px,10px"></dc-import></span>
+            <span style="width:40px;display:flex;justify-content:center;color:#7f879a"><dc-import name="Icon" n="x" size="14" stroke="1.5" hint-size="14px,14px"></dc-import></span>
+          </div>
+          <div style="padding:16px 16px 0;display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;background:rgba(11,103,254,0.1);border:1px solid rgba(106,166,255,0.18)">
+              <span style="width:30px;height:30px;flex:none;border-radius:8px;background:rgba(12,243,254,0.08);color:#5fe3ee;display:flex;align-items:center;justify-content:center"><dc-import name="Icon" n="radio" size="16" hint-size="16px,16px"></dc-import></span>
+              <div style="flex:1;min-width:0"><div style="font-weight:600">Listening for links</div><div style="font-size:12px;color:#a6adbe;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ listenSub }}</div></div>
+              <span style="width:32px;height:18px;border-radius:9px;background:#0b67fe;position:relative;flex:none"><span style="position:absolute;top:2px;left:16px;width:14px;height:14px;border-radius:50%;background:#fff"></span></span>
+            </div>
+            <div style="border-radius:10px;border:1px solid #1a1f2c;background:#0e121b;overflow:hidden;height:268px;display:flex;flex-direction:column">
+              <div style="display:flex;align-items:center;height:34px;flex:none;padding:0 14px;border-bottom:1px solid #1a1f2c;background:#0c1019;font-size:10.5px;font-weight:600;letter-spacing:0.08em;color:#7f879a"><span style="flex:1">VIDEO / SOURCE</span><span style="width:150px">STATUS</span></div>
+              <sc-if value="{{ noRows }}" hint-placeholder-val="{{ true }}">
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:24px;text-align:center;color:#a6adbe">
+                  <span style="color:#6aa6ff;display:flex"><dc-import name="Icon" n="clipboard-paste" size="22" hint-size="22px,22px"></dc-import></span>
+                  <span style="font-weight:600;color:#e9ecf4">Nothing here yet</span>
+                  <span style="font-size:12.5px;max-width:260px">{{ emptyText }}</span>
+                </div>
+              </sc-if>
+              <sc-for list="{{ list }}" as="r" hint-placeholder-count="0">
+                <div style="display:flex;align-items:center;gap:12px;height:58px;flex:none;padding:0 14px;border-bottom:1px solid #151a25;background:{{ r.bg }};transition:background .4s">
+                  <div style="width:56px;height:32px;flex:none;border-radius:6px;background:{{ r.thumb }};opacity:{{ r.op }};box-shadow:inset 0 0 0 1px rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;color:#6f788c"><sc-if value="{{ r.ticon }}"><dc-import name="Icon" n="{{ r.ticon }}" size="14" spin="{{ r.tspin }}" hint-size="14px,14px"></dc-import></sc-if></div>
+                  <div style="flex:1;min-width:0;opacity:{{ r.op }}">
+                    <div style="font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:{{ r.tfg }};font-family:{{ r.tff }};font-size:{{ r.tfs }}">{{ r.title }}</div>
+                    <div style="display:flex;align-items:center;gap:6px;font-size:12px;line-height:16px;color:#7f879a;white-space:nowrap"><span>{{ r.site }}</span><sc-if value="{{ r.q }}"><span style="height:16px;padding:0 5px;border-radius:4px;border:1px solid #2b3345;color:#b4bbcb;font-size:10.5px;font-weight:600;line-height:14px;box-sizing:border-box">{{ r.q }}</span></sc-if></div>
+                  </div>
+                  <div style="width:150px;flex:none;display:flex;flex-direction:column;gap:5px;opacity:{{ r.op }}">
+                    <div style="display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:500;color:{{ r.fg }};white-space:nowrap">
+                      <dc-import name="Icon" n="{{ r.sicon }}" size="13" stroke="2" spin="{{ r.sspin }}" hint-size="13px,13px"></dc-import>
+                      <span style="overflow:hidden;text-overflow:ellipsis">{{ r.label }}</span>
+                      <sc-if value="{{ r.pct }}"><span style="margin-left:auto;color:#e9ecf4;font-variant-numeric:tabular-nums">{{ r.pct }}</span></sc-if>
+                    </div>
+                    <sc-if value="{{ r.bar }}"><div style="height:4px;border-radius:2px;background:#1e2433;overflow:hidden"><div style="height:100%;width:{{ r.barW }};border-radius:2px;background:linear-gradient(90deg,#0b67fe,#0cf3fe);transition:width .25s"></div></div></sc-if>
+                    <sc-if value="{{ r.sub }}"><div style="font-size:12px;line-height:16px;color:#7f879a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.sub }}</div></sc-if>
+                    <sc-if value="{{ r.choose }}"><button onClick="{{ r.choose }}" style="align-self:flex-start;height:22px;padding:0 8px;border:none;border-radius:5px;background:#0b67fe;color:#fff;font-family:inherit;font-size:11.5px;font-weight:600;cursor:pointer">Download all 18</button></sc-if>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding:12px 16px;font-size:12px;color:#7f879a">
+            <span>{{ countText }}</span><span style="flex:1"></span>
+            <sc-if value="{{ hasUser }}"><button onClick="{{ clearRows }}" style="border:none;background:transparent;color:#6aa6ff;font-family:inherit;font-size:12px;cursor:pointer;padding:0">Clear</button></sc-if>
+          </div>
+          <sc-if value="{{ toast }}">
+            <div role="status" style="position:absolute;left:50%;bottom:52px;transform:translateX(-50%);display:flex;align-items:center;gap:10px;height:40px;padding:0 14px;border-radius:8px;background:#1a2030;border:1px solid #2a3142;box-shadow:0 6px 16px rgba(0,0,0,0.35);font-size:12.5px;white-space:nowrap">
+              <span style="color:#5fe3ee;display:flex"><dc-import name="Icon" n="clipboard-check" size="15" hint-size="15px,15px"></dc-import></span>{{ toast }}
+            </div>
+          </sc-if>
+        </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="status" ref="{{ statusRef }}" aria-labelledby="h-status" style="position:relative;background:#fff;padding:150px clamp(20px,4vw,48px) 150px">
+        <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto;box-sizing:border-box;padding-right:{{ padR }};padding-left:{{ padL }}">
+          <h2 id="h-status" style="margin:0;font-size:clamp(36px,4.4vw,58px);line-height:1;font-weight:800;letter-spacing:-0.04em;text-wrap:balance;max-width:14ch">It tells you what’s <span style="background:linear-gradient(transparent 64%,#0cf3fe 64%,#0cf3fe 90%,transparent 90%);padding:0 2px">actually</span> going on.</h2>
+          <p style="margin:20px 0 48px;color:#353d5c;max-width:30em;font-size:18px;text-wrap:pretty">A lot of downloaders turn everything red the moment a site says “slow down”. DriftFetch gives each situation its own name, colour and next step, so you only act when you really have to.</p>
+          <dl style="margin:0;display:flex;flex-direction:column">
+            <sc-for list="{{ states }}" as="s" hint-placeholder-count="5">
+              <div style="padding:36px 0 44px;border-top:1px solid rgba(1,9,48,0.12)">
+                <dt style="display:flex;align-items:center;gap:14px;font-size:clamp(22px,2.2vw,28px);font-weight:700;letter-spacing:-0.025em;color:{{ s.c }}"><span style="width:11px;height:11px;border-radius:50%;background:{{ s.c }};flex:none"></span>{{ s.label }}</dt>
+                <dd style="margin:10px 0 0 25px;color:#353d5c;max-width:32em;text-wrap:pretty">{{ s.text }}</dd>
+              </div>
+            </sc-for>
+          </dl>
+        </div>
+      </section>
+    </div>
+
+    <section id="app" aria-labelledby="h-app" style="position:relative;padding:150px clamp(20px,4vw,48px) 150px;background:#0b67fe;color:#fff">
+      <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:20px 72px;align-items:end;margin-bottom:56px">
+          <h2 id="h-app" style="margin:0;font-size:clamp(36px,4.4vw,58px);line-height:1;font-weight:800;letter-spacing:-0.04em;text-wrap:balance">And when you want the details, they’re all there.</h2>
+          <p style="margin:0;color:#e8efff;max-width:30em;font-size:18px;text-wrap:pretty">Every download in one list, with filters, a details panel and settings in plain words. This is the real interface, so click around.</p>
+        </div>
+        <div ref="{{ appRef }}" style="position:relative;width:100%;aspect-ratio:1380/880;border-radius:10px;overflow:hidden;background:#0b0e17;box-shadow:0 0 0 1px rgba(1,9,48,0.3),0 40px 80px -30px rgba(1,9,48,0.65)">
+          <div style="position:absolute;top:0;left:0;width:1380px;height:880px;transform-origin:0 0;transform:{{ appScale }}">
+            <dc-import name="DriftFetchApp" style="width:1380px;height:880px" hint-size="1380px,880px"></dc-import>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="privacy" aria-labelledby="h-privacy" style="position:relative;background:#010930;color:#f2f5ff;padding:170px clamp(20px,4vw,48px) 130px">
+      <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto">
+        <h2 id="h-privacy" style="margin:0 0 64px;font-size:clamp(38px,5.4vw,72px);line-height:0.98;font-weight:800;letter-spacing:-0.045em;max-width:14ch;text-wrap:balance">No account. No ads. No tracking. <span style="font-style:italic;font-weight:600;color:#9fb0e6">Not even on this website.</span></h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:40px 56px">
+          <div style="display:flex;flex-direction:column;gap:12px;padding-top:20px;border-top:2px solid #0cf3fe">
+            <h3 style="margin:0;font-size:20px;font-weight:700;letter-spacing:-0.015em">What stays on your PC</h3>
+            <p style="margin:0;color:#c7cfea;text-wrap:pretty">Your settings, your download history and any site sign-ins. Sign-ins are encrypted with your Windows account. All of it lives in one folder you can delete at any time.</p>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px;padding-top:20px;border-top:2px solid rgba(242,245,255,0.25)">
+            <h3 style="margin:0;font-size:20px;font-weight:700;letter-spacing:-0.015em">What we see</h3>
+            <p style="margin:0;color:#c7cfea;text-wrap:pretty">Nothing. There is no DriftFetch server. The app only talks to the sites you download from, and to GitHub when it checks for engine updates.</p>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px;padding-top:20px;border-top:2px solid rgba(242,245,255,0.25)">
+            <h3 style="margin:0;font-size:20px;font-weight:700;letter-spacing:-0.015em">This website</h3>
+            <p style="margin:0;color:#c7cfea;text-wrap:pretty">No cookies, no analytics, no third-party fonts or scripts. So there’s no cookie banner to click away. <a href="Legal.dc.html#privacy" style="color:#9cc3ff" style-hover="color:#fff">Read the privacy policy</a>.</p>
+          </div>
+        </div>
+        <p style="margin:72px 0 0;max-width:46em;font-size:16px;color:#8a96bd;text-wrap:pretty">Built on open tools that many people already trust: <a href="https://github.com/yt-dlp/yt-dlp" rel="noopener" style="color:#c7cfea" style-hover="color:#fff">yt-dlp</a>, <a href="https://github.com/mikf/gallery-dl" rel="noopener" style="color:#c7cfea" style-hover="color:#fff">gallery-dl</a>, <a href="https://ffmpeg.org" rel="noopener" style="color:#c7cfea" style-hover="color:#fff">FFmpeg</a> and <a href="https://deno.com" rel="noopener" style="color:#c7cfea" style-hover="color:#fff">Deno</a>. Engine updates are checked against the maintainers’ signatures before they install.</p>
+      </div>
+    </section>
+
+    <section id="faq" aria-labelledby="h-faq" style="position:relative;background:#fff;padding:170px clamp(20px,4vw,48px) 120px">
+      <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto">
+        <h2 id="h-faq" style="margin:0 0 56px;font-size:clamp(36px,4.6vw,60px);line-height:1;font-weight:800;letter-spacing:-0.04em">Questions people ask</h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:0 72px">
+          <sc-for list="{{ faq }}" as="f" hint-placeholder-count="6">
+            <div style="padding:26px 0 30px;border-top:1px solid rgba(1,9,48,0.12)">
+              <h3 style="margin:0 0 8px;font-size:21px;font-weight:700;letter-spacing:-0.015em">{{ f.q }}</h3>
+              <p style="margin:0;color:#353d5c;text-wrap:pretty">{{ f.a }}</p>
+            </div>
+          </sc-for>
+        </div>
+        <div style="margin-top:72px;padding:28px 0 0;border-top:2px solid #010930;display:flex;flex-wrap:wrap;align-items:center;gap:20px 40px">
+          <div style="flex:1 1 340px;min-width:0">
+            <h3 style="margin:0;font-size:24px;font-weight:700;letter-spacing:-0.02em">Know someone who still screen-records videos?</h3>
+            <p style="margin:4px 0 0;color:#353d5c">DriftFetch has no marketing budget. Passing it on is how it grows.</p>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <button onClick="{{ copyShare }}" style="display:flex;align-items:center;gap:8px;height:44px;padding:0 16px;border:none;border-radius:8px;background:#010930;color:#fff;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap"><dc-import name="Icon" n="{{ shareIcon }}" size="16" stroke="2" hint-size="16px,16px"></dc-import>{{ shareLabel }}</button>
+            <sc-for list="{{ shares }}" as="s" hint-placeholder-count="4">
+              <a href="{{ s.href }}" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;height:44px;padding:0 16px;border-radius:8px;border:1px solid rgba(1,9,48,0.2);color:#010930;font-size:15px;font-weight:500;white-space:nowrap" style-hover="border-color:#010930;color:#010930">{{ s.label }}</a>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="download" aria-labelledby="h-download" style="position:relative;background:#010930;color:#f2f5ff;padding:150px clamp(20px,4vw,48px) 0">
+      <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto;display:flex;flex-direction:column;align-items:center;text-align:center;gap:24px">
+        <a href="#" aria-label="Download DriftFetch for Windows" style="width:104px;height:104px;border-radius:50%;background:#0b67fe;color:#fff;display:flex;align-items:center;justify-content:center" style-hover="background:#2a7bff;color:#fff"><dc-import name="Icon" n="arrow-down-to-line" size="40" stroke="2" hint-size="40px,40px"></dc-import></a>
+        <h2 id="h-download" style="margin:12px 0 0;font-size:clamp(44px,7vw,96px);line-height:0.95;font-weight:800;letter-spacing:-0.05em">Let it drift in.</h2>
+        <p style="margin:0;color:#c7cfea;max-width:28em;text-wrap:pretty">An installer or a portable zip. It starts in the tray and is ready the moment you copy your first link.</p>
+        <a href="#" style="display:flex;align-items:center;gap:10px;height:56px;padding:0 26px 0 22px;margin-top:6px;border-radius:10px;background:#fff;color:#010930;font-size:17px;font-weight:700" style-hover="background:#e6ecff;color:#010930"><dc-import name="Icon" n="arrow-down-to-line" size="19" stroke="2" hint-size="19px,19px"></dc-import>Download for Windows</a>
+        <ul style="list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;justify-content:center;gap:6px 26px;font-size:14.5px;color:#8a96bd">
+          <li>Windows 10 or 11, 64-bit</li><li>Version 0.2.1</li><li>MIT licence</li><li><a href="#" style="color:#c7cfea" style-hover="color:#fff">Release notes</a></li><li><a href="#" style="color:#c7cfea" style-hover="color:#fff">Checksums</a></li><li><a href="#" style="color:#c7cfea" style-hover="color:#fff">All releases</a></li>
+        </ul>
+      </div>
+
+      <footer style="position:relative;z-index:2;max-width:1180px;margin:150px auto 0;padding:48px 0 40px;border-top:1px solid rgba(242,245,255,0.12);font-size:14.5px;color:#8a96bd">
+        <div style="position:relative;z-index:2;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:36px 40px">
+      <div style="display:flex;flex-direction:column;gap:12px"><span style="display:flex;align-items:center;gap:10px;color:#f2f5ff;font-size:17px;font-weight:800;letter-spacing:-0.02em"><img src="assets/driftfetch-icon.png" alt="" width="24" height="24" style="width:24px;height:24px;border-radius:6px">DriftFetch</span><span style="max-width:22em">A free, private video and image downloader for Windows.</span></div>
+      <nav aria-label="Product" style="display:flex;flex-direction:column;gap:8px"><span style="color:#f2f5ff;font-weight:600;margin-bottom:4px">Product</span><a href="Download.dc.html" style="color:#8a96bd" style-hover="color:#fff">Download</a><a href="Sites.dc.html" style="color:#8a96bd" style-hover="color:#fff">Supported sites</a><a href="FAQ.dc.html" style="color:#8a96bd" style-hover="color:#fff">FAQ</a><a href="#" style="color:#8a96bd" style-hover="color:#fff">Release notes</a></nav>
+      <nav aria-label="Works with" style="display:flex;flex-direction:column;gap:8px"><span style="color:#f2f5ff;font-weight:600;margin-bottom:4px">Works with</span><a href="Sites%20-%20YouTube.dc.html" style="color:#8a96bd" style-hover="color:#fff">YouTube</a><a href="Sites%20-%20Reddit.dc.html" style="color:#8a96bd" style-hover="color:#fff">Reddit</a><a href="Sites%20-%20Vimeo.dc.html" style="color:#8a96bd" style-hover="color:#fff">Vimeo</a><a href="Sites.dc.html" style="color:#8a96bd" style-hover="color:#fff">All sites</a></nav>
+      <nav aria-label="Project" style="display:flex;flex-direction:column;gap:8px"><span style="color:#f2f5ff;font-weight:600;margin-bottom:4px">Project</span><a href="Donate.dc.html" style="color:#8a96bd" style-hover="color:#fff">Support DriftFetch</a><a href="#" style="color:#8a96bd" style-hover="color:#fff">Source code</a><a href="#" style="color:#8a96bd" style-hover="color:#fff">Report a problem</a><a href="mailto:hello@driftfetch.app" style="color:#8a96bd" style-hover="color:#fff">hello@driftfetch.app</a></nav>
+      <nav aria-label="Legal" style="display:flex;flex-direction:column;gap:8px"><span style="color:#f2f5ff;font-weight:600;margin-bottom:4px">Legal</span><a href="Privacy.dc.html" style="color:#8a96bd" style-hover="color:#fff">Privacy</a><a href="Legal.dc.html#imprint" style="color:#8a96bd" style-hover="color:#fff">Legal notice</a><a href="Legal.dc.html#privacy" style="color:#8a96bd" style-hover="color:#fff">Privacy policy</a><a href="Legal.dc.html#terms" style="color:#8a96bd" style-hover="color:#fff">Terms of use</a><a href="Legal.dc.html#licences" style="color:#8a96bd" style-hover="color:#fff">Open-source licences</a></nav>
+    </div>
+    <div style="position:relative;z-index:2;margin:44px 0 0;display:flex;flex-wrap:wrap;gap:8px 28px;font-size:13.5px"><span>© 2026 [Your name]. MIT licence.</span><span>Not affiliated with YouTube, Reddit, Vimeo or any other site it works with.</span><span>This site sets no cookies.</span></div>
+      </footer>
+    </section>
+  </main>
+
+  <canvas ref="{{ cvRef }}" aria-hidden="true" style="position:fixed;left:0;top:0;width:100vw;height:100vh;pointer-events:none;z-index:1"></canvas>
+  {{ stream }}
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;side&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;right&quot;,&quot;left&quot;],&quot;default&quot;:&quot;right&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Motion&quot;}}">
+const G = {
+  nl: 'linear-gradient(160deg,#0f3b4a 0%,#1d6b6a 55%,#0b1f33 100%)',
+  lx: 'linear-gradient(160deg,#6b4a2a 0%,#c79a5a 60%,#3a2a1a 100%)',
+  dd: 'linear-gradient(160deg,#5a3a1f 0%,#c08a4a 55%,#2a1a10 100%)',
+  tk: 'linear-gradient(160deg,#2a1a4a 0%,#6a3a8a 55%,#120a20 100%)',
+  cf: 'linear-gradient(160deg,#3a2414 0%,#8a5a34 55%,#1a100a 100%)'
+};
+const STRIPE = 'repeating-linear-gradient(135deg,#171c29 0 5px,#121722 5px 10px)';
+const MONO = "'Cascadia Mono',ui-monospace,Consolas,monospace";
+const SAMPLES = [
+  { url: 'https://youtube.com/watch?v=aBcD123', label: 'youtube.com/watch?v=aBcD123', hint: 'a video', icon: 'film', title: 'Northern Lights Timelapse — Iceland 4K', site: 'youtube.com', q: '2160p', mb: 512, kind: 'video', thumb: G.nl },
+  { url: 'https://reddit.com/r/travel/comments/lisbon', label: 'reddit.com/r/travel/…/lisbon', hint: 'an album', icon: 'images', title: 'Lisbon Travel Album', site: 'reddit.com', kind: 'gallery', mb: 96, thumb: G.lx },
+  { url: 'https://vimeo.com/123456', label: 'vimeo.com/123456', hint: 'a video', icon: 'film', title: 'Desert Drone Flight', site: 'vimeo.com', q: '1080p', mb: 182, kind: 'video', thumb: G.dd },
+  { url: 'https://patreon.com/posts/members-only-qa', label: 'patreon.com/posts/members-only', hint: 'needs sign-in', icon: 'lock', title: 'Members-only Q&A', site: 'patreon.com', kind: 'locked' }
+];
+const SITE_URL = 'https://driftfetch.app';
+const R = o => Object.assign({ title: '', site: '', q: '', thumb: STRIPE, ticon: '', tspin: false, op: 1, tfg: '#e9ecf4', tff: 'inherit', tfs: '13px', bg: 'transparent', fg: '#a6adbe', sicon: 'check', sspin: false, label: '', pct: '', bar: false, barW: '0%', sub: '', choose: null }, o);
+const NL = { title: 'Northern Lights Timelapse — Iceland 4K', site: 'youtube.com', q: '2160p', thumb: G.nl };
+const STATES = [
+  { c: '#00737e', label: 'Downloading · 38 s left', text: 'Real numbers: size, speed and time left. Audio and video are joined at the end, without re-encoding.' },
+  { c: '#9a5b00', label: 'Rate limited · resumes in 3:12', text: 'The site asked DriftFetch to slow down. That isn’t an error, so it isn’t shown as one. It waits as long as it was asked to, then carries on by itself.' },
+  { c: '#0a55d6', label: 'Choose items · 18 images', text: 'Albums, playlists and profiles wait for you to tick what you want, with thumbnails. Your drive doesn’t get flooded.' },
+  { c: '#b8322a', label: 'Sign-in needed', text: 'When something really fails you get the reason in plain words and the one step that fixes it. No error codes unless you ask for them.' },
+  { c: '#1d7a4c', label: 'Saved · Today, 21:14', text: 'One click opens the file or its folder. Links you’ve already saved are caught before they download twice.' }
+];
+const CTX = [
+  R({ title: 'Tokyo Night Walk', site: 'youtube.com', q: '1080p', thumb: G.tk, fg: '#5fcf98', label: 'Saved', sub: 'Yesterday', op: 0.45 }),
+  R({ title: 'Coffee Brewing Basics', site: 'vimeo.com', q: '720p', thumb: G.cf, fg: '#5fcf98', label: 'Saved', sub: 'Monday', op: 0.45 })
+];
+
+const FAQ = [
+        { q: 'Is it really free?', a: 'Yes. DriftFetch is MIT-licensed open source with no ads, trials or paid features. The tools it bundles keep their own open-source licences.' },
+        { q: 'Which sites does it work with?', a: 'Sites that yt-dlp and gallery-dl support, such as YouTube, Vimeo, Internet Archive and Dailymotion. Some sites need you to sign in once inside the app.' },
+        { q: 'Do I need an account?', a: 'No. There’s nothing to sign up for. If a site needs a sign-in, it’s stored encrypted on your PC and never sent anywhere else.' },
+        { q: 'Mac or Linux?', a: 'Not yet. DriftFetch is built and tested for Windows 10 and 11 only.' },
+        { q: 'Where do my files go?', a: 'To Downloads\\DriftFetch by default, in a folder per site. You can change the folder, the sorting and the file names in Settings.' },
+        { q: 'Is downloading allowed?', a: 'Only save content you have the right to keep, and follow each site’s terms. DriftFetch doesn’t remove DRM or get around paywalls.' }
+      ];
+class Component extends DCLogic {
+  state = { rows: [], toast: '', copied: false, picked: false, scale: 0.6, wide: true, vw: 1440, geo: null, sel: 'tide' };
+  colW(w) { const pad = Math.min(48, Math.max(20, w * 0.04)), cont = Math.min(1180, w - 2 * pad); return Math.round(Math.min(440, cont * 0.38)); }
+  rootRef = el => { this.root = el; if (el && window.ResizeObserver && !this.rro) { this.rro = new ResizeObserver(() => this.schedMeasure()); this.rro.observe(el); } };
+  linkRef = el => { this.link = el; };
+  cvRef = el => { this.cv = el; };
+  guide() { return this.state.sel || 'tide'; }
+  heroRef = el => { this.hero = el; };
+  jRef = el => { this.jel = el; }; howRef = el => { this.howEl = el; }; tryRef = el => { this.tryEl = el; }; statusRef = el => { this.stEl = el; };
+  appRef = el => {
+    this.appEl = el;
+    if (this.aro) { this.aro.disconnect(); this.aro = null; }
+    if (!el || !window.ResizeObserver) return;
+    this.aro = new ResizeObserver(es => { const w = es[0].contentRect.width; if (w > 0 && Math.abs(w / 1380 - this.state.scale) > 0.001) this.setState({ scale: w / 1380 }); });
+    this.aro.observe(el);
+  };
+  sr = {}; srefs = {};
+  ref(k) { return this.srefs[k] || (this.srefs[k] = el => { this.sr[k] = el; }); }
+  componentDidMount() {
+    document.documentElement.lang = 'en';
+    this.t0 = performance.now();
+    this.rm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this.onResize = () => { const wide = window.innerWidth >= 860, vw = window.innerWidth; if (wide !== this.state.wide || vw !== this.state.vw) this.setState({ wide, vw }); this.schedMeasure(); };
+    window.addEventListener('resize', this.onResize);
+    this.onResize();
+    this.onCopy = () => {
+      const t = String(window.getSelection ? window.getSelection() : '').trim();
+      const m = t.match(/https?:\/\/[^\s]+|(?:[a-z0-9-]+\.)+[a-z]{2,}\/[^\s]*/i);
+      if (m) { this.add(m[0].startsWith('http') ? m[0] : 'https://' + m[0], 'Link picked up from your clipboard'); this.pick(); }
+    };
+    document.addEventListener('copy', this.onCopy);
+    this.tick = setInterval(() => { if (this.state.rows.some(r => this.phase(r).live)) this.forceUpdate(); }, 150);
+    const loop = t => { this.draw(t); this.raf = requestAnimationFrame(loop); };
+    this.raf = requestAnimationFrame(loop);
+  }
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.onResize); document.removeEventListener('copy', this.onCopy);
+    cancelAnimationFrame(this.raf); cancelAnimationFrame(this.mf); clearInterval(this.tick); clearTimeout(this.tt); clearTimeout(this.ct); clearTimeout(this.pt);
+    this.aro && this.aro.disconnect(); this.rro && this.rro.disconnect();
+  }
+  componentDidUpdate() { this.schedMeasure(); }
+  schedMeasure() { cancelAnimationFrame(this.mf); this.mf = requestAnimationFrame(() => this.measure()); }
+  measure() {
+    if (!this.root || !this.link || !this.hero || !this.appEl || !this.howEl || !this.tryEl || !this.stEl) return;
+    const rr = this.root.getBoundingClientRect(), rel = r => ({ l: Math.round(r.left - rr.left), t: Math.round(r.top - rr.top), r: Math.round(r.right - rr.left), b: Math.round(r.bottom - rr.top) });
+    const g = { w: Math.round(rr.width), H: Math.round(rr.height), link: rel(this.link.getBoundingClientRect()), hero: rel(this.hero.getBoundingClientRect()), app: rel(this.appEl.getBoundingClientRect()), how: rel(this.howEl.getBoundingClientRect()), tr: rel(this.tryEl.getBoundingClientRect()), st: rel(this.stEl.getBoundingClientRect()), lfs: parseFloat(getComputedStyle(this.link).fontSize) || 24, wide: this.state.wide, right: (this.props.side || 'right') === 'right', on: this.guide() !== 'none', gd: this.guide(), bands: (() => { const ids = ['top','how','try','status','app','privacy','faq','download'], cols = ['#010930','#ffffff','#e4e9f4','#ffffff','#0b67fe','#010930','#ffffff','#010930'], out = []; for (let i = 1; i < ids.length; i++) { const el = this.root.querySelector('#' + ids[i]); if (el && cols[i] !== cols[i - 1]) out.push({ y: rel(el.getBoundingClientRect()).t, up: cols[i - 1], dn: cols[i] }); } return out; })() };
+    const key = JSON.stringify(g);
+    if (key !== this.gkey) { this.gkey = key; this.setState({ geo: g }); }
+  }
+  draw(now) {
+    const md = this.guide();
+    if (md === 'stream') { if (this.cv && this.cvDirty) { this.cv.getContext('2d').clearRect(0, 0, this.cv.width, this.cv.height); this.cvDirty = false; } return this.drawStream(now); }
+    this.drawCanvas(now, md);
+  }
+  drawCanvas(now, md) {
+    const g = this.state.geo, cv = this.cv;
+    if (!cv || !this.root) return;
+    const dpr = window.devicePixelRatio || 1, VW = window.innerWidth, vh = window.innerHeight;
+    if (cv.width !== Math.round(VW * dpr) || cv.height !== Math.round(vh * dpr)) { cv.width = Math.round(VW * dpr); cv.height = Math.round(vh * dpr); }
+    const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, VW, vh); this.cvDirty = true;
+    if (!g || !g.on || ((md === 'frames' || md === 'letters' || md === 'mark') && !g.wide)) return;
+    const rm = this.rm, T = rm ? 0 : now / 1000;
+    const rr = this.root.getBoundingClientRect(), rt = rr.top, rl = rr.left;
+    const w = g.w, pad = Math.min(48, Math.max(20, w * 0.04)), contL = Math.max(pad, (w - 1180) / 2), contR = w - contL;
+    const cw2 = this.colW(w) / 2, ck = cw2 / 220; this.ck = ck;
+    const cx = g.wide ? (g.right ? contR - cw2 : contL + cw2) : w - pad * 0.5;
+    const yStart = g.hero.t + 30, yEnd = g.app.t + 90;
+    let rv = rm ? g.H : vh * 0.74 - rt;
+    if (!rm) { const it = Math.min(1, (now - this.t0) / 1800), e = 1 - Math.pow(1 - it, 3); rv = yStart + (rv - yStart) * e; }
+    if (md === 'letters') return this.drawLetters(now, ctx, g, rt, rl, T, vh, cx);
+    if (md === 'tide') return this.drawTide(ctx, g, rt, T, VW, vh);
+    if (md === 'mark') return this.drawMark(ctx, g, rt, rl, T, vh, cx);
+    const PAL = [[[15,59,74],[29,107,106]], [[107,74,42],[199,154,90]], [[42,26,74],[106,58,138]], [[11,58,158],[11,103,254]], [[90,58,31],[192,138,74]], [[58,36,20],[138,90,52]]];
+    const rgb = (c, l) => 'rgb(' + Math.round(c[0] * l) + ',' + Math.round(c[1] * l) + ',' + Math.round(c[2] * l) + ')';
+    const mix = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+    const sway = g.wide ? 6 : 1;
+    const cX = y => cx + (g.wide ? 72 * ck : 0) * Math.sin(y / 640 + 0.6) + sway * Math.sin(T * 0.6 + y / 300);
+    let beadY = null;
+    if (this.bead && !rm) { beadY = yStart + (now - this.bead) / 1000 * 1500; if (beadY > yEnd) { this.bead = null; beadY = null; } }
+    if (md === 'film') {
+      const Wd = g.wide ? 116 * ck : pad * 0.7, F = 136, step = 4;
+      const th = y => y / 360 + T * 0.32;
+      const yA = Math.max(yStart, -rt - 40), yB = Math.min(rv, yEnd, -rt + vh + 40);
+      const quad = (x1, y1, c1, x2, y2, c2, u0, u1) => { ctx.beginPath(); ctx.moveTo(rl + x1 + u0 * Wd * c1, rt + y1); ctx.lineTo(rl + x1 + u1 * Wd * c1, rt + y1); ctx.lineTo(rl + x2 + u1 * Wd * c2, rt + y2 + 0.7); ctx.lineTo(rl + x2 + u0 * Wd * c2, rt + y2 + 0.7); ctx.closePath(); ctx.fill(); };
+      for (let y = Math.floor(yA / step) * step; y < yB; y += step) {
+        const y2 = y + step, c1 = Math.cos(th(y)), c2 = Math.cos(th(y2)), x1 = cX(y), x2 = cX(y2), cm = (c1 + c2) / 2;
+        const a = Math.max(0, Math.min(1, (y - yStart) / 160, (rv - y) / 180, (yEnd - y) / 60)); if (a <= 0) continue;
+        const front = cm >= 0, lit = 0.42 + 0.58 * Math.abs(cm);
+        ctx.globalAlpha = a; ctx.globalCompositeOperation = 'source-over';
+        ctx.fillStyle = front ? rgb([16, 22, 40], 0.7 + 0.5 * lit) : rgb([44, 58, 104], lit); quad(x1, y, c1, x2, y2, c2, -0.5, 0.5);
+        if (front) { const k = Math.floor(y / F), v = (y - k * F) / F; if (v > 0.07 && v < 0.93) { const p = PAL[((k % 6) + 6) % 6]; ctx.fillStyle = rgb(mix(p[0], p[1], (v - 0.07) / 0.86), 0.55 + 0.6 * lit); quad(x1, y, c1, x2, y2, c2, -0.35, 0.35); } }
+        else { ctx.fillStyle = 'rgba(12,243,254,' + (0.08 * lit).toFixed(3) + ')'; quad(x1, y, c1, x2, y2, c2, -0.35, 0.35); }
+        if (((y % 20) + 20) % 20 < 10) { ctx.globalCompositeOperation = 'destination-out'; ctx.fillStyle = '#000'; quad(x1, y, c1, x2, y2, c2, -0.465, -0.405); quad(x1, y, c1, x2, y2, c2, 0.405, 0.465); }
+      }
+      ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+    } else {
+      const sp = 150, R = 120 * ck, items = [];
+      for (let k = 0; ; k++) {
+        const yb = yStart + 90 + k * sp; if (yb > yEnd - 40) break;
+        if (yb < -rt - 160 || yb > -rt + vh + 160) continue;
+        const ap = Math.max(0, Math.min(1, (rv - yb) / 240)); if (ap <= 0) continue;
+        const e = 1 - Math.pow(1 - ap, 3), ph = yb / 280 + T * 0.28 + k * 0.5, z = Math.cos(ph);
+        items.push({ k, z, e, x: cx + R * Math.sin(ph), y: yb - (1 - e) * 110 + Math.sin(T * 0.8 + k) * 6, rot: Math.sin(ph * 1.3 + k) * 0.28, flip: Math.cos(T * 0.45 + k * 1.7 + yb / 420) });
+      }
+      items.sort((a, b) => a.z - b.z);
+      items.forEach(it => {
+        const dz = (it.z + 1) / 2, s = (0.66 + 0.34 * dz) * ck, fx = Math.max(0.06, Math.abs(it.flip)), front = it.flip >= 0;
+        ctx.save(); ctx.globalAlpha = it.e * (0.5 + 0.5 * dz);
+        ctx.translate(rl + it.x, rt + it.y); ctx.rotate(it.rot); ctx.scale(s * fx, s);
+        ctx.fillStyle = front ? '#10162a' : '#2c3a68'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(-64, -46, 128, 92, 5) : ctx.rect(-64, -46, 128, 92); ctx.fill();
+        if (front) { const p = PAL[it.k % 6], gr = ctx.createLinearGradient(-54, -30, 54, 30); gr.addColorStop(0, rgb(p[0], 1)); gr.addColorStop(1, rgb(p[1], 1)); ctx.fillStyle = gr; ctx.fillRect(-54, -30, 108, 60); }
+        else { ctx.fillStyle = 'rgba(12,243,254,0.1)'; ctx.fillRect(-54, -30, 108, 60); }
+        ctx.globalCompositeOperation = 'destination-out'; ctx.fillStyle = '#000';
+        for (let i = 0; i < 7; i++) { const hx = -54 + i * 17.5; ctx.fillRect(hx, -42, 8, 7); ctx.fillRect(hx, 35, 8, 7); }
+        ctx.restore();
+      });
+    }
+    if (beadY != null && beadY < rv) {
+      const bx = md === 'film' ? cX(beadY) : cx;
+      ctx.save(); ctx.shadowColor = 'rgba(12,243,254,0.95)'; ctx.shadowBlur = 18; ctx.fillStyle = '#0cf3fe';
+      ctx.beginPath(); ctx.arc(rl + bx, rt + beadY, 6, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+    }
+  }
+  drawTide(ctx, g, rt, T, VW, vh) {
+    const sy = -rt, v = this.lastSy == null ? 0 : sy - this.lastSy; this.lastSy = sy;
+    this.vel = (this.vel || 0) * 0.93 + Math.abs(v) * 0.07;
+    const A = (this.rm ? 18 : 22 + Math.min(48, this.vel * 1.8));
+    g.bands.forEach((b, j) => {
+      const yv = b.y + rt; if (yv < -140 || yv > vh + 140) return;
+      const wy = x => yv + A * (0.62 * Math.sin(x / 230 + T * 0.6 + j * 1.7 + sy * 0.0025) + 0.38 * Math.sin(x / 97 - T * 0.85 + j));
+      const fill = (col, edge) => { ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(0, edge); for (let x = 0; x <= VW + 8; x += 8) ctx.lineTo(x, wy(x)); ctx.lineTo(VW + 8, edge); ctx.closePath(); ctx.fill(); };
+      fill(b.up, yv - A - 8); fill(b.dn, yv + A + 8);
+    });
+  }
+  drawMark(ctx, g, rt, rl, T, vh, cx) {
+    const c = vh * 0.5 - rt, y0 = g.hero.t + 280, y1 = g.app.t - 260;
+    const y = Math.max(y0, Math.min(y1, c)), p = Math.max(0, Math.min(1, (c - y0) / Math.max(1, y1 - y0)));
+    this.mk = this.mk == null ? p : this.mk + (p - this.mk) * 0.07;
+    const q = this.mk, x = cx + Math.sin(y / 700) * 30 + Math.sin(T * 0.5) * 6, yy = y + Math.sin(T * 0.8) * 8;
+    const navy = yy < g.hero.b, col = navy ? '#0cf3fe' : '#0b67fe', faint = navy ? 'rgba(12,243,254,0.16)' : 'rgba(11,103,254,0.12)';
+    const R = 150;
+    ctx.save(); ctx.translate(rl + x, rt + yy); ctx.rotate(Math.sin(T * 0.4) * 0.05); ctx.scale(this.ck || 1, this.ck || 1); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.lineWidth = 14; ctx.strokeStyle = faint; ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI * 2); ctx.stroke();
+    if (q > 0.002) { ctx.strokeStyle = col; ctx.beginPath(); ctx.arc(0, 0, R, -Math.PI / 2, -Math.PI / 2 + q * Math.PI * 2); ctx.stroke(); }
+    ctx.lineWidth = 16; ctx.strokeStyle = col;
+    if (q < 0.97) {
+      const d = this.rm ? 0.5 : (T * 0.65) % 1, o = -28 + d * 56;
+      ctx.globalAlpha = Math.sin(Math.PI * d);
+      ctx.beginPath(); ctx.moveTo(0, -64 + o); ctx.lineTo(0, 30 + o); ctx.moveTo(-40, -10 + o); ctx.lineTo(0, 30 + o); ctx.lineTo(40, -10 + o); ctx.stroke();
+      ctx.globalAlpha = 1; ctx.beginPath(); ctx.moveTo(-56, 72); ctx.lineTo(56, 72); ctx.stroke();
+    } else {
+      const m = Math.min(1, (q - 0.97) / 0.03), L = 210;
+      ctx.setLineDash([L * m, L]); ctx.beginPath(); ctx.moveTo(-55, 4); ctx.lineTo(-16, 44); ctx.lineTo(58, -42); ctx.stroke(); ctx.setLineDash([]);
+    }
+    ctx.fillStyle = col; ctx.font = "700 24px 'Schibsted Grotesk',system-ui,sans-serif"; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(Math.round(q * 100) + '%', 0, R + 46);
+    ctx.restore();
+  }
+  drawLetters(now, ctx, g, rt, rl, T, vh, cx) {
+    const dt = Math.min(0.05, (now - (this.llt || now)) / 1000); this.llt = now;
+    const FONT = "'JetBrains Mono',ui-monospace,Consolas,monospace";
+    const ly = (g.link.t + g.link.b) / 2;
+    ctx.font = g.lfs + 'px ' + FONT; const lcw = ctx.measureText('M').width;
+    const kf = (y, s, fs, cxx, x0, cw) => { if (!cw) { ctx.font = fs + 'px ' + FONT; cw = ctx.measureText('M').width; } const st = x0 != null ? x0 : cxx - s.length * cw / 2; return { y, fs, slots: Array.from(s).map((ch, i) => ({ ch, x: st + (i + 0.5) * cw })) }; };
+    const K = [
+      kf(ly, 'youtube.com/watch?v=aBcD123', g.lfs, 0, g.link.l + 6, lcw),
+      kf(g.how.t + 210, 'finding the video…', Math.round(28 * this.ck), cx),
+      kf(g.tr.t + 74, '2160p · 13:04 · 512 MB', Math.round(26 * this.ck), cx),
+      kf(g.st.t + 230, 'downloading 87%', Math.round(30 * this.ck), cx),
+      kf(g.app.t + 74, 'Northern Lights.mp4', 38, g.w / 2)
+    ];
+    const c = vh * 0.5 - rt;
+    let k = 0, t = 0;
+    if (c >= K[K.length - 1].y) { k = K.length - 1; t = 0; }
+    else if (c > K[0].y) { while (k < K.length - 2 && c >= K[k + 1].y) k++; t = (c - K[k].y) / (K[k + 1].y - K[k].y); }
+    const A = K[k], B = K[Math.min(K.length - 1, k + 1)];
+    const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2, s = Math.sin(Math.PI * t);
+    const hsh = (i, m) => { const x = Math.sin(i * 91.7 + m * 13.3) * 43758.5; return x - Math.floor(x); };
+    const n = Math.max(...K.map(q => q.slots.length));
+    const ps = this.parts || (this.parts = []);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    for (let i = 0; i < n; i++) {
+      const sa = A.slots[i], sb = B.slots[i];
+      const pa = sa || { x: A.slots[A.slots.length - 1].x, ch: '' }, pb = sb || { x: B.slots[B.slots.length - 1].x, ch: '' };
+      const aA = sa ? (k === 0 ? 0 : 1) : 0, aB = sb ? 1 : 0;
+      let al = aA + (aB - aA) * e; if (k === 0) al = Math.min(1, t * 4) * (sb ? 1 : 1 - e);
+      const ang = i * 2.399 + T * 0.5 + t * 4.2, r = (50 + 110 * hsh(i, 1)) * s;
+      const tx = pa.x + (pb.x - pa.x) * e + Math.cos(ang) * r * 1.1;
+      const ty = A.y + (B.y - A.y) * e + Math.sin(ang) * r * 0.7 + (hsh(i, 2) - 0.5) * 260 * s + Math.sin(T * 1.1 + i * 0.7) * 2.5;
+      const p = ps[i] || (ps[i] = { x: tx, y: ty });
+      const kk = 1 - Math.exp(-dt * (4 + (i % 6) * 1.3));
+      p.x += (tx - p.x) * kk; p.y += (ty - p.y) * kk;
+      if (al <= 0.01) continue;
+      const ch = t < 0.5 ? (pa.ch || pb.ch) : (pb.ch || pa.ch); if (!ch || ch === ' ') continue;
+      const fs = A.fs + (B.fs - A.fs) * e, rot = Math.sin(T * 0.7 + i * 1.9) * 0.9 * s;
+      ctx.save(); ctx.globalAlpha = al;
+      ctx.translate(rl + p.x, rt + p.y); ctx.rotate(rot);
+      ctx.font = (k === K.length - 1 || (k === K.length - 2 && e > 0.5) ? '600 ' : '500 ') + fs.toFixed(1) + 'px ' + FONT;
+      ctx.fillStyle = p.y < g.hero.b ? '#5fe3ee' : p.y >= g.app.t - 160 ? '#010930' : '#0a55d6';
+      ctx.fillText(ch, 0, 0);
+      ctx.restore();
+    }
+  }
+  drawStream(now) {
+    const g = this.state.geo, sr = this.sr;
+    if (!g || !g.on || !sr.body || !this.root) return;
+    const rm = this.rm, T = rm ? 0 : now / 1000, dt = Math.min(0.05, (now - (this.lt || now)) / 1000); this.lt = now;
+    const w = g.w, pad = Math.min(48, Math.max(20, w * 0.04)), contL = Math.max(pad, (w - 1180) / 2), contR = w - contL;
+    const cw2 = this.colW(w) / 2, ck = cw2 / 220; this.ck = ck;
+    const cx = g.wide ? (g.right ? contR - cw2 : contL + cw2) : w - pad * 0.5;
+    const A = g.wide ? 86 * ck : 0, sway = g.wide ? 7 : 1.5, base = g.wide ? 44 * ck : pad * 0.34;
+    const ly = (g.link.t + g.link.b) / 2, lx = g.wide && !g.right ? g.link.l - 10 : g.link.r + 10;
+    const y1 = ly + 240, yEnd = g.app.t + 60;
+    const X = y => cx + A * (Math.sin(y / 520 + 0.8) + 0.45 * Math.sin(y / 233 + 2.1)) + sway * Math.sin(T * 0.7 + y / 310);
+    const pool = y => 1 + 1.3 * Math.max(0, Math.min(1, (y - (yEnd - 360)) / 360)) ** 2;
+    const W = y => base * (0.8 + 0.3 * Math.sin(y / 410 + 1.3) + 0.14 * Math.sin(y / 167 + T * 0.9)) * pool(y);
+    const P = [];
+    const x1 = X(y1), w1 = W(y1);
+    for (let i = 0; i <= 28; i++) {
+      const u = i / 28, v = 1 - u;
+      const bx = v * v * v * lx + 3 * v * v * u * (lx + (x1 - lx) * 0.75) + 3 * v * u * u * x1 + u * u * u * x1;
+      const by = v * v * v * ly + 3 * v * v * u * ly + 3 * v * u * u * (ly + 130) + u * u * u * y1;
+      P.push([bx, by, 2.5 + u * u * (w1 - 2.5)]);
+    }
+    for (let y = y1 + 12; y <= yEnd; y += 12) P.push([X(y), y, W(y)]);
+    const n = P.length, Lp = [], Rp = [], N = [];
+    for (let i = 0; i < n; i++) {
+      const a = P[Math.max(0, i - 1)], b = P[Math.min(n - 1, i + 1)];
+      let tx = b[0] - a[0], ty = b[1] - a[1]; const m = Math.hypot(tx, ty) || 1; tx /= m; ty /= m;
+      N.push([-ty, tx]);
+    }
+    const fx = v => v.toFixed(1);
+    let dl = '', dr = '';
+    for (let i = 0; i < n; i++) { const p = P[i], h = p[2] / 2; Lp.push(fx(p[0] + N[i][0] * h) + ' ' + fx(p[1] + N[i][1] * h)); Rp.push(fx(p[0] - N[i][0] * h) + ' ' + fx(p[1] - N[i][1] * h)); }
+    dl = 'M' + Lp.join(' L'); dr = 'M' + Rp.join(' L');
+    sr.body.setAttribute('d', dl + ' L' + Rp.slice().reverse().join(' L') + ' Z');
+    sr.edge.setAttribute('d', dl + ' ' + dr);
+    this.flow = (this.flow || 0) + (rm ? 0 : dt);
+    [[-0.27, 34], [0.05, 52], [0.33, 26]].forEach((o, k) => {
+      const el = sr['s' + k]; if (!el) return;
+      let d = '';
+      for (let i = 0; i < n; i += 2) { const p = P[i], q = p[2] * o[0]; d += (i ? ' L' : 'M') + fx(p[0] + N[i][0] * q) + ' ' + fx(p[1] + N[i][1] * q); }
+      el.setAttribute('d', d); el.style.strokeDashoffset = String(-this.flow * o[1]);
+    });
+    const vh = window.innerHeight, rt = this.root.getBoundingClientRect().top;
+    let rv = rm ? g.H : vh * 0.7 - rt;
+    if (!rm) { const it = Math.min(1, (now - this.t0) / 1800), e = 1 - Math.pow(1 - it, 3); rv = ly + (rv - ly) * e; }
+    rv = Math.max(ly, rv);
+    sr.mRect.setAttribute('height', String(Math.max(0, rv - 160)));
+    sr.mFade.setAttribute('y', String(Math.max(0, rv - 160)));
+    if (sr.src) { sr.src.setAttribute('cx', fx(lx)); sr.src.setAttribute('cy', fx(ly)); }
+    if (sr.bead) {
+      const b = this.bead;
+      if (!b || rm) { sr.bead.style.opacity = '0'; return; }
+      const dist = (now - b) / 1000 * 1100;
+      let acc = 0, i = 1;
+      for (; i < n; i++) { const s = Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]); if (acc + s >= dist) break; acc += s; }
+      if (i >= n) { this.bead = null; sr.bead.style.opacity = '0'; return; }
+      sr.bead.setAttribute('cx', fx(P[i][0])); sr.bead.setAttribute('cy', fx(P[i][1]));
+      sr.bead.setAttribute('r', fx(Math.max(3, P[i][2] * 0.16)));
+      sr.bead.style.opacity = '1';
+    }
+  }
+  streamSvg() {
+    const g = this.state.geo;
+    if (!g || !g.on || this.guide() !== 'stream') return null;
+    const H = g.H, h = (g.hero.b) / H, e = React.createElement;
+    const grad = (id, a, b) => e('linearGradient', { id, gradientUnits: 'userSpaceOnUse', x1: 0, y1: 0, x2: 0, y2: H },
+      e('stop', { offset: 0, stopColor: '#0cf3fe', stopOpacity: a[0] }), e('stop', { offset: Math.max(0, h - 160 / H), stopColor: '#0cf3fe', stopOpacity: a[0] }),
+      e('stop', { offset: Math.min(1, h + 160 / H), stopColor: '#0b67fe', stopOpacity: b[0] }), e('stop', { offset: 1, stopColor: '#0b67fe', stopOpacity: b[0] }));
+    return e('svg', { width: g.w, height: H, viewBox: '0 0 ' + g.w + ' ' + H, 'aria-hidden': true, focusable: 'false', style: { position: 'absolute', left: 0, top: 0, zIndex: 1, pointerEvents: 'none', overflow: 'visible' } },
+      e('defs', null,
+        grad('df-fill', [0.2], [0.12]), grad('df-edge', [0.75], [0.55]), grad('df-str', [0.9], [0.6]),
+        e('linearGradient', { id: 'df-fade', x1: 0, y1: 0, x2: 0, y2: 1 }, e('stop', { offset: 0, stopColor: '#fff' }), e('stop', { offset: 1, stopColor: '#000' })),
+        e('mask', { id: 'df-mask', maskUnits: 'userSpaceOnUse', x: 0, y: 0, width: g.w, height: H },
+          e('rect', { ref: this.ref('mRect'), x: 0, y: 0, width: g.w, height: 0, fill: '#fff' }),
+          e('rect', { ref: this.ref('mFade'), x: 0, y: 0, width: g.w, height: 160, fill: 'url(#df-fade)' }))),
+      e('g', { mask: 'url(#df-mask)' },
+        e('path', { ref: this.ref('body'), fill: 'url(#df-fill)' }),
+        e('path', { ref: this.ref('edge'), fill: 'none', stroke: 'url(#df-edge)', strokeWidth: 1.25, strokeLinejoin: 'round' }),
+        e('path', { ref: this.ref('s0'), fill: 'none', stroke: 'url(#df-str)', strokeWidth: 1, strokeLinecap: 'round', strokeDasharray: '26 90' }),
+        e('path', { ref: this.ref('s1'), fill: 'none', stroke: 'url(#df-str)', strokeWidth: 1.4, strokeLinecap: 'round', strokeDasharray: '60 130' }),
+        e('path', { ref: this.ref('s2'), fill: 'none', stroke: 'url(#df-str)', strokeWidth: 1, strokeLinecap: 'round', strokeDasharray: '14 70' }),
+        e('circle', { ref: this.ref('src'), r: 3, fill: '#0cf3fe' })),
+      e('circle', { ref: this.ref('bead'), r: 5, fill: '#0cf3fe', style: { opacity: 0, filter: 'drop-shadow(0 0 6px rgba(12,243,254,0.9))' } }));
+  }
+  pick() { this.setState({ picked: true }); clearTimeout(this.pt); this.pt = setTimeout(() => this.setState({ picked: false }), 5000); }
+  add(url, toast) {
+    this.bead = performance.now();
+    const norm = url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+    let s = SAMPLES.find(x => x.url.replace(/^https?:\/\//, '') === norm);
+    if (!s) { let host = 'link'; try { host = new URL(url).hostname.replace(/^www\./, ''); } catch (e) {} s = { url, title: url, site: host, kind: 'video', mb: 140, raw: true }; }
+    const dup = this.state.rows.some(r => r.s.url === s.url && !r.dup);
+    const row = { id: Date.now() + Math.random(), s, t0: Date.now(), dup, chose: null };
+    this.setState(st => ({ rows: [row, ...st.rows].slice(0, 4), toast: dup ? 'Already in your list' : toast }));
+    clearTimeout(this.tt); this.tt = setTimeout(() => this.setState({ toast: '' }), 2200);
+  }
+  phase(r) {
+    const now = Date.now(), e = now - r.t0, s = r.s;
+    if (r.dup) return { k: 'dup' };
+    if (e < 1300) return { k: 'checking', live: true };
+    if (s.kind === 'locked') return { k: 'failed' };
+    let start = r.t0 + 1300;
+    if (s.kind === 'gallery') { if (!r.chose) return { k: 'choose' }; start = r.chose; }
+    const dur = s.kind === 'gallery' ? 3500 : 4800, p = (now - start) / dur;
+    if (p < 1) return { k: 'down', p: Math.max(0, p), live: true };
+    return { k: 'saved' };
+  }
+  userRow(r) {
+    const ph = this.phase(r), s = r.s;
+    const base = R({ title: s.title, site: s.site, q: s.q || '', thumb: s.thumb || STRIPE, ticon: s.thumb ? '' : (s.kind === 'locked' ? 'film' : 'link'), tfg: s.raw ? '#a6adbe' : '#e9ecf4', tff: s.raw ? MONO : 'inherit', tfs: s.raw ? '12px' : '13px' });
+    if (ph.k === 'checking') return { ...base, thumb: STRIPE, ticon: 'loader-circle', tspin: true, sicon: 'loader-circle', sspin: true, label: 'Checking link', sub: 'Finding the best version', bg: 'rgba(106,166,255,0.05)' };
+    if (ph.k === 'failed') return { ...base, fg: '#f2847b', sicon: 'circle-alert', label: 'Sign-in needed', sub: 'Members-only post' };
+    if (ph.k === 'choose') return { ...base, fg: '#6aa6ff', sicon: 'list-checks', label: 'Choose items', choose: () => this.setState(st => ({ rows: st.rows.map(x => x.id === r.id ? { ...x, chose: Date.now() } : x) })) };
+    if (ph.k === 'dup') return { ...base, op: 0.45, tfg: '#a6adbe', sicon: 'copy', label: 'Already in list', sub: 'Not downloaded twice' };
+    if (ph.k === 'down') { const pc = Math.min(99, Math.round(ph.p * 100)); const left = Math.max(1, Math.ceil((1 - ph.p) * (s.kind === 'gallery' ? 3.5 : 4.8))); return { ...base, fg: '#5fe3ee', sicon: 'arrow-down-to-line', label: s.kind === 'gallery' ? 'Saving 18 images' : 'Downloading · ' + left + ' s', pct: pc + '%', bar: true, barW: pc + '%' }; }
+    return { ...base, fg: '#5fcf98', sicon: 'check', label: 'Saved', sub: s.kind === 'gallery' ? '18 images · ' + s.mb + ' MB' : (s.mb + ' MB · MP4') };
+  }
+  renderVals() {
+    const S = this.state, right = (this.props.side || 'right') === 'right', wide = S.wide;
+    const copy = txt => { try { navigator.clipboard && navigator.clipboard.writeText(txt).catch(() => {}); } catch (e) {} };
+    const list = S.rows.map(r => this.userRow(r));
+    const enc = encodeURIComponent, msg = 'DriftFetch: copy a link and it downloads. Free and private, for Windows.';
+    return {
+      rootRef: this.rootRef, jRef: this.jRef, heroRef: this.heroRef, howRef: this.howRef, tryRef: this.tryRef, statusRef: this.statusRef, appRef: this.appRef, linkRef: this.linkRef, cvRef: this.cvRef,
+      appScale: 'scale(' + S.scale + ')', stream: this.streamSvg(),
+      padR: wide && right ? (this.colW(S.vw) + 60) + 'px' : '0px', padL: wide && !right ? (this.colW(S.vw) + 60) + 'px' : '0px',
+      tryCols: wide ? (right ? 'minmax(0,1fr) ' + Math.max(380, this.colW(S.vw)) + 'px' : Math.max(380, this.colW(S.vw)) + 'px minmax(0,1fr)') : 'minmax(0,1fr)', demoOrder: wide && !right ? -1 : 0,
+      picked: S.picked, notPicked: !S.picked,
+      heroCopy: () => { copy(SAMPLES[0].url); this.add(SAMPLES[0].url, 'Link picked up from your clipboard'); this.pick(); },
+      chips: SAMPLES.map(s => ({ label: s.label, hint: s.hint, icon: s.icon, go: () => { copy(s.url); this.add(s.url, 'Link copied, and DriftFetch picked it up'); } })),
+      list, noRows: !list.length, hasUser: !!list.length, toast: S.toast,
+      emptyText: wide ? (right ? 'Copy a link on the left and watch it land.' : 'Copy a link on the right and watch it land.') : 'Copy a link above and watch it land.',
+      listenSub: list.length ? 'Copy another link and it lands at the top.' : 'Copy a video or gallery link and it appears here.',
+      countText: list.length + (list.length === 1 ? ' item' : ' items'),
+      clearRows: () => this.setState({ rows: [] }),
+      states: STATES.map(s => ({ ...s, ref: null })),
+      shareLabel: S.copied ? 'Link copied' : 'Copy link', shareIcon: S.copied ? 'check' : 'link',
+      copyShare: () => { copy(SITE_URL); this.setState({ copied: true }); clearTimeout(this.ct); this.ct = setTimeout(() => this.setState({ copied: false }), 1800); },
+      shares: [
+        { label: 'X', href: 'https://x.com/intent/post?text=' + enc(msg) + '&url=' + enc(SITE_URL) },
+        { label: 'Reddit', href: 'https://www.reddit.com/submit?url=' + enc(SITE_URL) + '&title=' + enc(msg) },
+        { label: 'WhatsApp', href: 'https://wa.me/?text=' + enc(msg + ' ' + SITE_URL) },
+        { label: 'Email', href: 'mailto:?subject=' + enc('Try DriftFetch') + '&body=' + enc(msg + '\n' + SITE_URL) }
+      ],
+      faq: FAQ,
+      opts: [['tide', 'Tide'], ['stream', 'Stream'], ['film', 'Film strip'], ['frames', 'Falling frames'], ['letters', 'Drifting letters'], ['mark', 'Progress ring'], ['none', 'None']].map(([k, label]) => ({ label, on: S.sel === k, bg: S.sel === k ? '#0b67fe' : 'transparent', fg: S.sel === k ? '#fff' : '#b7c1e0', go: () => { this.parts = null; this.mk = null; this.setState({ sel: k }); } }))
+    };
+  }
+}
+</script>
+</body>
+</html>

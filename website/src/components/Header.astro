@@ -1,0 +1,20 @@
+---
+import { u } from "../data/site";
+import { Icon } from "./icon";
+const { current } = Astro.props;
+const nav = [["Sites", "/sites"], ["FAQ", "/faq"], ["Privacy", "/privacy"], ["Donate", "/donate"]];
+---
+<header style="position:relative;z-index:30;padding:0 clamp(20px,4vw,48px);background:#010930">
+  <div style="max-width:1180px;margin:0 auto;min-height:76px;display:flex;flex-wrap:wrap;align-items:center;gap:12px 32px;border-bottom:1px solid rgba(255,255,255,0.1)">
+    <a href={u("/")} aria-label="DriftFetch home" style="display:flex;align-items:center;gap:10px;color:#fff"><img src={u("/driftfetch-icon.png")} alt="" width="28" height="28" style="width:28px;height:28px;border-radius:7px;display:block"><span style="font-size:18px;font-weight:700;letter-spacing:-0.02em">DriftFetch</span></a>
+    <div style="flex:1"></div>
+    <nav aria-label="Main" style="display:flex;align-items:center;gap:22px;flex-wrap:wrap;font-size:15px;font-weight:500">
+      {nav.map(([label, href]) => <a href={u(href)} class="nav-link" aria-current={current === href ? "page" : undefined} style={`color:${current === href ? "#fff" : "#b7c1e0"}`}>{label}</a>)}
+      <a href={u("/download")} class="nav-dl" aria-current={current === "/download" ? "page" : undefined} style="display:flex;align-items:center;gap:8px;height:38px;padding:0 14px;border-radius:8px;background:#0b67fe;color:#fff;font-weight:600"><Fragment set:html={Icon("arrow-down-to-line", 16, 2)} />Download</a>
+    </nav>
+  </div>
+</header>
+<style>
+  .nav-link:hover { color: #fff !important; }
+  .nav-dl:hover { background: #2a7bff !important; color: #fff !important; }
+</style>

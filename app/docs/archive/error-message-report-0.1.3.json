@@ -1,0 +1,7 @@
+{
+  "success": true,
+  "version": "0.1.3",
+  "savedErrorUpdated": true,
+  "failedStatePreserved": true,
+  "message": "Current could not extract a video from this page. The site may need additional extraction support or an account session. If the full video plays in Chrome only when signed in, connect that profile in Settings → Accounts and retry. A session may not resolve unsupported extraction."
+}

@@ -1,0 +1,207 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { u, site, links } from "../data/site";
+const toc = [
+  {
+    "href": "#imprint",
+    "label": "Legal notice"
+  },
+  {
+    "href": "#privacy",
+    "label": "Privacy policy"
+  },
+  {
+    "href": "#terms",
+    "label": "Terms of use"
+  },
+  {
+    "href": "#copyright",
+    "label": "Copyright and takedowns"
+  },
+  {
+    "href": "#accessibility",
+    "label": "Accessibility"
+  },
+  {
+    "href": "#licences",
+    "label": "Open-source licences"
+  },
+  {
+    "href": "#source-offer",
+    "label": "Source code offer"
+  }
+];
+const privacy = [
+  {
+    "h": "Who is responsible",
+    "t": "The person named in the legal notice above. Contact: hello@driftfetch.app."
+  },
+  {
+    "h": "Visiting this website",
+    "t": "When you open a page, our host [hosting provider, country] briefly records technical data your browser sends: IP address, date and time, the page requested and your browser type. This is needed to deliver the page and keep it secure (GDPR Article 6(1)(f), legitimate interest). The logs are deleted after [7] days. We don’t use them to identify anyone."
+  },
+  {
+    "h": "No cookies, analytics or third parties",
+    "t": "This website sets no cookies, uses no analytics or advertising, and loads no fonts, scripts or images from other companies. Fonts are served from our own server. That is why there is no cookie banner."
+  },
+  {
+    "h": "Downloading the app",
+    "t": "The installer is hosted on GitHub. When you download it, GitHub (GitHub Inc., USA) receives your IP address under its own privacy statement. GitHub takes part in the EU–US Data Privacy Framework."
+  },
+  {
+    "h": "Using the app",
+    "t": "The DriftFetch app has no account and sends nothing to us. It connects only to the sites you choose to download from, and to GitHub when it checks for engine updates. Your settings, history and sign-ins are stored on your computer in %APPDATA%\\DriftFetch, with sign-ins encrypted by Windows. Uninstalling the app and deleting that folder removes everything."
+  },
+  {
+    "h": "Emailing us",
+    "t": "If you email us, we use your address and message only to answer you, and delete them when the conversation is finished, unless the law says we must keep them longer."
+  },
+  {
+    "h": "Your rights",
+    "t": "You can ask us what data we hold about you, and have it corrected, deleted or restricted. You can object to processing and ask for your data in a portable format. You can also complain to a data protection authority, for example [your national authority]."
+  }
+];
+const terms = [
+  "DriftFetch is free software provided “as is” under the MIT licence, without warranty of any kind. We aren’t liable for any damage or loss from using it, as far as the law allows.",
+  "You are responsible for what you download. Only save content you own, that is licensed for download, or that you are otherwise allowed to copy under the law where you live.",
+  "Follow the terms of the sites you use. Some sites don’t allow downloading at all.",
+  "DriftFetch doesn’t remove DRM, break encryption or get around paywalls, and must not be changed or used to do so.",
+  "We may change these terms. The date at the top of this page shows when they last changed."
+];
+const licences = [
+  {
+    "n": "yt-dlp",
+    "u": "finds videos and formats",
+    "l": "Unlicense"
+  },
+  {
+    "n": "gallery-dl",
+    "u": "finds images in galleries",
+    "l": "GPL-2.0"
+  },
+  {
+    "n": "FFmpeg",
+    "u": "joins audio and video",
+    "l": "LGPL-3.0"
+  },
+  {
+    "n": "Deno",
+    "u": "runs scripts some sites need",
+    "l": "MIT"
+  },
+  {
+    "n": "Electron",
+    "u": "app framework",
+    "l": "MIT"
+  },
+  {
+    "n": "React",
+    "u": "interface",
+    "l": "MIT"
+  },
+  {
+    "n": "Lucide",
+    "u": "icons",
+    "l": "ISC"
+  },
+  {
+    "n": "Cascadia Mono",
+    "u": "monospace font",
+    "l": "OFL-1.1"
+  },
+  {
+    "n": "Schibsted Grotesk",
+    "u": "website font",
+    "l": "OFL-1.1"
+  }
+];
+---
+<Layout
+  title="Legal – DriftFetch"
+  description="Legal notice, privacy policy, terms of use, copyright and takedown policy, accessibility statement and open-source licences for DriftFetch."
+  path="/legal"
+  current=null
+  jsonld={[]}
+>
+<div data-tide="1" style="background:#f3f5fa"><div style="max-width:1180px;margin:0 auto;padding:72px clamp(20px,4vw,48px) 120px">
+    <h1 style="margin:0;font-size:clamp(44px,6vw,80px);line-height:0.95;font-weight:800;letter-spacing:-0.05em">Legal</h1>
+    <p style="margin:18px 0 0;max-width:38em;color:#353d5c">Everything a website has to tell you, in one place and in plain words. Last updated [date].</p>
+
+    <div role="note" style="margin:32px 0 0;padding:16px 20px;border-radius:10px;background:#fff6db;box-shadow:inset 0 0 0 1px #ecd48a;color:#4a3800;font-size:15px;max-width:52em">
+      <strong>Draft for the site owner.</strong> Fill in everything in <span style="background:#ffe48a;padding:0 4px;border-radius:3px">[brackets]</span> and have a lawyer check it for the country you live in before you publish. Delete this box afterwards.
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:48px 72px;margin-top:64px;align-items:start">
+      <nav aria-label="On this page" style="position:sticky;top:96px;display:flex;flex-direction:column;gap:6px;font-size:15.5px">
+        <span style="font-weight:700;margin-bottom:6px">On this page</span>
+        {toc.map((t) => (<><a href={t.href} style="color:#353d5c;text-decoration:none" class="hetmxgi">{t.label}</a></>))}
+      </nav>
+
+      <div style="grid-column:span 3;min-width:0;max-width:44em;display:flex;flex-direction:column;gap:72px">
+
+        <section id="imprint" aria-labelledby="h-imprint" style="scroll-margin-top:96px">
+          <h2 id="h-imprint" style="margin:0 0 16px;font-size:32px;line-height:1.1;font-weight:800;letter-spacing:-0.03em">Legal notice</h2>
+          <p style="margin:0 0 12px;color:#353d5c">Information required in many countries, for example under § 5 DDG in Germany and Article 6 of the EU E-Commerce Directive.</p>
+          <dl style="margin:0;display:grid;grid-template-columns:max-content 1fr;gap:6px 24px">
+            <dt style="font-weight:600">Responsible for this site</dt><dd style="margin:0"><span style="background:#ffe48a;padding:0 4px;border-radius:3px">[Full name or company name]</span></dd>
+            <dt style="font-weight:600">Address</dt><dd style="margin:0"><span style="background:#ffe48a;padding:0 4px;border-radius:3px">[Street, postcode, city, country]</span></dd>
+            <dt style="font-weight:600">Email</dt><dd style="margin:0"><a href="mailto:hello@driftfetch.app">hello@driftfetch.app</a></dd>
+            <dt style="font-weight:600">Phone</dt><dd style="margin:0"><span style="background:#ffe48a;padding:0 4px;border-radius:3px">[Phone or a second fast contact method, if your country requires it]</span></dd>
+            <dt style="font-weight:600">VAT ID</dt><dd style="margin:0"><span style="background:#ffe48a;padding:0 4px;border-radius:3px">[Only if you have one]</span></dd>
+          </dl>
+          <p style="margin:16px 0 0;color:#353d5c">DriftFetch is a free, non-commercial open-source project.</p>
+        </section>
+
+        <section id="privacy" aria-labelledby="h-privacy" style="scroll-margin-top:96px">
+          <h2 id="h-privacy" style="margin:0 0 16px;font-size:32px;line-height:1.1;font-weight:800;letter-spacing:-0.03em">Privacy policy</h2>
+          <p style="margin:0 0 20px;color:#353d5c">The short version: this website and the DriftFetch app collect no personal data for us. Here is the longer version that the GDPR asks for.</p>
+          {privacy.map((p) => (<>
+            <div style="margin-bottom:22px">
+              <h3 style="margin:0 0 6px;font-size:20px;font-weight:700;letter-spacing:-0.015em">{p.h}</h3>
+              <p style="margin:0;color:#353d5c;text-wrap:pretty">{p.t}</p>
+            </div>
+          </>))}
+        </section>
+
+        <section id="terms" aria-labelledby="h-terms" style="scroll-margin-top:96px">
+          <h2 id="h-terms" style="margin:0 0 16px;font-size:32px;line-height:1.1;font-weight:800;letter-spacing:-0.03em">Terms of use</h2>
+          <ol style="margin:0;padding-left:22px;display:flex;flex-direction:column;gap:12px;color:#353d5c">
+            {terms.map((t) => (<><li style="padding-left:6px;text-wrap:pretty">{t}</li></>))}
+          </ol>
+        </section>
+
+        <section id="copyright" aria-labelledby="h-copyright" style="scroll-margin-top:96px">
+          <h2 id="h-copyright" style="margin:0 0 16px;font-size:32px;line-height:1.1;font-weight:800;letter-spacing:-0.03em">Copyright and takedowns</h2>
+          <p style="margin:0 0 12px;color:#353d5c;text-wrap:pretty">DriftFetch doesn’t host, store, index or link to any video or image. It is a tool that runs on the user’s own computer, like a web browser. We can’t remove content from YouTube or any other site; please contact that site directly.</p>
+          <p style="margin:0 0 12px;color:#353d5c;text-wrap:pretty">If you think something on <em>this website</em> or in the DriftFetch source code infringes your rights, email <a href="mailto:legal@driftfetch.app">legal@driftfetch.app</a> with: who you are, the work you own, exactly where the material is, and a statement that you believe in good faith the use isn’t authorised. We reply within <span style="background:#ffe48a;padding:0 4px;border-radius:3px">[7]</span> days.</p>
+          <p style="margin:0;color:#353d5c;text-wrap:pretty">Notices about the source code can also go through <a href="https://docs.github.com/en/site-policy/content-removal-policies/dmca-takedown-policy" rel="noopener">GitHub’s DMCA process</a>.</p>
+        </section>
+
+        <section id="accessibility" aria-labelledby="h-accessibility" style="scroll-margin-top:96px">
+          <h2 id="h-accessibility" style="margin:0 0 16px;font-size:32px;line-height:1.1;font-weight:800;letter-spacing:-0.03em">Accessibility</h2>
+          <p style="margin:0 0 12px;color:#353d5c;text-wrap:pretty">We aim for this website and the app to meet WCAG 2.2 level AA. Both work fully with a keyboard, show a visible focus outline, keep text contrast at 4.5:1 or higher, and respect your system’s “reduce motion” setting. The decorative line that follows your scrolling is hidden from screen readers and stops moving when motion is reduced.</p>
+          <p style="margin:0;color:#353d5c;text-wrap:pretty">Known gaps: <span style="background:#ffe48a;padding:0 4px;border-radius:3px">[list any, or write “none known”]</span>. If something gets in your way, email <a href="mailto:hello@driftfetch.app">hello@driftfetch.app</a> and we’ll fix it or send you the information another way.</p>
+        </section>
+
+        <section id="licences" aria-labelledby="h-licences" style="scroll-margin-top:96px">
+          <h2 id="h-licences" style="margin:0 0 16px;font-size:32px;line-height:1.1;font-weight:800;letter-spacing:-0.03em">Open-source licences</h2>
+          <p style="margin:0 0 20px;color:#353d5c">DriftFetch is released under the MIT licence. It includes these projects, each under its own licence. Full licence texts ship with the app in the <code style="font-family:'JetBrains Mono',monospace;font-size:14px">licenses</code> folder.</p>
+          <div style="border-top:1px solid rgba(1,9,48,0.12)">
+            {licences.map((l) => (<>
+              <div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;padding:12px 0;border-bottom:1px solid rgba(1,9,48,0.12)">
+                <span><strong style="font-weight:600">{l.n}</strong> <span style="color:#596180">· {l.u}</span></span>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:14px;color:#353d5c;white-space:nowrap">{l.l}</span>
+              </div>
+            </>))}
+          </div>
+        </section>
+
+        <section id="source-offer" aria-labelledby="h-source" style="scroll-margin-top:96px">
+          <h2 id="h-source" style="margin:0 0 16px;font-size:32px;line-height:1.1;font-weight:800;letter-spacing:-0.03em">Source code offer</h2>
+          <p style="margin:0;color:#353d5c;text-wrap:pretty">DriftFetch ships FFmpeg libraries licensed under the LGPL and gallery-dl under the GPL. The exact source code for the versions in each release is linked from that release on GitHub. If you can’t get it there, email <a href="mailto:legal@driftfetch.app">legal@driftfetch.app</a> and we’ll send it to you for no more than the cost of sending it. This offer is valid for three years after the last release that included those versions.</p>
+        </section>
+      </div>
+    </div>
+  </div></div>
+
+</Layout>

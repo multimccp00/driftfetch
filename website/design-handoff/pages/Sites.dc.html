@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><title>Supported sites – DriftFetch for Windows</title><meta name="description" content="DriftFetch saves videos and images from YouTube, Reddit, Vimeo and the many other sites supported by yt-dlp and gallery-dl."><link rel="canonical" href="https://driftfetch.app/sites"><meta name="robots" content="index,follow"><meta name="theme-color" content="#010930"><link rel="icon" type="image/png" href="assets/driftfetch-icon.png"><meta property="og:title" content="Supported sites – DriftFetch for Windows"><meta property="og:description" content="DriftFetch saves videos and images from YouTube, Reddit, Vimeo and the many other sites supported by yt-dlp and gallery-dl."><meta property="og:url" content="https://driftfetch.app/sites"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""><link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500;1,600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"><style>html{scroll-behavior:smooth}body{margin:0;background:#f3f5fa;color:#010930;-webkit-font-smoothing:antialiased}a{color:#0a55d6;text-decoration:none}a:hover{color:#010930}::selection{background:#0b67fe;color:#fff}summary::-webkit-details-marker{display:none}</style></helmet>
+<div style="min-height:100vh;background:#fff;font-family:'Schibsted Grotesk',system-ui,sans-serif;font-size:17px;line-height:1.55;color:#010930">
+  <x-import component-from-global-scope="df-tide" from="./tide.js" hint-size="0px,0px"></x-import>
+  <header style="position:relative;z-index:30;padding:0 clamp(20px,4vw,48px);background:#010930">
+    <div style="max-width:1180px;margin:0 auto;min-height:76px;display:flex;flex-wrap:wrap;align-items:center;gap:12px 32px;border-bottom:1px solid rgba(255,255,255,0.1)">
+      <a href="Home.dc.html" aria-label="DriftFetch home" style="display:flex;align-items:center;gap:10px;color:#fff"><img src="assets/driftfetch-icon.png" alt="" width="28" height="28" style="width:28px;height:28px;border-radius:7px;display:block"><span style="font-size:18px;font-weight:700;letter-spacing:-0.02em">DriftFetch</span></a>
+      <div style="flex:1"></div>
+      <nav aria-label="Main" style="display:flex;align-items:center;gap:22px;flex-wrap:wrap;font-size:15px;font-weight:500">
+        <a href="Sites.dc.html" aria-current="page" style="color:#fff" style-hover="color:#fff">Sites</a>
+        <a href="FAQ.dc.html" style="color:#b7c1e0" style-hover="color:#fff">FAQ</a>
+        <a href="Privacy.dc.html" style="color:#b7c1e0" style-hover="color:#fff">Privacy</a>
+        <a href="Donate.dc.html" style="color:#b7c1e0" style-hover="color:#fff">Donate</a>
+        <a href="Download.dc.html" style="display:flex;align-items:center;gap:8px;height:38px;padding:0 14px;border-radius:8px;background:#0b67fe;color:#fff;font-weight:600" style-hover="background:#2a7bff;color:#fff"><dc-import name="Icon" n="arrow-down-to-line" size="16" stroke="2" hint-size="16px,16px"></dc-import>Download</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <section data-tide="1" style="background:#010930;color:#f2f5ff;padding:clamp(56px,8vw,104px) clamp(20px,4vw,48px) 120px">
+      <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto">
+        <h1 style="margin:0;font-size:clamp(42px,6vw,84px);line-height:1;font-weight:700;letter-spacing:-0.04em;max-width:13ch;text-wrap:balance">Works with the sites you already use.</h1>
+        <p style="margin:28px 0 0;max-width:32em;font-size:clamp(18px,1.6vw,20px);color:#c7cfea;text-wrap:pretty">DriftFetch is built on yt-dlp and gallery-dl, two open-source projects that between them understand well over a thousand sites. Here are the ones people use most.</p>
+      </div>
+    </section>
+    <section data-tide="1" style="background:#fff;padding:110px clamp(20px,4vw,48px)">
+      <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto">
+        <h2 style="margin:0;font-size:clamp(32px,4vw,52px);line-height:1.02;font-weight:800;letter-spacing:-0.04em;text-wrap:balance;margin-bottom:40px">Most popular</h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px">
+          <a href="Sites%20-%20YouTube.dc.html" style="display:flex;flex-direction:column;gap:10px;padding:28px;border-radius:12px;background:#e4e9f4;color:#010930" style-hover="background:#d8dff0;color:#010930"><span style="display:flex;align-items:center;justify-content:space-between;font-size:26px;font-weight:800;letter-spacing:-0.03em">YouTube<span style="display:flex;color:#0a55d6"><dc-import name="Icon" n="arrow-right" size="20" stroke="2" hint-size="20px,20px"></dc-import></span></span><span style="color:#353d5c;text-wrap:pretty">Videos, playlists and channels in the best quality offered.</span></a>
+          <a href="Sites%20-%20Reddit.dc.html" style="display:flex;flex-direction:column;gap:10px;padding:28px;border-radius:12px;background:#e4e9f4;color:#010930" style-hover="background:#d8dff0;color:#010930"><span style="display:flex;align-items:center;justify-content:space-between;font-size:26px;font-weight:800;letter-spacing:-0.03em">Reddit<span style="display:flex;color:#0a55d6"><dc-import name="Icon" n="arrow-right" size="20" stroke="2" hint-size="20px,20px"></dc-import></span></span><span style="color:#353d5c;text-wrap:pretty">Videos with their sound, and image galleries in order.</span></a>
+          <a href="Sites%20-%20Vimeo.dc.html" style="display:flex;flex-direction:column;gap:10px;padding:28px;border-radius:12px;background:#e4e9f4;color:#010930" style-hover="background:#d8dff0;color:#010930"><span style="display:flex;align-items:center;justify-content:space-between;font-size:26px;font-weight:800;letter-spacing:-0.03em">Vimeo<span style="display:flex;color:#0a55d6"><dc-import name="Icon" n="arrow-right" size="20" stroke="2" hint-size="20px,20px"></dc-import></span></span><span style="color:#353d5c;text-wrap:pretty">Public and unlisted videos, in the quality the creator allows.</span></a>
+        </div>
+      </div>
+    </section>
+    <section data-tide="1" style="background:#e4e9f4;padding:110px clamp(20px,4vw,48px)">
+      <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:40px 72px">
+          <h2 style="margin:0;font-size:clamp(32px,4vw,52px);line-height:1.02;font-weight:800;letter-spacing:-0.04em;text-wrap:balance">And many more</h2>
+          <div style="display:flex;flex-direction:column">
+            <ul style="list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px"><li style="padding:8px 14px;border-radius:999px;background:#fff;font-size:15px;font-weight:500">Internet Archive</li><li style="padding:8px 14px;border-radius:999px;background:#fff;font-size:15px;font-weight:500">Dailymotion</li><li style="padding:8px 14px;border-radius:999px;background:#fff;font-size:15px;font-weight:500">SoundCloud</li><li style="padding:8px 14px;border-radius:999px;background:#fff;font-size:15px;font-weight:500">Bandcamp</li><li style="padding:8px 14px;border-radius:999px;background:#fff;font-size:15px;font-weight:500">Twitch clips</li><li style="padding:8px 14px;border-radius:999px;background:#fff;font-size:15px;font-weight:500">Imgur</li><li style="padding:8px 14px;border-radius:999px;background:#fff;font-size:15px;font-weight:500">Flickr</li><li style="padding:8px 14px;border-radius:999px;background:#fff;font-size:15px;font-weight:500">DeviantArt</li><li style="padding:8px 14px;border-radius:999px;background:#fff;font-size:15px;font-weight:500">Tumblr</li><li style="padding:8px 14px;border-radius:999px;background:#fff;font-size:15px;font-weight:500">Bluesky</li><li style="padding:8px 14px;border-radius:999px;background:#fff;font-size:15px;font-weight:500">Pixiv</li><li style="padding:8px 14px;border-radius:999px;background:#fff;font-size:15px;font-weight:500">Newgrounds</li></ul>
+            <p style="margin:24px 0 0;color:#353d5c;text-wrap:pretty">Full lists: <a href="https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md" rel="noopener">yt-dlp supported sites</a> and <a href="https://github.com/mikf/gallery-dl/blob/master/docs/supportedsites.md" rel="noopener">gallery-dl supported sites</a>. Support depends on each site and can change when a site updates.</p></div>
+        </div>
+      </div>
+    </section>
+    <section data-tide="1" style="background:#fff;padding:110px clamp(20px,4vw,48px)">
+      <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:40px 72px">
+          <h2 style="margin:0;font-size:clamp(32px,4vw,52px);line-height:1.02;font-weight:800;letter-spacing:-0.04em;text-wrap:balance">Good to know</h2>
+          <div style="display:flex;flex-direction:column"><div style="display:flex;gap:18px;padding:22px 0 24px;border-top:1px solid rgba(1,9,48,0.14)"><span style="flex:none;width:40px;height:40px;border-radius:10px;background:#010930;color:#0cf3fe;display:flex;align-items:center;justify-content:center"><dc-import name="Icon" n="key-round" size="19" stroke="2" hint-size="19px,19px"></dc-import></span><div><h3 style="margin:0 0 4px;font-size:20px;font-weight:700;letter-spacing:-0.015em">Some sites need a sign-in</h3><p style="margin:0;color:#353d5c;text-wrap:pretty">Members-only or age-restricted content asks you to sign in once inside the app. The sign-in stays encrypted on your PC.</p></div></div><div style="display:flex;gap:18px;padding:22px 0 24px;border-top:1px solid rgba(1,9,48,0.14)"><span style="flex:none;width:40px;height:40px;border-radius:10px;background:#010930;color:#0cf3fe;display:flex;align-items:center;justify-content:center"><dc-import name="Icon" n="shield-off" size="19" stroke="2" hint-size="19px,19px"></dc-import></span><div><h3 style="margin:0 0 4px;font-size:20px;font-weight:700;letter-spacing:-0.015em">No DRM, no paywalls</h3><p style="margin:0;color:#353d5c;text-wrap:pretty">DriftFetch doesn’t remove copy protection or get around payment. Streaming services like Netflix won’t work.</p></div></div><div style="display:flex;gap:18px;padding:22px 0 24px;border-top:1px solid rgba(1,9,48,0.14)"><span style="flex:none;width:40px;height:40px;border-radius:10px;background:#010930;color:#0cf3fe;display:flex;align-items:center;justify-content:center"><dc-import name="Icon" n="bug" size="19" stroke="2" hint-size="19px,19px"></dc-import></span><div><h3 style="margin:0 0 4px;font-size:20px;font-weight:700;letter-spacing:-0.015em">A site stopped working?</h3><p style="margin:0;color:#353d5c;text-wrap:pretty">Sites change. Engine updates usually fix it within days. If not, report it on GitHub.</p></div></div></div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer data-tide="1" style="background:#010930;color:#8a96bd;padding:56px clamp(20px,4vw,48px) 40px;font-size:14.5px">
+    <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:36px 40px">
+      <div style="display:flex;flex-direction:column;gap:12px"><span style="display:flex;align-items:center;gap:10px;color:#f2f5ff;font-size:17px;font-weight:800;letter-spacing:-0.02em"><img src="assets/driftfetch-icon.png" alt="" width="24" height="24" style="width:24px;height:24px;border-radius:6px">DriftFetch</span><span style="max-width:22em">A free, private video and image downloader for Windows.</span></div>
+      <nav aria-label="Product" style="display:flex;flex-direction:column;gap:8px"><span style="color:#f2f5ff;font-weight:600;margin-bottom:4px">Product</span><a href="Download.dc.html" style="color:#8a96bd" style-hover="color:#fff">Download</a><a href="Sites.dc.html" style="color:#8a96bd" style-hover="color:#fff">Supported sites</a><a href="FAQ.dc.html" style="color:#8a96bd" style-hover="color:#fff">FAQ</a><a href="#" style="color:#8a96bd" style-hover="color:#fff">Release notes</a></nav>
+      <nav aria-label="Works with" style="display:flex;flex-direction:column;gap:8px"><span style="color:#f2f5ff;font-weight:600;margin-bottom:4px">Works with</span><a href="Sites%20-%20YouTube.dc.html" style="color:#8a96bd" style-hover="color:#fff">YouTube</a><a href="Sites%20-%20Reddit.dc.html" style="color:#8a96bd" style-hover="color:#fff">Reddit</a><a href="Sites%20-%20Vimeo.dc.html" style="color:#8a96bd" style-hover="color:#fff">Vimeo</a><a href="Sites.dc.html" style="color:#8a96bd" style-hover="color:#fff">All sites</a></nav>
+      <nav aria-label="Project" style="display:flex;flex-direction:column;gap:8px"><span style="color:#f2f5ff;font-weight:600;margin-bottom:4px">Project</span><a href="Donate.dc.html" style="color:#8a96bd" style-hover="color:#fff">Support DriftFetch</a><a href="#" style="color:#8a96bd" style-hover="color:#fff">Source code</a><a href="#" style="color:#8a96bd" style-hover="color:#fff">Report a problem</a><a href="mailto:hello@driftfetch.app" style="color:#8a96bd" style-hover="color:#fff">hello@driftfetch.app</a></nav>
+      <nav aria-label="Legal" style="display:flex;flex-direction:column;gap:8px"><span style="color:#f2f5ff;font-weight:600;margin-bottom:4px">Legal</span><a href="Privacy.dc.html" style="color:#8a96bd" style-hover="color:#fff">Privacy</a><a href="Legal.dc.html#imprint" style="color:#8a96bd" style-hover="color:#fff">Legal notice</a><a href="Legal.dc.html#privacy" style="color:#8a96bd" style-hover="color:#fff">Privacy policy</a><a href="Legal.dc.html#terms" style="color:#8a96bd" style-hover="color:#fff">Terms of use</a><a href="Legal.dc.html#licences" style="color:#8a96bd" style-hover="color:#fff">Open-source licences</a></nav>
+    </div>
+    <div style="position:relative;z-index:2;max-width:1180px;margin:44px auto 0;display:flex;flex-wrap:wrap;gap:8px 28px;font-size:13.5px"><span>© 2026 [Your name]. MIT licence.</span><span>Not affiliated with YouTube, Reddit, Vimeo or any other site it works with.</span><span>This site sets no cookies.</span></div>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script></script>
+</body>
+</html>

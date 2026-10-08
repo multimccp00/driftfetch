@@ -1,0 +1,5 @@
+*.sh text eol=lf
+*.patch text eol=lf
+
+# Signed fixtures must stay byte-exact (Windows autocrlf would break the signature test)
+app/tests/fixtures/** -text

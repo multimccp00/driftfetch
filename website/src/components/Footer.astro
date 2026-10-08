@@ -1,0 +1,22 @@
+---
+import { u, site, links } from "../data/site";
+const col = (title: string, items: [string, string][]) => ({ title, items });
+const cols = [
+  col("Product", [["Download", u("/download")], ["Supported sites", u("/sites")], ["FAQ", u("/faq")], ["Release notes", links.releaseNotes]]),
+  col("Works with", [["YouTube", u("/youtube")], ["Reddit", u("/reddit")], ["Vimeo", u("/vimeo")], ["All sites", u("/sites")]]),
+  col("Project", [["Support DriftFetch", u("/donate")], ["Source code", links.source], ["Report a problem", links.issues], [site.email, `mailto:${site.email}`]]),
+  col("Legal", [["Privacy", u("/privacy")], ["Legal notice", u("/legal#imprint")], ["Privacy policy", u("/legal#privacy")], ["Terms of use", u("/legal#terms")], ["Open-source licences", u("/legal#licences")]]),
+];
+---
+<footer data-tide="1" style="background:#010930;color:#8a96bd;padding:56px clamp(20px,4vw,48px) 40px;font-size:14.5px">
+  <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:36px 40px">
+    <div style="display:flex;flex-direction:column;gap:12px"><span style="display:flex;align-items:center;gap:10px;color:#f2f5ff;font-size:17px;font-weight:800;letter-spacing:-0.02em"><img src={u("/driftfetch-icon.png")} alt="" width="24" height="24" style="width:24px;height:24px;border-radius:6px">DriftFetch</span><span style="max-width:22em">A free, private video and image downloader for Windows.</span></div>
+    {cols.map((c) => (
+      <nav aria-label={c.title} style="display:flex;flex-direction:column;gap:8px"><span style="color:#f2f5ff;font-weight:600;margin-bottom:4px">{c.title}</span>{c.items.map(([label, href]) => <a href={href} class="foot-link" style="color:#8a96bd">{label}</a>)}</nav>
+    ))}
+  </div>
+  <div style="position:relative;z-index:2;max-width:1180px;margin:44px auto 0;display:flex;flex-wrap:wrap;gap:8px 28px;font-size:13.5px"><span>© 2026 {site.owner}. MIT licence.</span><span>Not affiliated with YouTube, Reddit, Vimeo or any other site it works with.</span><span>This site sets no cookies.</span></div>
+</footer>
+<style>
+  .foot-link:hover { color: #fff !important; }
+</style>

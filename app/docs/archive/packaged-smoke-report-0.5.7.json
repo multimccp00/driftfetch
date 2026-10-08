@@ -1,0 +1,25 @@
+{
+  "runDir": "E:\\Personal_Stuff\\Projetos\\jdownloader duplicate\\test-results\\smoke-1789500549177",
+  "packaged": true,
+  "checks": [
+    "Bundled engines and safe defaults",
+    "Manual intake → redirect → embedded video → playable file",
+    "Best quality prefers the high label and reports the actual saved 1080p resolution",
+    "Duplicate copied URL and resolved media identity",
+    "Manual paste with automatic download disabled",
+    "Unsupported links remain visible with an actionable error",
+    "Collections wait for explicit video selection",
+    "Settings and account controls render",
+    "Bounded quality plus DASH audio/video merge",
+    "Pause retains partial files and resume uses HTTP ranges",
+    "Encrypted cookie import unlocks a protected fixture and cleans temporary files",
+    "Restart resumes interrupted transfers and preserves manual pauses",
+    "Floating capture panel, capture log, diagnostics, and opt-out",
+    "Per-download format choice overrides the default and reports the used format",
+    "Transfer controls, scheduled queue ordering, and missing-file recovery",
+    "Review queue, same-entry format refresh, source evidence, and encrypted backup restore",
+    "Close minimizes to tray; explicit quit persists history"
+  ],
+  "success": true,
+  "consoleErrors": []
+}

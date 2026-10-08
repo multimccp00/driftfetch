@@ -1,0 +1,70 @@
+/* DriftFetch website – design tokens (extracted from the HTML references) */
+:root {
+  /* Brand (from the app icon) */
+  --df-navy: #010930;          /* hero, privacy, download, footer, header */
+  --df-navy-hover: #0b1a5c;
+  --df-blue: #0b67fe;          /* primary buttons, "full app" section bg, selection */
+  --df-blue-hover: #2a7bff;
+  --df-cyan: #0cf3fe;          /* accent only: highlighter strokes, icon glyphs on navy. Never a section bg or border */
+  --df-cyan-text: #5fe3ee;     /* cyan for text/links on navy (AA) */
+
+  /* Surfaces */
+  --df-white: #ffffff;
+  --df-paper: #f3f5fa;         /* body bg */
+  --df-mist: #e4e9f4;          /* alternate light section bg, cards, chips */
+  --df-mist-hover: #d8dff0;
+
+  /* Ink */
+  --df-ink: #010930;           /* headings/body on light */
+  --df-ink-2: #353d5c;         /* body copy on light */
+  --df-ink-3: #596180;         /* captions/meta on light */
+  --df-link: #0a55d6;          /* links + step numbers on light */
+  --df-on-navy: #f2f5ff;       /* text on navy */
+  --df-on-navy-2: #c7cfea;     /* body on navy */
+  --df-on-navy-3: #8a96bd;     /* meta on navy */
+  --df-on-navy-nav: #b7c1e0;   /* nav links */
+  --df-on-blue-2: #e8efff;     /* body on blue */
+
+  /* Lines */
+  --df-rule: rgba(1, 9, 48, 0.14);
+  --df-rule-on-navy: rgba(255, 255, 255, 0.16);
+  --df-header-rule: rgba(255, 255, 255, 0.10);
+
+  /* Status colours (homepage status list, light bg) */
+  --df-st-downloading: #00737e;
+  --df-st-ratelimit: #9a5b00;
+  --df-st-choose: #0a55d6;
+  --df-st-failed: #b8322a;
+  --df-st-saved: #1d7a4c;
+
+  /* Donate */
+  --df-bmc-yellow: #ffdd00;
+  --df-bmc-yellow-hover: #ffe633;
+
+  /* Type */
+  --df-font: 'Schibsted Grotesk', system-ui, sans-serif;  /* weights 400 500 600 700 800 */
+  --df-mono: 'JetBrains Mono', ui-monospace, Consolas, monospace; /* 400 500 */
+  --df-body: 17px;  --df-lh: 1.55;
+  --df-h1: clamp(42px, 6vw, 84px);        /* 700, lh 1, ls -0.04em, max-width ~11–13ch */
+  --df-h1-home: clamp(44px, 6vw, 86px);
+  --df-h2: clamp(32px, 4vw, 52px);        /* 800, lh 1.02, ls -0.04em; homepage uses clamp(36px,4.4vw,58px) lh 1 */
+  --df-h3: 20px;                          /* 700, ls -0.015em (22px in step lists) */
+  --df-lede: clamp(18px, 1.6vw, 20px);
+  --df-meta: 14px;
+
+  /* Layout */
+  --df-container: 1180px;
+  --df-gutter: clamp(20px, 4vw, 48px);
+  --df-section-y: 110px;                  /* sub-pages; homepage uses 150px */
+  --df-header-h: 76px;
+
+  /* Radius */
+  --df-r-chip: 999px; --df-r-btn: 8px; --df-r-btn-lg: 9px; --df-r-card: 12px; --df-r-icon: 10px; --df-r-code: 10px;
+
+  /* Shadows */
+  --df-shadow-shot: 0 0 0 1px rgba(1,9,48,0.3), 0 40px 80px -30px rgba(1,9,48,0.65);
+  --df-shadow-demo: 0 0 0 1px rgba(1,9,48,0.25), 0 30px 70px rgba(1,9,48,0.4);
+}
+
+/* Highlighter stroke under a key phrase in headings */
+.df-mark { background: linear-gradient(transparent 64%, var(--df-cyan) 64%, var(--df-cyan) 90%, transparent 90%); padding: 0 2px; }

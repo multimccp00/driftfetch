@@ -1,0 +1,15 @@
+node_modules/
+dist/
+dist-electron/
+release/
+resources/engines/
+.cache/
+test-results/
+output/
+graphify-out/
+*.log
+local-extensions/
+docs-private/
+docs/archive/*.png
+docs/design-brief/screens/
+docs/current-preview.png

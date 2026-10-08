@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><title>Save YouTube videos to your PC – DriftFetch for Windows</title><meta name="description" content="Copy a YouTube link and DriftFetch saves the video in the best quality YouTube offers. Playlists wait for you to pick what you want."><link rel="canonical" href="https://driftfetch.app/youtube"><meta name="robots" content="index,follow"><meta name="theme-color" content="#010930"><link rel="icon" type="image/png" href="assets/driftfetch-icon.png"><meta property="og:title" content="Save YouTube videos to your PC."><meta property="og:description" content="Copy a YouTube link and DriftFetch saves the video in the best quality YouTube offers. Playlists wait for you to pick what you want."><meta property="og:url" content="https://driftfetch.app/youtube"><script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Does it need a YouTube account?","acceptedAnswer":{"@type":"Answer","text":"No. Public videos download without signing in. Age-restricted videos may ask you to sign in once inside the app."}},{"@type":"Question","name":"Why does it sometimes say “rate limited”?","acceptedAnswer":{"@type":"Answer","text":"YouTube occasionally asks downloaders to slow down. DriftFetch waits as long as it was asked to and carries on by itself."}},{"@type":"Question","name":"Is it allowed?","acceptedAnswer":{"@type":"Answer","text":"Only save videos you have the right to keep, such as your own uploads or videos licensed for reuse, and follow YouTube’s terms."}}]}</script><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""><link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500;1,600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"><style>html{scroll-behavior:smooth}body{margin:0;background:#f3f5fa;color:#010930;-webkit-font-smoothing:antialiased}a{color:#0a55d6;text-decoration:none}a:hover{color:#010930}::selection{background:#0b67fe;color:#fff}</style></helmet>
+<div style="min-height:100vh;background:#fff;font-family:'Schibsted Grotesk',system-ui,sans-serif;font-size:17px;line-height:1.55;color:#010930">
+  <x-import component-from-global-scope="df-tide" from="./tide.js" hint-size="0px,0px"></x-import>
+  <header style="position:relative;z-index:30;padding:0 clamp(20px,4vw,48px);background:#010930">
+    <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto;height:76px;display:flex;align-items:center;gap:32px;border-bottom:1px solid rgba(255,255,255,0.1)">
+      <a href="Home.dc.html" aria-label="DriftFetch home" style="display:flex;align-items:center;gap:10px;color:#fff"><img src="assets/driftfetch-icon.png" alt="" width="28" height="28" style="width:28px;height:28px;border-radius:7px;display:block"><span style="font-size:18px;font-weight:700;letter-spacing:-0.02em">DriftFetch</span></a>
+      <div style="flex:1"></div>
+      <nav aria-label="Main" style="display:flex;align-items:center;gap:22px;flex-wrap:wrap;font-size:15px;font-weight:500">
+        <a href="Sites.dc.html" aria-current="page" style="color:#fff" style-hover="color:#fff">Sites</a>
+        <a href="FAQ.dc.html" style="color:#b7c1e0" style-hover="color:#fff">FAQ</a>
+        <a href="Privacy.dc.html" style="color:#b7c1e0" style-hover="color:#fff">Privacy</a>
+        <a href="Donate.dc.html" style="color:#b7c1e0" style-hover="color:#fff">Donate</a>
+        <a href="Download.dc.html" style="display:flex;align-items:center;gap:8px;height:38px;padding:0 14px;border-radius:8px;background:#0b67fe;color:#fff;font-weight:600" style-hover="background:#2a7bff;color:#fff"><dc-import name="Icon" n="arrow-down-to-line" size="16" stroke="2" hint-size="16px,16px"></dc-import>Download</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <section data-tide="1" style="background:#010930;color:#f2f5ff;padding:clamp(56px,8vw,104px) clamp(20px,4vw,48px) 110px">
+      <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto">
+        <p style="margin:0 0 20px;font-size:15px;font-weight:600;color:#5fe3ee">DriftFetch for YouTube</p>
+        <h1 style="margin:0;font-size:clamp(42px,6vw,84px);line-height:1;font-weight:700;letter-spacing:-0.04em;max-width:13ch;text-wrap:balance">Save YouTube videos to your PC.</h1>
+        <p style="margin:28px 0 0;max-width:32em;font-size:clamp(18px,1.6vw,20px);color:#c7cfea;text-wrap:pretty">Copy a YouTube link and DriftFetch saves the video in the best quality YouTube offers. Playlists wait for you to pick what you want.</p>
+        <div style="margin-top:36px;display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px">
+          <a href="Home.dc.html#download" style="display:flex;align-items:center;gap:10px;height:52px;padding:0 22px 0 18px;border-radius:8px;background:#0b67fe;color:#fff;font-size:16px;font-weight:600" style-hover="background:#2a7bff;color:#fff"><dc-import name="Icon" n="arrow-down-to-line" size="18" stroke="2" hint-size="18px,18px"></dc-import>Download for Windows</a>
+          <span style="font-size:14px;color:#8a96bd">Free and open source · Windows 10 and 11</span>
+        </div>
+      </div>
+    </section>
+    <section data-tide="1" style="padding:110px clamp(20px,4vw,48px)">
+      <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto">
+        <h2 style="margin:0;font-size:clamp(32px,4vw,52px);line-height:1.02;font-weight:800;letter-spacing:-0.04em;text-wrap:balance;max-width:16ch;margin-bottom:48px">How to save from YouTube <span style="background:linear-gradient(transparent 64%,#0cf3fe 64%,#0cf3fe 90%,transparent 90%);padding:0 2px">in one step</span></h2>
+        <ol style="list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:32px 40px">
+          <li style="display:flex;flex-direction:column;gap:10px;padding-top:20px;border-top:1px solid rgba(1,9,48,0.14)"><span style="font-size:15px;font-weight:700;color:#0a55d6">01</span><h3 style="margin:0;font-size:22px;font-weight:700;letter-spacing:-0.02em">Copy the link</h3><p style="margin:0;color:#353d5c">Like <span style="font-family:'JetBrains Mono',monospace;font-size:14px;background:#e4e9f4;padding:1px 6px;border-radius:4px;overflow-wrap:anywhere">youtube.com/watch?v=aBcD123</span>, from your browser or the share button.</p></li>
+          <li style="display:flex;flex-direction:column;gap:10px;padding-top:20px;border-top:1px solid rgba(1,9,48,0.14)"><span style="font-size:15px;font-weight:700;color:#0a55d6">02</span><h3 style="margin:0;font-size:22px;font-weight:700;letter-spacing:-0.02em">DriftFetch picks it up</h3><p style="margin:0;color:#353d5c">It’s waiting in your tray. No pasting, no browser extension.</p></li>
+          <li style="display:flex;flex-direction:column;gap:10px;padding-top:20px;border-top:1px solid rgba(1,9,48,0.14)"><span style="font-size:15px;font-weight:700;color:#0a55d6">03</span><h3 style="margin:0;font-size:22px;font-weight:700;letter-spacing:-0.02em">It’s on your PC</h3><p style="margin:0;color:#353d5c">In Downloads\DriftFetch\youtube.com, ready to open.</p></li>
+        </ol>
+      </div>
+    </section>
+    <section data-tide="1" style="background:#e4e9f4;padding:110px clamp(20px,4vw,48px)">
+      <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto">
+        <h2 style="margin:0;font-size:clamp(32px,4vw,52px);line-height:1.02;font-weight:800;letter-spacing:-0.04em;text-wrap:balance;margin-bottom:48px">What you can save</h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:20px">
+          <div style="display:flex;flex-direction:column;gap:12px;padding:28px;border-radius:12px;background:#fff"><span style="width:40px;height:40px;border-radius:10px;background:#010930;color:#0cf3fe;display:flex;align-items:center;justify-content:center"><dc-import name="Icon" n="film" size="19" stroke="2" hint-size="19px,19px"></dc-import></span><h3 style="margin:0;font-size:21px;font-weight:700;letter-spacing:-0.015em">Single videos</h3><p style="margin:0;color:#353d5c;text-wrap:pretty">Up to the highest resolution the video was uploaded in, with sound joined in without re-encoding.</p></div>
+          <div style="display:flex;flex-direction:column;gap:12px;padding:28px;border-radius:12px;background:#fff"><span style="width:40px;height:40px;border-radius:10px;background:#010930;color:#0cf3fe;display:flex;align-items:center;justify-content:center"><dc-import name="Icon" n="list-checks" size="19" stroke="2" hint-size="19px,19px"></dc-import></span><h3 style="margin:0;font-size:21px;font-weight:700;letter-spacing:-0.015em">Playlists and channels</h3><p style="margin:0;color:#353d5c;text-wrap:pretty">You get a list with thumbnails and tick what you want. Nothing floods your drive.</p></div>
+          <div style="display:flex;flex-direction:column;gap:12px;padding:28px;border-radius:12px;background:#fff"><span style="width:40px;height:40px;border-radius:10px;background:#010930;color:#0cf3fe;display:flex;align-items:center;justify-content:center"><dc-import name="Icon" n="music" size="19" stroke="2" hint-size="19px,19px"></dc-import></span><h3 style="margin:0;font-size:21px;font-weight:700;letter-spacing:-0.015em">Audio only</h3><p style="margin:0;color:#353d5c;text-wrap:pretty">Save just the sound as a separate file when that’s all you need.</p></div>
+        </div>
+      </div>
+    </section>
+    <section data-tide="1" style="padding:110px clamp(20px,4vw,48px)">
+      <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:40px 72px">
+        <h2 style="margin:0;font-size:clamp(32px,4vw,52px);line-height:1.02;font-weight:800;letter-spacing:-0.04em;text-wrap:balance">YouTube questions</h2>
+        <div>
+          <div style="padding:22px 0 26px;border-top:1px solid rgba(1,9,48,0.12)"><h3 style="margin:0 0 6px;font-size:20px;font-weight:700;letter-spacing:-0.015em">Does it need a YouTube account?</h3><p style="margin:0;color:#353d5c;text-wrap:pretty">No. Public videos download without signing in. Age-restricted videos may ask you to sign in once inside the app.</p></div>
+          <div style="padding:22px 0 26px;border-top:1px solid rgba(1,9,48,0.12)"><h3 style="margin:0 0 6px;font-size:20px;font-weight:700;letter-spacing:-0.015em">Why does it sometimes say “rate limited”?</h3><p style="margin:0;color:#353d5c;text-wrap:pretty">YouTube occasionally asks downloaders to slow down. DriftFetch waits as long as it was asked to and carries on by itself.</p></div>
+          <div style="padding:22px 0 26px;border-top:1px solid rgba(1,9,48,0.12)"><h3 style="margin:0 0 6px;font-size:20px;font-weight:700;letter-spacing:-0.015em">Is it allowed?</h3><p style="margin:0;color:#353d5c;text-wrap:pretty">Only save videos you have the right to keep, such as your own uploads or videos licensed for reuse, and follow YouTube’s terms.</p></div>
+        </div>
+      </div>
+    </section>
+    <section data-tide="1" style="background:#0b67fe;color:#fff;padding:90px clamp(20px,4vw,48px)">
+      <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:28px">
+        <div><h2 style="margin:0;font-size:clamp(32px,4vw,52px);line-height:1.02;font-weight:800;letter-spacing:-0.04em;text-wrap:balance">Also works with</h2><p style="margin:10px 0 0;color:#e8efff">And the many other sites yt-dlp and gallery-dl support.</p></div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px"><a href="Sites%20-%20Reddit.dc.html" style="display:flex;align-items:center;gap:8px;height:48px;padding:0 20px;border-radius:8px;background:#010930;color:#fff;font-weight:600" style-hover="background:#0b1a5c;color:#fff">Reddit<dc-import name="Icon" n="arrow-right" size="16" stroke="2" hint-size="16px,16px"></dc-import></a><a href="Sites%20-%20Vimeo.dc.html" style="display:flex;align-items:center;gap:8px;height:48px;padding:0 20px;border-radius:8px;background:#010930;color:#fff;font-weight:600" style-hover="background:#0b1a5c;color:#fff">Vimeo<dc-import name="Icon" n="arrow-right" size="16" stroke="2" hint-size="16px,16px"></dc-import></a></div>
+      </div>
+    </section>
+  </main>
+  <footer data-tide="1" style="background:#010930;color:#8a96bd;padding:56px clamp(20px,4vw,48px) 40px;font-size:14.5px">
+    <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:36px 40px">
+      <div style="display:flex;flex-direction:column;gap:12px"><span style="display:flex;align-items:center;gap:10px;color:#f2f5ff;font-size:17px;font-weight:800;letter-spacing:-0.02em"><img src="assets/driftfetch-icon.png" alt="" width="24" height="24" style="width:24px;height:24px;border-radius:6px">DriftFetch</span><span style="max-width:22em">A free, private video and image downloader for Windows.</span></div>
+      <nav aria-label="Product" style="display:flex;flex-direction:column;gap:8px"><span style="color:#f2f5ff;font-weight:600;margin-bottom:4px">Product</span><a href="Download.dc.html" style="color:#8a96bd" style-hover="color:#fff">Download</a><a href="Sites.dc.html" style="color:#8a96bd" style-hover="color:#fff">Supported sites</a><a href="FAQ.dc.html" style="color:#8a96bd" style-hover="color:#fff">FAQ</a><a href="#" style="color:#8a96bd" style-hover="color:#fff">Release notes</a></nav>
+      <nav aria-label="Works with" style="display:flex;flex-direction:column;gap:8px"><span style="color:#f2f5ff;font-weight:600;margin-bottom:4px">Works with</span><a href="Sites%20-%20YouTube.dc.html" style="color:#8a96bd" style-hover="color:#fff">YouTube</a><a href="Sites%20-%20Reddit.dc.html" style="color:#8a96bd" style-hover="color:#fff">Reddit</a><a href="Sites%20-%20Vimeo.dc.html" style="color:#8a96bd" style-hover="color:#fff">Vimeo</a><a href="Sites.dc.html" style="color:#8a96bd" style-hover="color:#fff">All sites</a></nav>
+      <nav aria-label="Project" style="display:flex;flex-direction:column;gap:8px"><span style="color:#f2f5ff;font-weight:600;margin-bottom:4px">Project</span><a href="Donate.dc.html" style="color:#8a96bd" style-hover="color:#fff">Support DriftFetch</a><a href="#" style="color:#8a96bd" style-hover="color:#fff">Source code</a><a href="#" style="color:#8a96bd" style-hover="color:#fff">Report a problem</a><a href="mailto:hello@driftfetch.app" style="color:#8a96bd" style-hover="color:#fff">hello@driftfetch.app</a></nav>
+      <nav aria-label="Legal" style="display:flex;flex-direction:column;gap:8px"><span style="color:#f2f5ff;font-weight:600;margin-bottom:4px">Legal</span><a href="Privacy.dc.html" style="color:#8a96bd" style-hover="color:#fff">Privacy</a><a href="Legal.dc.html#imprint" style="color:#8a96bd" style-hover="color:#fff">Legal notice</a><a href="Legal.dc.html#privacy" style="color:#8a96bd" style-hover="color:#fff">Privacy policy</a><a href="Legal.dc.html#terms" style="color:#8a96bd" style-hover="color:#fff">Terms of use</a><a href="Legal.dc.html#licences" style="color:#8a96bd" style-hover="color:#fff">Open-source licences</a></nav>
+    </div>
+    <div style="position:relative;z-index:2;max-width:1180px;margin:44px auto 0;display:flex;flex-wrap:wrap;gap:8px 28px;font-size:13.5px"><span>© 2026 [Your name]. MIT licence.</span><span>Not affiliated with YouTube, Reddit, Vimeo or any other site it works with.</span><span>This site sets no cookies.</span></div>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script></script>
+</body>
+</html>

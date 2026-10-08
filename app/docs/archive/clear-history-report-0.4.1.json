@@ -1,0 +1,11 @@
+{
+  "success": true,
+  "checks": [
+    "Cancel leaves history unchanged",
+    "Clear removes only historical entries",
+    "Downloaded file preserved",
+    "Queue and failures preserved",
+    "Removal persisted"
+  ],
+  "version": "0.4.1"
+}

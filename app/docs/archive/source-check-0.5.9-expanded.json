@@ -1,0 +1,82 @@
+{
+  "testedAt": "2026-09-15T21:15:41.002Z",
+  "engine": {
+    "ytDlp": "2026.08.19"
+  },
+  "results": [
+    {
+      "source": "YouTube",
+      "linkType": "Individual video",
+      "url": "https://www.youtube.com/watch?v=YE7VzlLtp-4",
+      "status": "metadata available",
+      "extractor": "Youtube",
+      "title": "Big Buck Bunny",
+      "availableHeight": 1080,
+      "formats": 43
+    },
+    {
+      "source": "Internet Archive",
+      "linkType": "Individual item",
+      "url": "https://archive.org/details/BigBuckBunny_328",
+      "status": "metadata available",
+      "extractor": "ArchiveOrg",
+      "title": "Big Buck Bunny",
+      "availableHeight": 720,
+      "formats": 3
+    },
+    {
+      "source": "Vimeo",
+      "linkType": "Individual video",
+      "url": "https://vimeo.com/76979871",
+      "status": "needs attention",
+      "formats": 0,
+      "message": "ERROR: [vimeo] 76979871: The web client only works when logged-in. Use --cookies, --cookies-from-browser, --username and --password, --netrc-cmd, or --netrc (vimeo) to provide account credentials. See https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp for how to manually pass cookies"
+    },
+    {
+      "source": "Dailymotion",
+      "linkType": "Individual public video",
+      "url": "https://www.dailymotion.com/video/x6nqmd",
+      "status": "metadata available",
+      "extractor": "Dailymotion",
+      "title": "Big Buck Bunny",
+      "availableHeight": 384,
+      "formats": 1
+    },
+    {
+      "source": "TED",
+      "linkType": "Individual public talk",
+      "url": "https://www.ted.com/talks/sir_ken_robinson_do_schools_kill_creativity",
+      "status": "needs attention",
+      "formats": 0,
+      "message": "ERROR: the JSON object must be str, bytes or bytearray, not NoneType"
+    },
+    {
+      "source": "Wikimedia Commons",
+      "linkType": "Individual public media file",
+      "url": "https://commons.wikimedia.org/wiki/File:Big_Buck_Bunny_4K.webm",
+      "status": "metadata available",
+      "extractor": "Wikimedia",
+      "title": "Big Buck Bunny 4K",
+      "availableHeight": 2250,
+      "formats": 6
+    },
+    {
+      "source": "Rumble",
+      "linkType": "Individual public video",
+      "url": "https://rumble.com/v7bb07y-big-buck-bunny.html",
+      "status": "needs attention",
+      "formats": 0,
+      "message": "ERROR: [RumbleEmbed] v794c7q: Unable to download JSON metadata: HTTP Error 403: Forbidden (caused by <HTTPError 403: Forbidden>)"
+    },
+    {
+      "source": "PeerTube",
+      "linkType": "Individual public video",
+      "url": "https://peertube.tv/videos/watch/2d528570-bb67-4ebe-a569-4529448b6b2f",
+      "status": "metadata available",
+      "extractor": "PeerTube",
+      "title": "Combined Push ups & Flyes",
+      "availableHeight": 720,
+      "formats": 6
+    }
+  ]
+}

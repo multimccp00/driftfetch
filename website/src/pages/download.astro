@@ -1,0 +1,97 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { u, site, links } from "../data/site";
+---
+<Layout
+  title="Download DriftFetch for Windows – free and open source"
+  description="Download DriftFetch for Windows 10 and 11 as an installer or a portable zip. Free and open source, with checksums and install help."
+  path="/download"
+  current="/download"
+  jsonld={[{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Is DriftFetch safe?","acceptedAnswer":{"@type":"Answer","text":"It’s open source, so anyone can read the code, and each release lists its SHA-256 checksum so you can confirm the file wasn’t changed."}},{"@type":"Question","name":"Why does Windows say “Windows protected your PC”?","acceptedAnswer":{"@type":"Answer","text":"Windows shows this for new apps that haven’t been downloaded many times yet. Click “More info”, then “Run anyway”. The checksum on this page lets you confirm the file is genuine first."}},{"@type":"Question","name":"How do I uninstall it?","acceptedAnswer":{"@type":"Answer","text":"Installer: open Windows Settings › Apps, find DriftFetch and choose Uninstall. Portable: delete its folder. Either way, your downloaded files stay where they are."}}]}]}
+>
+
+    <section data-tide="1" style="background:#010930;color:#f2f5ff;padding:clamp(56px,8vw,104px) clamp(20px,4vw,48px) 120px">
+      <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto">
+        <h1 style="margin:0;font-size:clamp(42px,6vw,84px);line-height:1;font-weight:700;letter-spacing:-0.04em;max-width:13ch;text-wrap:balance">Download DriftFetch.</h1>
+        <p style="margin:28px 0 0;max-width:32em;font-size:clamp(18px,1.6vw,20px);color:#c7cfea;text-wrap:pretty">Free, open source and private. Everything is included, as an installer or a portable version you can run from any folder or USB stick.</p>
+        <div style="margin-top:36px;display:flex;flex-wrap:wrap;align-items:center;gap:14px 24px">
+          <a href={links.installer} style="display:flex;align-items:center;gap:10px;height:54px;padding:0 24px 0 20px;border-radius:9px;background:#0b67fe;color:#fff;font-size:17px;font-weight:600" class="h1ifpqlp"><span class="ic"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 17V3" />
+  <path d="m6 11 6 6 6-6" />
+  <path d="M19 21H5" /></svg></span>Installer (.exe)</a>
+          <a href={links.portable} style="display:flex;align-items:center;gap:10px;height:54px;padding:0 22px 0 18px;border-radius:9px;box-shadow:inset 0 0 0 1.5px rgba(242,245,255,0.45);color:#fff;font-size:17px;font-weight:600" class="h79vki2"><span class="ic"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="15" cy="19" r="2" />
+  <path d="M20.9 19.8A2 2 0 0 0 22 18V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h5.1" />
+  <path d="M15 11v-1" />
+  <path d="M15 17v-2" /></svg></span>Portable (.zip)</a>
+          <a href={links.releases} style="color:#f2f5ff;font-size:16px;font-weight:500;border-bottom:1px solid rgba(242,245,255,0.35);padding-bottom:2px" class="h10b3kyl">All releases on GitHub</a>
+        </div>
+        <p style="margin:16px 0 0;font-size:14px;color:#8a96bd">Version {site.version} · Windows 10 and 11, 64-bit · MIT licence</p>
+      </div>
+    </section>
+    <section data-tide="1" style="background:#fff;padding:110px clamp(20px,4vw,48px)">
+      <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto">
+        <h2 style="margin:0 0 40px;font-size:clamp(32px,4vw,52px);line-height:1.02;font-weight:800;letter-spacing:-0.04em;text-wrap:balance">Installer or portable?</h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:16px">
+          <div style="display:flex;flex-direction:column;gap:12px;padding:28px;border-radius:12px;background:#e4e9f4"><span style="width:40px;height:40px;border-radius:10px;background:#010930;color:#0cf3fe;display:flex;align-items:center;justify-content:center"><span class="ic"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z" />
+  <path d="M12 22V12" />
+  <polyline points="3.29 7 12 12 20.71 7" />
+  <path d="m7.5 4.27 9 5.15" /></svg></span></span><h3 style="margin:0;font-size:22px;font-weight:700;letter-spacing:-0.02em">Installer <span style="font-size:15px;font-weight:600;color:#0a55d6">Recommended</span></h3><p style="margin:0;color:#353d5c;text-wrap:pretty">Adds DriftFetch to the Start menu, can start with Windows and appears in Settings › Apps for a clean uninstall.</p></div>
+          <div style="display:flex;flex-direction:column;gap:12px;padding:28px;border-radius:12px;background:#e4e9f4"><span style="width:40px;height:40px;border-radius:10px;background:#010930;color:#0cf3fe;display:flex;align-items:center;justify-content:center"><span class="ic"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="15" cy="19" r="2" />
+  <path d="M20.9 19.8A2 2 0 0 0 22 18V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h5.1" />
+  <path d="M15 11v-1" />
+  <path d="M15 17v-2" /></svg></span></span><h3 style="margin:0;font-size:22px;font-weight:700;letter-spacing:-0.02em">Portable</h3><p style="margin:0;color:#353d5c;text-wrap:pretty">Unzip it anywhere, even a USB stick, and run DriftFetch.exe. Settings stay next to the app and nothing is written to Windows. To remove it, delete the folder.</p></div>
+        </div>
+      </div>
+    </section>
+    <section data-tide="1" style="background:#e4e9f4;padding:110px clamp(20px,4vw,48px)">
+      <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto">
+        <h2 style="margin:0;font-size:clamp(32px,4vw,52px);line-height:1.02;font-weight:800;letter-spacing:-0.04em;text-wrap:balance;margin-bottom:48px">Installing takes <span style="background:linear-gradient(transparent 64%,#0cf3fe 64%,#0cf3fe 90%,transparent 90%);padding:0 2px">a minute</span></h2>
+        <ol style="list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:32px 40px">
+          <li style="display:flex;flex-direction:column;gap:10px;padding-top:20px;border-top:1px solid rgba(1,9,48,0.14)"><span style="font-size:15px;font-weight:700;color:#0a55d6">01</span><h3 style="margin:0;font-size:22px;font-weight:700;letter-spacing:-0.02em">Run the installer</h3><p style="margin:0;color:#353d5c;text-wrap:pretty">Open the installer. It installs for your user only, so it doesn’t need admin rights. Using the portable version? Unzip it and run DriftFetch.exe instead.</p></li>
+          <li style="display:flex;flex-direction:column;gap:10px;padding-top:20px;border-top:1px solid rgba(1,9,48,0.14)"><span style="font-size:15px;font-weight:700;color:#0a55d6">02</span><h3 style="margin:0;font-size:22px;font-weight:700;letter-spacing:-0.02em">If Windows warns you</h3><p style="margin:0;color:#353d5c;text-wrap:pretty">New apps can trigger “Windows protected your PC”. Click “More info”, then “Run anyway”.</p></li>
+          <li style="display:flex;flex-direction:column;gap:10px;padding-top:20px;border-top:1px solid rgba(1,9,48,0.14)"><span style="font-size:15px;font-weight:700;color:#0a55d6">03</span><h3 style="margin:0;font-size:22px;font-weight:700;letter-spacing:-0.02em">Look in your tray</h3><p style="margin:0;color:#353d5c;text-wrap:pretty">DriftFetch starts next to the clock. Copy a video link and it takes it from there.</p></li>
+        </ol>
+      </div>
+    </section>
+    <section data-tide="1" style="background:#ffffff;padding:110px clamp(20px,4vw,48px)">
+      <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:40px 72px">
+          <h2 style="margin:0;font-size:clamp(32px,4vw,52px);line-height:1.02;font-weight:800;letter-spacing:-0.04em;text-wrap:balance">Check the file</h2>
+          <div style="display:flex;flex-direction:column">
+            <p style="margin:0 0 16px;color:#353d5c;text-wrap:pretty">Every release lists a SHA-256 checksum. In PowerShell, run this in your Downloads folder and compare the result with the one on the release page.</p>
+            <code style="display:block;padding:16px 18px;border-radius:10px;background:#010930;color:#c7cfea;font-family:'JetBrains Mono',monospace;font-size:14px;line-height:1.6;overflow-x:auto;white-space:pre">Get-FileHash .\DriftFetch-Setup-{site.version}.exe
+Get-FileHash .\DriftFetch-Portable-{site.version}.zip</code>
+            <p style="margin:20px 0 8px;font-size:14px;font-weight:600;color:#353d5c">SHA-256 for the {site.version} installer</p>
+            <code style="display:block;padding:16px 18px;border-radius:10px;background:#010930;color:#c7cfea;font-family:'JetBrains Mono',monospace;font-size:14px;line-height:1.6;overflow-x:auto;white-space:pre">[paste the release checksum here]</code>
+            <p style="margin:20px 0 8px;font-size:14px;font-weight:600;color:#353d5c">SHA-256 for the {site.version} portable zip</p>
+            <code style="display:block;padding:16px 18px;border-radius:10px;background:#010930;color:#c7cfea;font-family:'JetBrains Mono',monospace;font-size:14px;line-height:1.6;overflow-x:auto;white-space:pre">[paste the release checksum here]</code></div>
+        </div>
+      </div>
+    </section>
+    <section data-tide="1" style="background:#e4e9f4;padding:110px clamp(20px,4vw,48px)">
+      <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:40px 72px">
+          <h2 style="margin:0;font-size:clamp(32px,4vw,52px);line-height:1.02;font-weight:800;letter-spacing:-0.04em;text-wrap:balance">What you need</h2>
+          <div style="display:flex;flex-direction:column"><div style="display:flex;gap:18px;padding:22px 0 24px;border-top:1px solid rgba(1,9,48,0.14)"><span style="flex:none;width:40px;height:40px;border-radius:10px;background:#010930;color:#0cf3fe;display:flex;align-items:center;justify-content:center"><span class="ic"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="14" x="2" y="3" rx="2" />
+  <line x1="8" x2="16" y1="21" y2="21" />
+  <line x1="12" x2="12" y1="17" y2="21" /></svg></span></span><div><h3 style="margin:0 0 4px;font-size:20px;font-weight:700;letter-spacing:-0.015em">Windows 10 or 11, 64-bit</h3><p style="margin:0;color:#353d5c;text-wrap:pretty">Fully updated versions are recommended. Windows on ARM isn’t supported yet.</p></div></div><div style="display:flex;gap:18px;padding:22px 0 24px;border-top:1px solid rgba(1,9,48,0.14)"><span style="flex:none;width:40px;height:40px;border-radius:10px;background:#010930;color:#0cf3fe;display:flex;align-items:center;justify-content:center"><span class="ic"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 16h.01" />
+  <path d="M2.212 11.577a2 2 0 0 0-.212.896V18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5.527a2 2 0 0 0-.212-.896L18.55 5.11A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" />
+  <path d="M21.946 12.013H2.054" />
+  <path d="M6 16h.01" /></svg></span></span><div><h3 style="margin:0 0 4px;font-size:20px;font-weight:700;letter-spacing:-0.015em">Space for the app and its tools</h3><p style="margin:0;color:#353d5c;text-wrap:pretty">FFmpeg, yt-dlp, gallery-dl and Deno are bundled, so there’s nothing else to install.</p></div></div><div style="display:flex;gap:18px;padding:22px 0 24px;border-top:1px solid rgba(1,9,48,0.14)"><span style="flex:none;width:40px;height:40px;border-radius:10px;background:#010930;color:#0cf3fe;display:flex;align-items:center;justify-content:center"><span class="ic"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h.01" />
+  <path d="M2 8.82a15 15 0 0 1 20 0" />
+  <path d="M5 12.859a10 10 0 0 1 14 0" />
+  <path d="M8.5 16.429a5 5 0 0 1 7 0" /></svg></span></span><div><h3 style="margin:0 0 4px;font-size:20px;font-weight:700;letter-spacing:-0.015em">An internet connection</h3><p style="margin:0;color:#353d5c;text-wrap:pretty">Only to reach the sites you download from, and GitHub for engine updates.</p></div></div></div>
+        </div>
+      </div>
+    </section>
+    <section data-tide="1" style="background:#0b67fe;color:#f2f5ff;padding:110px clamp(20px,4vw,48px)">
+      <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:28px 56px">
+          <div><h3 style="margin:0 0 6px;font-size:20px;font-weight:700">Is DriftFetch safe?</h3><p style="margin:0;color:#e8efff;text-wrap:pretty">It’s open source, so anyone can read the code, and each release lists its SHA-256 checksum so you can confirm the file wasn’t changed.</p></div>
+          <div><h3 style="margin:0 0 6px;font-size:20px;font-weight:700">Why does Windows say “Windows protected your PC”?</h3><p style="margin:0;color:#e8efff;text-wrap:pretty">Windows shows this for new apps that haven’t been downloaded many times yet. Click “More info”, then “Run anyway”. The checksum on this page lets you confirm the file is genuine first.</p></div>
+          <div><h3 style="margin:0 0 6px;font-size:20px;font-weight:700">How do I uninstall it?</h3><p style="margin:0;color:#e8efff;text-wrap:pretty">Installer: open Windows Settings › Apps, find DriftFetch and choose Uninstall. Portable: delete its folder. Either way, your downloaded files stay where they are.</p></div>
+        </div>
+      </div>
+    </section>
+  
+
+</Layout>

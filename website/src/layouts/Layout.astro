@@ -1,0 +1,44 @@
+---
+import "../styles/global.css";
+import "../styles/hover.css";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import { u, site } from "../data/site";
+
+interface Props { title: string; description: string; path: string; current?: string | null; jsonld?: unknown[]; footer?: boolean }
+const { title, description, path, current = null, jsonld = [], footer = true } = Astro.props;
+const canonical = site.url + (import.meta.env.BASE_URL.replace(/\/$/, "")) + (path === "/" ? "/" : path);
+const ld = jsonld.map((o) => JSON.stringify(o).replaceAll("__VERSION__", site.version).replaceAll("https://driftfetch.app", site.url + import.meta.env.BASE_URL.replace(/\/$/, "")));
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{title}</title>
+  <meta name="description" content={description}>
+  <link rel="canonical" href={canonical}>
+  <meta name="robots" content="index,follow">
+  <meta name="theme-color" content="#010930">
+  <link rel="icon" href={u("/favicon.ico")} sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href={u("/favicon-32.png")}>
+  <link rel="apple-touch-icon" href={u("/apple-touch-icon.png")}>
+  <meta property="og:type" content="website">
+  <meta property="og:title" content={title}>
+  <meta property="og:description" content={description}>
+  <meta property="og:url" content={canonical}>
+  <meta property="og:image" content={site.url + u("/og.png")}>
+  <meta name="twitter:card" content="summary_large_image">
+  {ld.map((j) => <script type="application/ld+json" set:html={j} />)}
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div style="min-height:100vh;background:#fff;font-family:'Schibsted Grotesk Variable',system-ui,sans-serif;font-size:17px;line-height:1.55;color:#010930">
+    <Header current={current} />
+    <main id="main"><slot /></main>
+    {footer && <Footer />}
+  </div>
+  <script>import "../scripts/tide";</script>
+  <slot name="scripts" />
+</body>
+</html>

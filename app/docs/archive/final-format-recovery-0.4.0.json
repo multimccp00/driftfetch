@@ -1,0 +1,6 @@
+{
+  "success": true,
+  "packaged": true,
+  "check": "Unidentified failed link recovers into held review on the same entry, even with Auto-download enabled",
+  "version": "0.4.0"
+}

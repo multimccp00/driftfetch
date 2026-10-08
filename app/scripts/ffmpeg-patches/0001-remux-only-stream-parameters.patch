@@ -1,0 +1,39 @@
+diff --git a/libavcodec/aac_ac3_parser.c b/libavcodec/aac_ac3_parser.c
+index 51c8012..1b0ce75 100644
+--- a/libavcodec/aac_ac3_parser.c
++++ b/libavcodec/aac_ac3_parser.c
+@@ -154,6 +154,19 @@ get_next:
+ 
+             if (avctx->profile == AV_PROFILE_UNKNOWN)
+                 avctx->profile = hdr.object_type - 1;
++            /* Current: this build has no AAC decoder to learn the sample rate and
++             * channel count from, so trust the ADTS header (HE-AAC streams then
++             * report their core rate, which is also what aac_adtstoasc writes). */
++            if (!avctx->sample_rate)
++                avctx->sample_rate = hdr.sample_rate;
++            /* Frame length for timestamps; the decoder would normally supply it. */
++            s1->duration = hdr.samples;
++            if (!avctx->ch_layout.nb_channels && hdr.chan_config > 0 &&
++                hdr.chan_config < 8) {
++                static const uint8_t adts_channels[8] = { 0, 1, 2, 3, 4, 5, 6, 8 };
++                av_channel_layout_default(&avctx->ch_layout,
++                                          adts_channels[hdr.chan_config]);
++            }
+             /* ADTS does not support USAC */
+             s1->key_frame = 1;
+             bit_rate = hdr.bit_rate;
+diff --git a/libavformat/hls.c b/libavformat/hls.c
+index 0e1a1ba..b0f284b 100644
+--- a/libavformat/hls.c
++++ b/libavformat/hls.c
+@@ -2536,7 +2536,9 @@ static int hls_read_header(AVFormatContext *s)
+          * but for other streams we can rely on our user calling avformat_find_stream_info()
+          * on us if they want to.
+          */
+-        if (pls->is_id3_timestamped || (pls->n_renditions > 0 && pls->renditions[0]->type == AVMEDIA_TYPE_AUDIO)) {
++        /* Current: without decoders nothing downstream can fill in missing stream
++         * parameters, so always let the parsers probe the sub-demuxer. */
++        if (1) {
+             seg = current_segment(pls);
+             if (seg && seg->key_type == KEY_SAMPLE_AES && pls->audio_setup_info.setup_data_length > 0 &&
+                 pls->ctx->nb_streams == 1)

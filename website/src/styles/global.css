@@ -1,0 +1,39 @@
+@import "@fontsource-variable/schibsted-grotesk";
+@import "@fontsource-variable/schibsted-grotesk/wght-italic.css";
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/500.css";
+
+:root {
+  --df-navy: #010930; --df-blue: #0b67fe; --df-blue-hover: #2a7bff;
+  --df-cyan: #0cf3fe; --df-cyan-text: #5fe3ee;
+  --df-paper: #f3f5fa; --df-mist: #e4e9f4;
+  --df-ink: #010930; --df-link: #0a55d6;
+  --df-font: "Schibsted Grotesk Variable", system-ui, sans-serif;
+  --df-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--df-paper); color: var(--df-ink); -webkit-font-smoothing: antialiased; }
+a { color: var(--df-link); text-decoration: none; }
+a:hover { color: var(--df-ink); }
+::selection { background: var(--df-blue); color: #fff; }
+summary::-webkit-details-marker { display: none; }
+:focus-visible { outline: 2px solid var(--df-blue); outline-offset: 2px; }
+.ic { display: flex; flex: none; align-items: center; justify-content: center; line-height: 0; }
+.skip { position: absolute; left: -9999px; top: 8px; z-index: 100; background: #fff; color: var(--df-ink); padding: 10px 14px; border-radius: 6px; }
+.skip:focus { left: 8px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+[hidden] { display: none !important; }
+@keyframes dfspin { to { transform: rotate(360deg); } }
+.spin { animation: dfspin 1s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
+/* Homepage: empty right-hand column (~38% of the container) reserved for the app/demo, per the design. */
+:root { --padr: 0px; --trycols: minmax(0, 1fr); --colw: 380px; }
+@media (min-width: 860px) {
+  :root {
+    --colw: max(380px, min(440px, calc(min(1180px, 100vw - 2 * clamp(20px, 4vw, 48px)) * 0.38)));
+    --padr: calc(min(440px, min(1180px, 100vw - 2 * clamp(20px, 4vw, 48px)) * 0.38) + 60px);
+    --trycols: minmax(0, 1fr) var(--colw);
+  }
+  .only-narrow { display: none; }
+}
+@media (max-width: 859px) { .only-wide { display: none; } }

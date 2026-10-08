@@ -1,0 +1,124 @@
+/* DriftFetch design tokens. Dark is the default theme. */
+:root {
+  /* Surfaces */
+  --bg-app: #0b0e17;
+  --bg-titlebar: #090c14;
+  --bg-sidebar: #0d111a;
+  --bg-list: #0e121b;          /* list card, settings cards, stat cards */
+  --bg-list-header: #0c1019;   /* column header row */
+  --bg-input: #0b0e17;
+  --bg-panel: #11151f;         /* side panel, dialogs, sidebar info card */
+  --bg-raised: #181e2b;        /* secondary buttons, selects */
+  --bg-hover: #1c2333;         /* hover on icon buttons */
+  --bg-nav-hover: #141a27;
+  --bg-nav-active: #161c2a;
+  --bg-row-hover: #131926;
+  --bg-row-selected: rgba(11, 103, 254, 0.09);
+  --bg-badge: #161b27;         /* inactive count badges */
+  --bg-badge-active: rgba(106, 166, 255, 0.18);
+  --bg-toast: #1a2030;
+
+  /* Lines */
+  --border: #1a1f2c;           /* card borders, main dividers */
+  --border-row: #151a25;       /* between list rows */
+  --border-subtle: #1d2331;
+  --border-control: #232a3a;   /* toolbar inputs */
+  --border-strong: #2a3142;    /* buttons, selects, inputs */
+  --border-dialog: #262d3d;
+  --border-checkbox: #3a4256;
+
+  /* Text */
+  --text-1: #e9ecf4;           /* 15.6:1 on --bg-app */
+  --text-1b: #c9cfdc;
+  --text-2: #a6adbe;           /* 8.4:1 */
+  --text-3: #7f879a;           /* 5.1:1 — minimum for text */
+  --text-disabled: #5a6274;    /* disabled only, not for readable text */
+
+  /* Brand (from the icon) */
+  --brand-navy: #010930;
+  --accent: #0b67fe;           /* primary buttons, selection, toggles on. White text 4.8:1 */
+  --accent-hover: #2a7bff;
+  --accent-press: #0044ee;
+  --accent-text: #6aa6ff;      /* links, active nav icons, tab underline */
+  --accent-text-hover: #9cc3ff;
+  --accent-badge-text: #c9d8ff;
+  --cyan: #0cf3fe;             /* progress fill, focus ring ONLY */
+  --cyan-text: #5fe3ee;        /* "Downloading" status label */
+
+  /* Status */
+  --ok: #5fcf98;
+  --wait: #e9b45a;             /* rate limited — not an error */
+  --danger: #f2847b;
+  --danger-border: #3a2a2e;
+  --neutral: #a6adbe;
+  --win-close-hover: #c42b1c;
+
+  /* Progress */
+  --progress-track: #1e2433;
+  --progress-fill: linear-gradient(90deg, #0b67fe, #0cf3fe);
+  --progress-paused: #5a6274;
+
+  /* Thumbnail placeholder */
+  --thumb-empty: repeating-linear-gradient(135deg, #171c29 0 5px, #121722 5px 10px);
+  --thumb-icon: #6f788c;
+
+  /* Type */
+  --font-ui: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "Cascadia Mono", ui-monospace, Consolas, monospace; /* bundle Cascadia Mono (OFL) */
+
+  --type-page: 600 28px/36px var(--font-display);   /* letter-spacing -0.015em */
+  --type-stat: 600 26px/34px var(--font-display);
+  --type-brand: 600 18px/24px var(--font-display);
+  --type-dialog: 600 17px/24px var(--font-display);
+  --type-section: 600 15px/22px var(--font-ui);
+  --type-body: 400 13px/20px var(--font-ui);
+  --type-label: 500 13px/20px var(--font-ui);
+  --type-small: 400 12px/16px var(--font-ui);
+  --type-overline: 600 10.5px/14px var(--font-ui);  /* letter-spacing 0.1em, uppercase */
+  --type-mono: 400 11.5px/16px var(--font-mono);
+
+  /* Spacing (4px base) */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 20px; --sp-6: 24px; --sp-7: 28px; --sp-8: 32px; --sp-10: 40px;
+
+  /* Radius */
+  --r-xs: 4px;   /* checkbox, quality badge */
+  --r-sm: 6px;   /* buttons, inputs, thumbnails */
+  --r-md: 8px;   /* nav items, primary CTA, radio cards */
+  --r-lg: 10px;  /* stat cards, settings cards, strip */
+  --r-xl: 12px;  /* list card, dialogs */
+
+  /* Elevation */
+  --shadow-pop: 0 6px 16px rgba(0, 0, 0, 0.35);
+  --shadow-dialog: 0 24px 64px rgba(0, 0, 0, 0.55);
+  --shadow-panel: -24px 0 48px rgba(0, 0, 0, 0.35);
+  --shadow-cta: 0 4px 14px rgba(11, 103, 254, 0.28);
+  --scrim-dialog: rgba(3, 5, 10, 0.62);
+  --scrim-panel: rgba(4, 6, 12, 0.5);
+
+  /* Motion */
+  --dur-fast: 120ms;  /* hover, toggles */
+  --dur-base: 180ms;  /* panel slide, tabs */
+  --dur-slow: 240ms;  /* dialogs in */
+  --ease: cubic-bezier(.2, .8, .2, 1);
+
+  /* Focus */
+  --focus-ring: 2px solid var(--cyan);   /* outline-offset: 2px */
+  --focus-input: 0 0 0 3px rgba(11, 103, 254, 0.22);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur-fast: 0ms; --dur-base: 0ms; --dur-slow: 0ms; }
+}
+
+/* Optional light theme */
+:root[data-theme="light"] {
+  --bg-app: #f6f7fa;
+  --bg-panel: #ffffff;
+  --border: #dfe3ec;
+  --text-1: #121624;
+  --text-3: #5e667a;
+  --accent: #0b5ae6;
+  --cyan: #0090a8;
+}
