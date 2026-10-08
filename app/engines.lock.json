@@ -11,9 +11,9 @@
     "archiveSha256": "15e5300b0ba3c3695a7621d90160a746ec9e710228cee639afa9d580f6e3cd11"
   },
   "gallery-dl.exe": {
-    "version": "v1.32.12",
-    "sha256": "0b36ae6734ed41e12be6be1b33d3165a450b3e0a811fc1b8c664c032f7f13b2c",
-    "source": "https://codeberg.org/mikf/gallery-dl/releases/download/v1.32.12/gallery-dl.exe"
+    "version": "v1.32.15",
+    "sha256": "d6c8ac8ffdc9194e90787225e70d0a7c9eeed23dd41c9574e235632b6f9593a4",
+    "source": "https://codeberg.org/mikf/gallery-dl/releases/download/v1.32.15/gallery-dl.exe"
   },
   "avcodec-63.dll": {
     "version": "n9.0.2-remux-only",
