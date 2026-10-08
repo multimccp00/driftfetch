@@ -12,6 +12,8 @@ const safety = [
   ["Only its own logins", "It receives the saved sign-in for its own sites only, never for any other site."],
   ["Honest limit", "It can still use the network, so only add extensions from people you trust. Disable or remove one and its process stops straight away, while your downloads stay."],
 ];
+// Published extensions. Add [name, sites, description] rows as they are released.
+const available: [string, string, string][] = [];
 const h2 = "margin:0;font-size:clamp(32px,4vw,52px);line-height:1.02;font-weight:800;letter-spacing:-0.04em;text-wrap:balance";
 const code = "display:block;padding:16px 18px;border-radius:10px;background:#010930;color:#c7cfea;font-family:'JetBrains Mono',monospace;font-size:14px;line-height:1.6;overflow-x:auto;white-space:pre";
 const manifest = `{
@@ -33,6 +35,21 @@ const manifest = `{
     <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto">
       <h1 style="margin:0;font-size:clamp(42px,6vw,84px);line-height:1;font-weight:700;letter-spacing:-0.04em;max-width:12ch;text-wrap:balance">Teach it a new site.</h1>
       <p style="margin:28px 0 0;max-width:32em;font-size:clamp(18px,1.6vw,20px);color:#c7cfea;text-wrap:pretty">Extensions add support for extra sites and accounts. They are optional, they run in a restricted process, and DriftFetch starts with none installed.</p>
+    </div>
+  </section>
+
+  <section data-tide="1" style="background:#fff;padding:110px clamp(20px,4vw,48px) 0">
+    <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto">
+      <h2 style={h2 + ";margin-bottom:40px"}>Available extensions</h2>
+      {available.length ? (
+        <ul style="list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:20px">
+          {available.map(([n, sites, d]) => (
+            <li style="padding:22px;border:1px solid rgba(1,9,48,0.14);border-radius:12px"><h3 style="margin:0;font-size:20px;font-weight:700;letter-spacing:-0.015em">{n}</h3><p style="margin:4px 0 10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#0a55d6">{sites}</p><p style="margin:0;color:#353d5c;text-wrap:pretty">{d}</p></li>
+          ))}
+        </ul>
+      ) : (
+        <p style="margin:0;padding:28px;border:1px dashed rgba(1,9,48,0.25);border-radius:12px;color:#353d5c;max-width:36em;text-wrap:pretty">No extensions are published yet. DriftFetch already handles popular video and gallery sites on its own, and new extensions will be listed here as they are released.</p>
+      )}
     </div>
   </section>
 
