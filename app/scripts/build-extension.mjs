@@ -20,7 +20,8 @@ const result = await build({
   target: "node24",
   write: false,
 });
-const output = path.join(directory, `${manifest.id}.current-extension`);
+// One level up, so every built file sits together and the picker needs no subfolder.
+const output = path.join(path.dirname(directory), `${manifest.id}.current-extension`);
 await fs.writeFile(
   output,
   JSON.stringify({ manifest, code: result.outputFiles[0].text }),

@@ -747,8 +747,14 @@ async function init() {
     changed();
   });
   handle("import-extension", async () => {
+    // From source, open where `build-extension` writes its files.
+    const folder = path.join(app.getAppPath(), "local-extensions");
+    const defaultPath = app.isPackaged
+      ? undefined
+      : await fs.access(folder).then(() => folder, () => undefined);
     const chosen = await dialog.showOpenDialog(window!, {
       title: "Add an optional DriftFetch extension",
+      defaultPath,
       properties: ["openFile"],
       filters: [
         { name: "DriftFetch extension", extensions: ["current-extension"] },
