@@ -167,7 +167,7 @@ const wave = Array.from({ length: 121 }, (_, i) => {
   .ha-play { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#fff; }
   .ha-play svg { padding:10px; box-sizing:content-box; border-radius:50%; background:rgba(1,9,48,.7); width:18px; height:18px; }
 
-  .ha-win { position:absolute; left:0; right:6%; top:150px; aspect-ratio:1380/880; z-index:3; border-radius:14px; background:linear-gradient(165deg,#0d2275,#061341); box-shadow:0 0 0 1px rgba(120,170,255,.35), 0 40px 70px -20px rgba(0,0,0,.7), 0 0 60px rgba(11,103,254,.45); overflow:hidden; transform:perspective(1100px) rotateY(-16deg) rotateX(7deg) rotateZ(-3deg); transform-origin:60% 50%; opacity:0; animation:ha-win var(--cyc) infinite; }
+  .ha-win { position:absolute; left:0; right:6%; top:150px; aspect-ratio:1380/880; z-index:3; border-radius:14px; background:linear-gradient(165deg,#0d2275,#061341); overflow:hidden; -webkit-mask-image:linear-gradient(to bottom,#000 0,#000 45%,transparent 92%); mask-image:linear-gradient(to bottom,#000 0,#000 45%,transparent 92%); transform:perspective(1100px) rotateY(-16deg) rotateX(7deg) rotateZ(-3deg); transform-origin:60% 50%; opacity:0; animation:ha-win var(--cyc) infinite; }
   .ha-win img { display:block; width:100%; height:100%; object-fit:cover; }
 
   @keyframes ha-pill { 0%{opacity:0;transform:translateY(-14px)} 6%,84%{opacity:1;transform:none} 12%{box-shadow:0 0 0 1px #0cf3fe,0 0 48px #0cf3fe} 18%{box-shadow:0 0 0 1px rgba(12,243,254,.5),0 0 28px rgba(11,103,254,.55)} 94%,100%{opacity:0;transform:none} }
