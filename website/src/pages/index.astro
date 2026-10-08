@@ -7,6 +7,11 @@ import { SAMPLES, FAQ, shareLinks } from "../data/home";
 const chips = SAMPLES;
 const faq = FAQ;
 const shares = shareLinks(site.url);
+const wave = Array.from({ length: 121 }, (_, i) => {
+  const x = i * 20;
+  const y = 150 + 62 * Math.sin((x / 1200) * Math.PI * 2) + 22 * Math.sin((x / 400) * Math.PI * 2 + 1);
+  return (i ? "L" : "M") + x + " " + y.toFixed(1);
+}).join(" ");
 ---
 <Layout
   title="DriftFetch – Free video and image downloader for Windows"
@@ -18,15 +23,15 @@ const shares = shareLinks(site.url);
 
     <div style="position:relative">
 
-      <section data-tide="1" id="top" aria-labelledby="h-hero" style="position:relative;background:#010930;color:#f2f5ff;padding:clamp(56px,8vw,112px) clamp(20px,4vw,48px) 150px">
+      <section data-tide="1" id="top" aria-labelledby="h-hero" style="position:relative;overflow:hidden;background-color:#010930;background-image:radial-gradient(900px 520px at 80% 52%,rgba(11,103,254,.5),transparent 65%),radial-gradient(600px 360px at 8% 100%,rgba(12,243,254,.1),transparent 70%);color:#f2f5ff;padding:clamp(56px,8vw,112px) clamp(20px,4vw,48px) 150px">
+        <div class="hero-wave" aria-hidden="true"><svg viewBox="0 0 2400 300" preserveAspectRatio="none"><defs><linearGradient id="hwg" x1="0" x2="1"><stop offset="0" stop-color="#0b67fe" stop-opacity=".2"/><stop offset=".5" stop-color="#0cf3fe"/><stop offset="1" stop-color="#0b67fe" stop-opacity=".2"/></linearGradient></defs><path d={wave} fill="none" stroke="#0b67fe" stroke-opacity=".35" stroke-width="22" stroke-linecap="round" class="hw-glow"/><path d={wave} fill="none" stroke="url(#hwg)" stroke-width="3" stroke-linecap="round"/></svg></div>
         <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto;box-sizing:border-box;padding-right:var(--padr)">
           <div class="hero-art only-wide" aria-hidden="true">
-          <svg class="ha-wave" viewBox="0 0 880 120" preserveAspectRatio="none"><defs><linearGradient id="haw" x1="0" x2="1"><stop offset="0" stop-color="#0b67fe" stop-opacity="0"/><stop offset=".5" stop-color="#0cf3fe"/><stop offset="1" stop-color="#0b67fe" stop-opacity="0"/></linearGradient></defs><path d="M0 60 C 55 10, 110 10, 165 60 S 275 110, 330 60 S 440 10, 495 60 S 605 110, 660 60 S 770 10, 825 60 S 880 90, 880 60" fill="none" stroke="url(#haw)" stroke-width="2.5" stroke-linecap="round"/></svg>
           <div class="ha-pill"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><span>youtube.com/watch?v=aBcD123</span></div>
-          <svg class="ha-arrow" width="120" height="110" viewBox="0 0 120 110" fill="none" stroke="#0cf3fe" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path pathLength="1" d="M10 6 C 90 0, 112 30, 96 80"/><path pathLength="1" d="M82 68 L96 84 L108 66"/></svg>
-          <div class="ha-card ha-a"><img src={u("/hero-thumb-1.webp")} width="560" height="420" alt=""></div>
-          <div class="ha-card ha-b"><img src={u("/hero-thumb-2.webp")} width="560" height="420" alt=""></div>
-          <div class="ha-card ha-c"><img src={u("/hero-thumb-3.webp")} width="560" height="420" alt=""><span class="ha-bar"><i></i></span><span class="ha-saved"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Saved</span></div>
+          <svg class="ha-arrow" width="150" height="120" viewBox="0 0 150 120" fill="none" stroke="#0cf3fe" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path pathLength="1" d="M8 8 C 120 0, 148 40, 120 98"/><path pathLength="1" d="M104 84 L120 102 L136 82"/></svg>
+          <div class="ha-float ha-f1"><img src={u("/hero-thumb-1.webp")} width="560" height="420" alt=""><span class="ha-play"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span></div>
+          <div class="ha-float ha-f2"><img src={u("/hero-thumb-2.webp")} width="560" height="420" alt=""></div>
+          <div class="ha-win"><img src={u("/app.png")} width="1380" height="880" alt=""></div>
         </div>
           <h1 id="h-hero" style="margin:0;font-size:clamp(44px,6vw,86px);line-height:1;font-weight:700;letter-spacing:-0.04em;max-width:11ch;text-wrap:balance">Copy a link and it’s on your PC.</h1>
           <div style="margin-top:44px;display:flex">
@@ -144,34 +149,40 @@ const shares = shareLinks(site.url);
     </section>
   
 <style>
-  .hero-art { position:absolute; right:0; top:0; width:min(440px, 38%); height:470px; pointer-events:none; --cyc:12s; }
-  .ha-wave { position:absolute; left:-30%; top:210px; width:160%; height:120px; opacity:.55; filter:drop-shadow(0 0 8px #0cf3fe); animation:ha-drift 9s ease-in-out infinite alternate; }
-  .ha-pill { position:absolute; left:0; top:14px; display:flex; align-items:center; gap:10px; max-width:100%; padding:11px 16px; border-radius:999px; background:rgba(11,40,120,.55); box-shadow:0 0 0 1px rgba(12,243,254,.45), 0 0 26px rgba(11,103,254,.45); color:#e8f6ff; font:500 clamp(12px,1.05vw,14.5px)/1 'JetBrains Mono',ui-monospace,monospace; white-space:nowrap; animation:ha-pill var(--cyc) infinite; }
+  .hero-wave { position:absolute; left:0; right:0; top:46%; height:300px; z-index:0; pointer-events:none; overflow:visible; }
+  .hero-wave svg { position:absolute; left:0; top:0; width:200%; height:100%; filter:drop-shadow(0 0 10px rgba(12,243,254,.7)); animation:hw-flow 26s linear infinite; }
+  .hw-glow { filter:blur(6px); }
+  @keyframes hw-flow { to { transform:translateX(-50%); } }
+
+  .hero-art { position:absolute; right:-28px; top:-6px; width:min(600px, 54vw); height:520px; pointer-events:none; --cyc:12s; }
+  .ha-pill { position:absolute; left:8%; top:8px; z-index:5; display:flex; align-items:center; gap:10px; padding:11px 18px; border-radius:999px; background:rgba(11,40,120,.6); box-shadow:0 0 0 1px rgba(12,243,254,.5), 0 0 28px rgba(11,103,254,.55); color:#e8f6ff; font:500 clamp(12px,1.05vw,14.5px)/1 'JetBrains Mono',ui-monospace,monospace; white-space:nowrap; animation:ha-pill var(--cyc) infinite; }
   .ha-pill svg { color:#0cf3fe; flex:none; }
-  .ha-arrow { position:absolute; right:6%; top:62px; animation:ha-fade var(--cyc) infinite; }
+  .ha-arrow { position:absolute; right:14%; top:46px; z-index:5; animation:ha-fade var(--cyc) infinite; }
   .ha-arrow path { stroke-dasharray:1; animation:ha-draw var(--cyc) infinite; }
-  .ha-card { position:absolute; width:56%; aspect-ratio:4/3; border-radius:12px; overflow:hidden; background:#0b1a4d; box-shadow:0 0 0 1px rgba(255,255,255,.14), 0 18px 40px -10px rgba(0,0,0,.6), 0 0 30px rgba(11,103,254,.35); opacity:0; }
-  .ha-card img { display:block; width:100%; height:100%; object-fit:cover; }
-  .ha-a { left:2%; top:170px; --r:-7deg; z-index:1; animation:ha-in-a var(--cyc) infinite; }
-  .ha-b { left:38%; top:150px; --r:6deg; z-index:2; animation:ha-in-b var(--cyc) infinite; }
-  .ha-c { left:18%; top:262px; --r:-2deg; z-index:3; animation:ha-in-c var(--cyc) infinite; }
-  .ha-bar { position:absolute; left:10px; right:10px; bottom:10px; height:6px; border-radius:3px; background:rgba(1,9,48,.7); overflow:hidden; }
-  .ha-bar i { display:block; height:100%; width:100%; background:linear-gradient(90deg,#0b67fe,#0cf3fe); transform-origin:left; animation:ha-fill var(--cyc) infinite; }
-  .ha-saved { position:absolute; right:10px; top:10px; display:flex; align-items:center; gap:5px; padding:4px 9px; border-radius:999px; background:#1d7a4c; color:#fff; font:600 12px/1 'Schibsted Grotesk Variable',sans-serif; opacity:0; animation:ha-saved var(--cyc) infinite; }
-  @keyframes ha-drift { from { transform:translateX(-4%); } to { transform:translateX(4%); } }
-  @keyframes ha-pill { 0%{opacity:0;transform:translateY(-14px)} 6%,84%{opacity:1;transform:none} 12%{box-shadow:0 0 0 1px #0cf3fe,0 0 44px #0cf3fe} 18%{box-shadow:0 0 0 1px rgba(12,243,254,.45),0 0 26px rgba(11,103,254,.45)} 94%,100%{opacity:0;transform:none} }
-  @keyframes ha-draw { 0%,16%{stroke-dashoffset:1} 26%,84%{stroke-dashoffset:0} 94%,100%{stroke-dashoffset:0} }
+
+  .ha-float { position:absolute; width:30%; aspect-ratio:4/3; border-radius:12px; overflow:hidden; box-shadow:0 0 0 1px rgba(255,255,255,.2), 0 0 34px rgba(11,103,254,.6); opacity:0; z-index:1; }
+  .ha-float img { display:block; width:100%; height:100%; object-fit:cover; }
+  .ha-f1 { right:-2%; top:96px; --r:8deg; animation:ha-f var(--cyc) infinite; }
+  .ha-f2 { right:12%; top:36px; --r:-6deg; width:26%; animation:ha-f2 var(--cyc) infinite; }
+  .ha-play { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#fff; }
+  .ha-play svg { padding:10px; box-sizing:content-box; border-radius:50%; background:rgba(1,9,48,.7); width:18px; height:18px; }
+
+  .ha-win { position:absolute; left:0; right:6%; top:150px; aspect-ratio:1380/880; z-index:3; border-radius:14px; background:linear-gradient(165deg,#0d2275,#061341); box-shadow:0 0 0 1px rgba(120,170,255,.35), 0 40px 70px -20px rgba(0,0,0,.7), 0 0 60px rgba(11,103,254,.45); overflow:hidden; transform:perspective(1100px) rotateY(-16deg) rotateX(7deg) rotateZ(-3deg); transform-origin:60% 50%; opacity:0; animation:ha-win var(--cyc) infinite; }
+  .ha-win img { display:block; width:100%; height:100%; object-fit:cover; }
+
+  @keyframes ha-pill { 0%{opacity:0;transform:translateY(-14px)} 6%,84%{opacity:1;transform:none} 12%{box-shadow:0 0 0 1px #0cf3fe,0 0 48px #0cf3fe} 18%{box-shadow:0 0 0 1px rgba(12,243,254,.5),0 0 28px rgba(11,103,254,.55)} 94%,100%{opacity:0;transform:none} }
+  @keyframes ha-draw { 0%,16%{stroke-dashoffset:1} 26%,100%{stroke-dashoffset:0} }
   @keyframes ha-fade { 0%,15%{opacity:0} 20%,84%{opacity:1} 94%,100%{opacity:0} }
-  @keyframes ha-in-a { 0%,26%{opacity:0;transform:translateY(24px) rotate(var(--r))} 34%,84%{opacity:1;transform:rotate(var(--r))} 94%,100%{opacity:0;transform:rotate(var(--r))} }
-  @keyframes ha-in-b { 0%,30%{opacity:0;transform:translateY(24px) rotate(var(--r))} 38%,84%{opacity:1;transform:rotate(var(--r))} 94%,100%{opacity:0;transform:rotate(var(--r))} }
-  @keyframes ha-in-c { 0%,34%{opacity:0;transform:translateY(24px) rotate(var(--r))} 42%,84%{opacity:1;transform:rotate(var(--r))} 94%,100%{opacity:0;transform:rotate(var(--r))} }
-  @keyframes ha-fill { 0%,42%{transform:scaleX(0)} 62%,100%{transform:scaleX(1)} }
-  @keyframes ha-saved { 0%,63%{opacity:0;transform:scale(.8)} 68%,84%{opacity:1;transform:none} 94%,100%{opacity:0} }
+  @keyframes ha-win { 0%,24%{opacity:0;transform:perspective(1100px) rotateY(-16deg) rotateX(7deg) rotateZ(-3deg) translateY(30px)} 34%,84%{opacity:1;transform:perspective(1100px) rotateY(-16deg) rotateX(7deg) rotateZ(-3deg)} 94%,100%{opacity:0;transform:perspective(1100px) rotateY(-16deg) rotateX(7deg) rotateZ(-3deg)} }
+  @keyframes ha-f { 0%,40%{opacity:0;transform:translateY(16px) rotate(var(--r))} 50%,84%{opacity:1;transform:rotate(var(--r))} 94%,100%{opacity:0;transform:rotate(var(--r))} }
+  @keyframes ha-f2 { 0%,46%{opacity:0;transform:translateY(16px) rotate(var(--r))} 56%,84%{opacity:1;transform:rotate(var(--r))} 94%,100%{opacity:0;transform:rotate(var(--r))} }
+
   /* Reduced motion: hold the finished frame, nothing moves. */
   @media (prefers-reduced-motion: reduce) {
-    .hero-art *, .hero-art { animation:none !important; }
-    .ha-card { opacity:1; transform:rotate(var(--r)); }
-    .ha-saved { opacity:1; }
+    .hero-wave svg, .hero-art, .hero-art * { animation:none !important; }
+    .ha-win, .ha-float { opacity:1; }
+    .ha-float { transform:rotate(var(--r)); }
+    .ha-arrow path { stroke-dashoffset:0; }
   }
 </style>
 <script>import "../scripts/home";</script>
