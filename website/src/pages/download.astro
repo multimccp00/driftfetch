@@ -4,10 +4,10 @@ import { u, site, links } from "../data/site";
 ---
 <Layout
   title="Download DriftFetch for Windows – free and open source"
-  description="Download DriftFetch for Windows 10 and 11 as an installer or a portable zip. Free and open source, with checksums and install help."
+  description="Download DriftFetch for Windows 10 and 11 as an installer or a portable zip. Free and open source, with install help."
   path="/download"
   current="/download"
-  jsonld={[{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Is DriftFetch safe?","acceptedAnswer":{"@type":"Answer","text":"It’s open source, so anyone can read the code, and each release lists its SHA-256 checksum so you can confirm the file wasn’t changed."}},{"@type":"Question","name":"Why does Windows say “Windows protected your PC”?","acceptedAnswer":{"@type":"Answer","text":"Windows shows this for new apps that haven’t been downloaded many times yet. Click “More info”, then “Run anyway”. The checksum on this page lets you confirm the file is genuine first."}},{"@type":"Question","name":"How do I uninstall it?","acceptedAnswer":{"@type":"Answer","text":"Installer: open Windows Settings › Apps, find DriftFetch and choose Uninstall. Portable: delete its folder. Either way, your downloaded files stay where they are."}}]}]}
+  jsonld={[{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Is DriftFetch safe?","acceptedAnswer":{"@type":"Answer","text":"It’s open source, so anyone can read the code and see exactly what it does."}},{"@type":"Question","name":"Why does Windows say “Windows protected your PC”?","acceptedAnswer":{"@type":"Answer","text":"Windows shows this for new apps that haven’t been downloaded many times yet. Click “More info”, then “Run anyway”."}},{"@type":"Question","name":"How do I uninstall it?","acceptedAnswer":{"@type":"Answer","text":"Installer: open Windows Settings › Apps, find DriftFetch and choose Uninstall. Portable: delete its folder. Either way, your downloaded files stay where they are."}}]}]}
 >
 
     <section data-tide="1" style="background:#010930;color:#f2f5ff;padding:clamp(56px,8vw,104px) clamp(20px,4vw,48px) 120px">
@@ -52,21 +52,6 @@ import { u, site, links } from "../data/site";
         </ol>
       </div>
     </section>
-    <section data-tide="1" style="background:#ffffff;padding:110px clamp(20px,4vw,48px)">
-      <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto">
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:40px 72px">
-          <h2 style="margin:0;font-size:clamp(32px,4vw,52px);line-height:1.02;font-weight:800;letter-spacing:-0.04em;text-wrap:balance">Check the file</h2>
-          <div style="display:flex;flex-direction:column">
-            <p style="margin:0 0 16px;color:#353d5c;text-wrap:pretty">Every release lists a SHA-256 checksum. In PowerShell, run this in your Downloads folder and compare the result with the one on the release page.</p>
-            <code style="display:block;padding:16px 18px;border-radius:10px;background:#010930;color:#c7cfea;font-family:'JetBrains Mono',monospace;font-size:14px;line-height:1.6;overflow-x:auto;white-space:pre">Get-FileHash .\DriftFetch-Setup-{site.version}.exe
-Get-FileHash .\DriftFetch-Portable-{site.version}.zip</code>
-            <p style="margin:20px 0 8px;font-size:14px;font-weight:600;color:#353d5c">SHA-256 for the {site.version} installer</p>
-            <code style="display:block;padding:16px 18px;border-radius:10px;background:#010930;color:#c7cfea;font-family:'JetBrains Mono',monospace;font-size:14px;line-height:1.6;overflow-x:auto;white-space:pre">[paste the release checksum here]</code>
-            <p style="margin:20px 0 8px;font-size:14px;font-weight:600;color:#353d5c">SHA-256 for the {site.version} portable zip</p>
-            <code style="display:block;padding:16px 18px;border-radius:10px;background:#010930;color:#c7cfea;font-family:'JetBrains Mono',monospace;font-size:14px;line-height:1.6;overflow-x:auto;white-space:pre">[paste the release checksum here]</code></div>
-        </div>
-      </div>
-    </section>
     <section data-tide="1" style="background:#e4e9f4;padding:110px clamp(20px,4vw,48px)">
       <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto">
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:40px 72px">
@@ -86,8 +71,8 @@ Get-FileHash .\DriftFetch-Portable-{site.version}.zip</code>
     <section data-tide="1" style="background:#0b67fe;color:#f2f5ff;padding:110px clamp(20px,4vw,48px)">
       <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto">
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:28px 56px">
-          <div><h3 style="margin:0 0 6px;font-size:20px;font-weight:700">Is DriftFetch safe?</h3><p style="margin:0;color:#e8efff;text-wrap:pretty">It’s open source, so anyone can read the code, and each release lists its SHA-256 checksum so you can confirm the file wasn’t changed.</p></div>
-          <div><h3 style="margin:0 0 6px;font-size:20px;font-weight:700">Why does Windows say “Windows protected your PC”?</h3><p style="margin:0;color:#e8efff;text-wrap:pretty">Windows shows this for new apps that haven’t been downloaded many times yet. Click “More info”, then “Run anyway”. The checksum on this page lets you confirm the file is genuine first.</p></div>
+          <div><h3 style="margin:0 0 6px;font-size:20px;font-weight:700">Is DriftFetch safe?</h3><p style="margin:0;color:#e8efff;text-wrap:pretty">It’s open source, so anyone can read the code and see exactly what it does.</p></div>
+          <div><h3 style="margin:0 0 6px;font-size:20px;font-weight:700">Why does Windows say “Windows protected your PC”?</h3><p style="margin:0;color:#e8efff;text-wrap:pretty">Windows shows this for new apps that haven’t been downloaded many times yet. Click “More info”, then “Run anyway”.</p></div>
           <div><h3 style="margin:0 0 6px;font-size:20px;font-weight:700">How do I uninstall it?</h3><p style="margin:0;color:#e8efff;text-wrap:pretty">Installer: open Windows Settings › Apps, find DriftFetch and choose Uninstall. Portable: delete its folder. Either way, your downloaded files stay where they are.</p></div>
         </div>
       </div>

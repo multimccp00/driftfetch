@@ -17,14 +17,6 @@ export const SAMPLES: Sample[] = [
   { url: "https://patreon.com/posts/members-only-qa", label: "patreon.com/posts/members-only", hint: "needs sign-in", icon: "lock", title: "Members-only Q&A", site: "patreon.com", kind: "locked" },
 ];
 
-export const STATES = [
-  { c: "#00737e", label: "Downloading · 38 s left", text: "Real numbers: size, speed and time left. Audio and video are joined at the end, without re-encoding." },
-  { c: "#9a5b00", label: "Rate limited · resumes in 3:12", text: "The site asked DriftFetch to slow down. That isn’t an error, so it isn’t shown as one. It waits as long as it was asked to, then carries on by itself." },
-  { c: "#0a55d6", label: "Choose items · 18 images", text: "Albums, playlists and profiles wait for you to tick what you want, with thumbnails. Your drive doesn’t get flooded." },
-  { c: "#b8322a", label: "Sign-in needed", text: "When something really fails you get the reason in plain words and the one step that fixes it. No error codes unless you ask for them." },
-  { c: "#1d7a4c", label: "Saved · Today, 21:14", text: "One click opens the file or its folder. Links you’ve already saved are caught before they download twice." },
-];
-
 export const FAQ = [
   { q: "Is it really free?", a: "Yes. DriftFetch is MIT-licensed open source with no ads, trials or paid features. The tools it bundles keep their own open-source licences." },
   { q: "Which sites does it work with?", a: "Sites that yt-dlp and gallery-dl support, such as YouTube, Vimeo, Internet Archive and Dailymotion. Some sites need you to sign in once inside the app." },

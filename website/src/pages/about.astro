@@ -1,0 +1,71 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { u, links } from "../data/site";
+const tools = [
+  ["yt-dlp", "https://github.com/yt-dlp/yt-dlp", "finds videos and formats"],
+  ["gallery-dl", "https://github.com/mikf/gallery-dl", "finds images in galleries"],
+  ["FFmpeg", "https://ffmpeg.org", "joins audio and video"],
+  ["Deno", "https://deno.com", "runs scripts some sites need"],
+];
+const h2 = "margin:0;font-size:clamp(32px,4vw,52px);line-height:1.02;font-weight:800;letter-spacing:-0.04em;text-wrap:balance";
+---
+<Layout
+  title="About – DriftFetch"
+  description="DriftFetch is a free, open-source Windows app that saves videos and galleries when you copy a link. No account, no ads, no tracking."
+  path="/about"
+  current="/about"
+  jsonld={[]}
+>
+  <section data-tide="1" style="background:#010930;color:#f2f5ff;padding:clamp(56px,8vw,104px) clamp(20px,4vw,48px) 120px">
+    <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto">
+      <h1 style="margin:0;font-size:clamp(42px,6vw,84px);line-height:1;font-weight:700;letter-spacing:-0.04em;max-width:12ch;text-wrap:balance">A downloader that stays out of your way.</h1>
+      <p style="margin:28px 0 0;max-width:32em;font-size:clamp(18px,1.6vw,20px);color:#c7cfea;text-wrap:pretty">DriftFetch is a free, open-source Windows app. Copy a video or gallery link and it saves it for you. There’s no account to make, nothing to configure first, and nobody watching.</p>
+    </div>
+  </section>
+
+  <section data-tide="1" style="background:#fff;padding:110px clamp(20px,4vw,48px)">
+    <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto">
+      <h2 style={h2 + ";max-width:16ch;margin-bottom:56px"}>No account. No ads. No tracking. <span style="font-style:italic;font-weight:600;color:#596180">Not even on this website.</span></h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:40px 56px">
+        <div style="display:flex;flex-direction:column;gap:12px;padding-top:20px;border-top:2px solid #0cf3fe">
+          <h3 style="margin:0;font-size:20px;font-weight:700;letter-spacing:-0.015em">What stays on your PC</h3>
+          <p style="margin:0;color:#353d5c;text-wrap:pretty">Your settings, your download history and any site sign-ins. Sign-ins are encrypted with your Windows account. All of it lives in one folder you can delete at any time.</p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px;padding-top:20px;border-top:2px solid rgba(1,9,48,0.2)">
+          <h3 style="margin:0;font-size:20px;font-weight:700;letter-spacing:-0.015em">What we see</h3>
+          <p style="margin:0;color:#353d5c;text-wrap:pretty">Nothing. There is no DriftFetch server. The app only talks to the sites you download from, and to GitHub when it checks for engine updates.</p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px;padding-top:20px;border-top:2px solid rgba(1,9,48,0.2)">
+          <h3 style="margin:0;font-size:20px;font-weight:700;letter-spacing:-0.015em">This website</h3>
+          <p style="margin:0;color:#353d5c;text-wrap:pretty">No cookies, no analytics, no third-party fonts or scripts, so there’s no cookie banner to click away. <a href={u("/legal#privacy")} style="color:#0a55d6" class="hxpj8jr">Read the privacy policy</a>.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section data-tide="1" style="background:#e4e9f4;padding:110px clamp(20px,4vw,48px)">
+    <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:40px 72px">
+      <h2 style={h2}>Built on open tools you can <span style="background:linear-gradient(transparent 64%,#0cf3fe 64%,#0cf3fe 90%,transparent 90%);padding:0 2px">already trust</span></h2>
+      <div style="display:flex;flex-direction:column">
+        {tools.map(([name, href, what]) => (
+          <div style="display:flex;gap:16px;justify-content:space-between;padding:18px 0;border-top:1px solid rgba(1,9,48,0.14)"><a href={href} rel="noopener" style="font-size:20px;font-weight:700;letter-spacing:-0.015em;color:#010930" class="hxpj8jr">{name}</a><span style="color:#353d5c;text-align:right">{what}</span></div>
+        ))}
+        <p style="margin:0;padding-top:18px;border-top:1px solid rgba(1,9,48,0.14);color:#353d5c;text-wrap:pretty">Engine updates are checked against the maintainers’ signatures before they install. Every licence is listed on the <a href={u("/legal#licences")} style="color:#0a55d6" class="hxpj8jr">legal page</a>.</p>
+      </div>
+    </div>
+  </section>
+
+  <section data-tide="1" style="background:#0b67fe;color:#f2f5ff;padding:110px clamp(20px,4vw,48px)">
+    <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:40px 72px;align-items:start">
+      <h2 style={h2}>Free, and staying that way.</h2>
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <p style="margin:0;color:#e8efff;font-size:18px;text-wrap:pretty">DriftFetch is MIT-licensed open source with no ads, trials or paid features. The only funding is people who find it useful.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:12px">
+          <a href={u("/donate")} style="display:flex;align-items:center;height:48px;padding:0 20px;border-radius:10px;background:#FFDD00;color:#010930;font-weight:700">Buy me a coffee</a>
+          <a href={links.source} rel="noopener" style="display:flex;align-items:center;height:48px;padding:0 20px;border-radius:10px;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.5);color:#fff;font-weight:600">Read the source</a>
+          <a href={u("/extensions")} style="display:flex;align-items:center;height:48px;padding:0 20px;border-radius:10px;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.5);color:#fff;font-weight:600">Extensions</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>

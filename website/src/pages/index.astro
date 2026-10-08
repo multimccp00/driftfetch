@@ -3,9 +3,8 @@ import Layout from "../layouts/Layout.astro";
 import { u, site, links } from "../data/site";
 import Demo from "../components/Demo.astro";
 import { Icon } from "../components/icon";
-import { SAMPLES, STATES, FAQ, shareLinks } from "../data/home";
+import { SAMPLES, FAQ, shareLinks } from "../data/home";
 const chips = SAMPLES;
-const states = STATES;
 const faq = FAQ;
 const shares = shareLinks(site.url);
 ---
@@ -21,6 +20,14 @@ const shares = shareLinks(site.url);
 
       <section data-tide="1" id="top" aria-labelledby="h-hero" style="position:relative;background:#010930;color:#f2f5ff;padding:clamp(56px,8vw,112px) clamp(20px,4vw,48px) 150px">
         <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto;box-sizing:border-box;padding-right:var(--padr)">
+          <div class="hero-art only-wide" aria-hidden="true">
+          <svg class="ha-wave" viewBox="0 0 880 120" preserveAspectRatio="none"><defs><linearGradient id="haw" x1="0" x2="1"><stop offset="0" stop-color="#0b67fe" stop-opacity="0"/><stop offset=".5" stop-color="#0cf3fe"/><stop offset="1" stop-color="#0b67fe" stop-opacity="0"/></linearGradient></defs><path d="M0 60 C 55 10, 110 10, 165 60 S 275 110, 330 60 S 440 10, 495 60 S 605 110, 660 60 S 770 10, 825 60 S 880 90, 880 60" fill="none" stroke="url(#haw)" stroke-width="2.5" stroke-linecap="round"/></svg>
+          <div class="ha-pill"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><span>youtube.com/watch?v=aBcD123</span></div>
+          <svg class="ha-arrow" width="120" height="110" viewBox="0 0 120 110" fill="none" stroke="#0cf3fe" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path pathLength="1" d="M10 6 C 90 0, 112 30, 96 80"/><path pathLength="1" d="M82 68 L96 84 L108 66"/></svg>
+          <div class="ha-card ha-a"><img src={u("/hero-thumb-1.webp")} width="560" height="420" alt=""></div>
+          <div class="ha-card ha-b"><img src={u("/hero-thumb-2.webp")} width="560" height="420" alt=""></div>
+          <div class="ha-card ha-c"><img src={u("/hero-thumb-3.webp")} width="560" height="420" alt=""><span class="ha-bar"><i></i></span><span class="ha-saved"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Saved</span></div>
+        </div>
           <h1 id="h-hero" style="margin:0;font-size:clamp(44px,6vw,86px);line-height:1;font-weight:700;letter-spacing:-0.04em;max-width:11ch;text-wrap:balance">Copy a link and it’s on your PC.</h1>
           <div style="margin-top:44px;display:flex">
             <button id="hero-link" data-url="https://youtube.com/watch?v=aBcD123" title="Copy this link" style="max-width:100%;padding:3px 6px;border:none;border-radius:2px;background:#0cf3fe;color:#010930;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:clamp(17px,2vw,26px);line-height:1.3;text-align:left;overflow-wrap:anywhere;cursor:pointer;user-select:text" class="h1eknsu4">youtube.com/watch?v=aBcD123</button>
@@ -78,20 +85,6 @@ const shares = shareLinks(site.url);
         </div>
       </section>
 
-      <section data-tide="1" id="status" aria-labelledby="h-status" style="position:relative;background:#fff;padding:150px clamp(20px,4vw,48px) 150px">
-        <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto;box-sizing:border-box;padding-right:var(--padr)">
-          <h2 id="h-status" style="margin:0;font-size:clamp(36px,4.4vw,58px);line-height:1;font-weight:800;letter-spacing:-0.04em;text-wrap:balance;max-width:14ch">It tells you what’s <span style="background:linear-gradient(transparent 64%,#0cf3fe 64%,#0cf3fe 90%,transparent 90%);padding:0 2px">actually</span> going on.</h2>
-          <p style="margin:20px 0 48px;color:#353d5c;max-width:30em;font-size:18px;text-wrap:pretty">A lot of downloaders turn everything red the moment a site says “slow down”. DriftFetch gives each situation its own name, colour and next step, so you only act when you really have to.</p>
-          <dl style="margin:0;display:flex;flex-direction:column">
-            {states.map((s) => (<>
-              <div style="padding:36px 0 44px;border-top:1px solid rgba(1,9,48,0.12)">
-                <dt style={`display:flex;align-items:center;gap:14px;font-size:clamp(22px,2.2vw,28px);font-weight:700;letter-spacing:-0.025em;color:${s.c}`}><span style={`width:11px;height:11px;border-radius:50%;background:${s.c};flex:none`}></span>{s.label}</dt>
-                <dd style="margin:10px 0 0 25px;color:#353d5c;max-width:32em;text-wrap:pretty">{s.text}</dd>
-              </div>
-            </>))}
-          </dl>
-        </div>
-      </section>
     </div>
 
     <section data-tide="1" id="app" aria-labelledby="h-app" style="position:relative;padding:150px clamp(20px,4vw,48px) 150px;background:#0b67fe;color:#fff">
@@ -104,26 +97,6 @@ const shares = shareLinks(site.url);
       </div>
     </section>
 
-    <section data-tide="1" id="privacy" aria-labelledby="h-privacy" style="position:relative;background:#010930;color:#f2f5ff;padding:170px clamp(20px,4vw,48px) 130px">
-      <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto">
-        <h2 id="h-privacy" style="margin:0 0 64px;font-size:clamp(38px,5.4vw,72px);line-height:0.98;font-weight:800;letter-spacing:-0.045em;max-width:14ch;text-wrap:balance">No account. No ads. No tracking. <span style="font-style:italic;font-weight:600;color:#9fb0e6">Not even on this website.</span></h2>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:40px 56px">
-          <div style="display:flex;flex-direction:column;gap:12px;padding-top:20px;border-top:2px solid #0cf3fe">
-            <h3 style="margin:0;font-size:20px;font-weight:700;letter-spacing:-0.015em">What stays on your PC</h3>
-            <p style="margin:0;color:#c7cfea;text-wrap:pretty">Your settings, your download history and any site sign-ins. Sign-ins are encrypted with your Windows account. All of it lives in one folder you can delete at any time.</p>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:12px;padding-top:20px;border-top:2px solid rgba(242,245,255,0.25)">
-            <h3 style="margin:0;font-size:20px;font-weight:700;letter-spacing:-0.015em">What we see</h3>
-            <p style="margin:0;color:#c7cfea;text-wrap:pretty">Nothing. There is no DriftFetch server. The app only talks to the sites you download from, and to GitHub when it checks for engine updates.</p>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:12px;padding-top:20px;border-top:2px solid rgba(242,245,255,0.25)">
-            <h3 style="margin:0;font-size:20px;font-weight:700;letter-spacing:-0.015em">This website</h3>
-            <p style="margin:0;color:#c7cfea;text-wrap:pretty">No cookies, no analytics, no third-party fonts or scripts. So there’s no cookie banner to click away. <a href={u("/legal#privacy")} style="color:#9cc3ff" class="hxpj8jr">Read the privacy policy</a>.</p>
-          </div>
-        </div>
-        <p style="margin:72px 0 0;max-width:46em;font-size:16px;color:#8a96bd;text-wrap:pretty">Built on open tools that many people already trust: <a href="https://github.com/yt-dlp/yt-dlp" rel="noopener" style="color:#c7cfea" class="hxpj8jr">yt-dlp</a>, <a href="https://github.com/mikf/gallery-dl" rel="noopener" style="color:#c7cfea" class="hxpj8jr">gallery-dl</a>, <a href="https://ffmpeg.org" rel="noopener" style="color:#c7cfea" class="hxpj8jr">FFmpeg</a> and <a href="https://deno.com" rel="noopener" style="color:#c7cfea" class="hxpj8jr">Deno</a>. Engine updates are checked against the maintainers’ signatures before they install.</p>
-      </div>
-    </section>
 
     <section data-tide="1" id="faq" aria-labelledby="h-faq" style="position:relative;background:#fff;padding:170px clamp(20px,4vw,48px) 120px">
       <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto">
@@ -154,7 +127,7 @@ const shares = shareLinks(site.url);
 
     <section data-tide="1" id="download" aria-labelledby="h-download" style="position:relative;background:#010930;color:#f2f5ff;padding:150px clamp(20px,4vw,48px) 0">
       <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto;display:flex;flex-direction:column;align-items:center;text-align:center;gap:24px">
-        <a href="#" aria-label="Download DriftFetch for Windows" style="width:104px;height:104px;border-radius:50%;background:#0b67fe;color:#fff;display:flex;align-items:center;justify-content:center" class="h1ifpqlp"><span class="ic"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 17V3" />
+        <a href={links.installer} aria-label="Download DriftFetch for Windows" style="width:104px;height:104px;border-radius:50%;background:#0b67fe;color:#fff;display:flex;align-items:center;justify-content:center" class="h1ifpqlp"><span class="ic"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 17V3" />
   <path d="m6 11 6 6 6-6" />
   <path d="M19 21H5" /></svg></span></a>
         <h2 id="h-download" style="margin:12px 0 0;font-size:clamp(44px,7vw,96px);line-height:0.95;font-weight:800;letter-spacing:-0.05em">Let it drift in.</h2>
@@ -163,12 +136,43 @@ const shares = shareLinks(site.url);
   <path d="m6 11 6 6 6-6" />
   <path d="M19 21H5" /></svg></span>Download for Windows</a>
         <ul style="list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;justify-content:center;gap:6px 26px;font-size:14.5px;color:#8a96bd">
-          <li>Windows 10 or 11, 64-bit</li><li>Version {site.version}</li><li>MIT licence</li><li><a href={links.releaseNotes} style="color:#c7cfea" class="hxpj8jr">Release notes</a></li><li><a href={links.releaseNotes} style="color:#c7cfea" class="hxpj8jr">Checksums</a></li><li><a href={links.releases} style="color:#c7cfea" class="hxpj8jr">All releases</a></li>
+          <li>Windows 10 or 11, 64-bit</li><li>Version {site.version}</li><li>MIT licence</li><li><a href={links.releaseNotes} style="color:#c7cfea" class="hxpj8jr">Release notes</a></li><li><a href={links.releases} style="color:#c7cfea" class="hxpj8jr">All releases</a></li>
         </ul>
       </div>
 
       
     </section>
   
+<style>
+  .hero-art { position:absolute; right:0; top:0; width:min(440px, 38%); height:470px; pointer-events:none; --cyc:12s; }
+  .ha-wave { position:absolute; left:-30%; top:210px; width:160%; height:120px; opacity:.55; filter:drop-shadow(0 0 8px #0cf3fe); animation:ha-drift 9s ease-in-out infinite alternate; }
+  .ha-pill { position:absolute; left:0; top:14px; display:flex; align-items:center; gap:10px; max-width:100%; padding:11px 16px; border-radius:999px; background:rgba(11,40,120,.55); box-shadow:0 0 0 1px rgba(12,243,254,.45), 0 0 26px rgba(11,103,254,.45); color:#e8f6ff; font:500 clamp(12px,1.05vw,14.5px)/1 'JetBrains Mono',ui-monospace,monospace; white-space:nowrap; animation:ha-pill var(--cyc) infinite; }
+  .ha-pill svg { color:#0cf3fe; flex:none; }
+  .ha-arrow { position:absolute; right:6%; top:62px; animation:ha-fade var(--cyc) infinite; }
+  .ha-arrow path { stroke-dasharray:1; animation:ha-draw var(--cyc) infinite; }
+  .ha-card { position:absolute; width:56%; aspect-ratio:4/3; border-radius:12px; overflow:hidden; background:#0b1a4d; box-shadow:0 0 0 1px rgba(255,255,255,.14), 0 18px 40px -10px rgba(0,0,0,.6), 0 0 30px rgba(11,103,254,.35); opacity:0; }
+  .ha-card img { display:block; width:100%; height:100%; object-fit:cover; }
+  .ha-a { left:2%; top:170px; --r:-7deg; z-index:1; animation:ha-in-a var(--cyc) infinite; }
+  .ha-b { left:38%; top:150px; --r:6deg; z-index:2; animation:ha-in-b var(--cyc) infinite; }
+  .ha-c { left:18%; top:262px; --r:-2deg; z-index:3; animation:ha-in-c var(--cyc) infinite; }
+  .ha-bar { position:absolute; left:10px; right:10px; bottom:10px; height:6px; border-radius:3px; background:rgba(1,9,48,.7); overflow:hidden; }
+  .ha-bar i { display:block; height:100%; width:100%; background:linear-gradient(90deg,#0b67fe,#0cf3fe); transform-origin:left; animation:ha-fill var(--cyc) infinite; }
+  .ha-saved { position:absolute; right:10px; top:10px; display:flex; align-items:center; gap:5px; padding:4px 9px; border-radius:999px; background:#1d7a4c; color:#fff; font:600 12px/1 'Schibsted Grotesk Variable',sans-serif; opacity:0; animation:ha-saved var(--cyc) infinite; }
+  @keyframes ha-drift { from { transform:translateX(-4%); } to { transform:translateX(4%); } }
+  @keyframes ha-pill { 0%{opacity:0;transform:translateY(-14px)} 6%,84%{opacity:1;transform:none} 12%{box-shadow:0 0 0 1px #0cf3fe,0 0 44px #0cf3fe} 18%{box-shadow:0 0 0 1px rgba(12,243,254,.45),0 0 26px rgba(11,103,254,.45)} 94%,100%{opacity:0;transform:none} }
+  @keyframes ha-draw { 0%,16%{stroke-dashoffset:1} 26%,84%{stroke-dashoffset:0} 94%,100%{stroke-dashoffset:0} }
+  @keyframes ha-fade { 0%,15%{opacity:0} 20%,84%{opacity:1} 94%,100%{opacity:0} }
+  @keyframes ha-in-a { 0%,26%{opacity:0;transform:translateY(24px) rotate(var(--r))} 34%,84%{opacity:1;transform:rotate(var(--r))} 94%,100%{opacity:0;transform:rotate(var(--r))} }
+  @keyframes ha-in-b { 0%,30%{opacity:0;transform:translateY(24px) rotate(var(--r))} 38%,84%{opacity:1;transform:rotate(var(--r))} 94%,100%{opacity:0;transform:rotate(var(--r))} }
+  @keyframes ha-in-c { 0%,34%{opacity:0;transform:translateY(24px) rotate(var(--r))} 42%,84%{opacity:1;transform:rotate(var(--r))} 94%,100%{opacity:0;transform:rotate(var(--r))} }
+  @keyframes ha-fill { 0%,42%{transform:scaleX(0)} 62%,100%{transform:scaleX(1)} }
+  @keyframes ha-saved { 0%,63%{opacity:0;transform:scale(.8)} 68%,84%{opacity:1;transform:none} 94%,100%{opacity:0} }
+  /* Reduced motion: hold the finished frame, nothing moves. */
+  @media (prefers-reduced-motion: reduce) {
+    .hero-art *, .hero-art { animation:none !important; }
+    .ha-card { opacity:1; transform:rotate(var(--r)); }
+    .ha-saved { opacity:1; }
+  }
+</style>
 <script>import "../scripts/home";</script>
 </Layout>

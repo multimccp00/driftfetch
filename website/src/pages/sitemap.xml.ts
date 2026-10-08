@@ -1,7 +1,7 @@
 import { site } from "../data/site";
 import { u } from "../data/site";
 
-const paths = ["/", "/download", "/sites", "/youtube", "/reddit", "/vimeo", "/faq", "/privacy", "/donate", "/legal"];
+const paths = ["/", "/download", "/sites", "/youtube", "/reddit", "/vimeo", "/extensions", "/about", "/faq", "/privacy", "/donate", "/legal"];
 
 export const GET = () =>
   new Response(

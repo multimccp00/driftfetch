@@ -2,7 +2,7 @@
 import { u, site, links } from "../data/site";
 const col = (title: string, items: [string, string][]) => ({ title, items });
 const cols = [
-  col("Product", [["Download", u("/download")], ["Supported sites", u("/sites")], ["FAQ", u("/faq")], ["Release notes", links.releaseNotes]]),
+  col("Product", [["Download", u("/download")], ["Supported sites", u("/sites")], ["Extensions", u("/extensions")], ["FAQ", u("/faq")], ["About", u("/about")], ["Release notes", links.releaseNotes]]),
   col("Works with", [["YouTube", u("/youtube")], ["Reddit", u("/reddit")], ["Vimeo", u("/vimeo")], ["All sites", u("/sites")]]),
   col("Project", [["Support DriftFetch", u("/donate")], ["Source code", links.source], ["Report a problem", links.issues], [site.email, `mailto:${site.email}`]]),
   col("Legal", [["Privacy", u("/privacy")], ["Legal notice", u("/legal#imprint")], ["Privacy policy", u("/legal#privacy")], ["Terms of use", u("/legal#terms")], ["Open-source licences", u("/legal#licences")]]),

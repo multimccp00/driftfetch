@@ -1,0 +1,76 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { links } from "../data/site";
+const steps = [
+  ["01", "Add the file", "Open Settings › Extensions and choose Add extension file…. Extensions are single files ending in .current-extension. Adding one doesn’t run anything."],
+  ["02", "Turn it on", "Enabling it shows the extension’s name and the sites it covers, and asks whether you trust it. Nothing runs until you say yes."],
+  ["03", "Copy a link", "Links from those sites now work like any other. Sign-ins for them live under Settings › Accounts."],
+];
+const safety = [
+  ["Off until you say so", "No extensions are installed by default, and each one starts disabled."],
+  ["Locked in a box", "Each extension runs in its own restricted process. It can’t read or write your files, start programs or load native add-ons, and it gets none of the app’s environment variables."],
+  ["Only its own logins", "It receives the saved sign-in for its own sites only, never for any other site."],
+  ["Honest limit", "It can still use the network, so only add extensions from people you trust. Disable or remove one and its process stops straight away, while your downloads stay."],
+];
+const h2 = "margin:0;font-size:clamp(32px,4vw,52px);line-height:1.02;font-weight:800;letter-spacing:-0.04em;text-wrap:balance";
+const code = "display:block;padding:16px 18px;border-radius:10px;background:#010930;color:#c7cfea;font-family:'JetBrains Mono',monospace;font-size:14px;line-height:1.6;overflow-x:auto;white-space:pre";
+const manifest = `{
+  "apiVersion": 1,
+  "id": "landscapes",
+  "name": "Landscape samples",
+  "version": "1.0.0",
+  "domains": ["images.example.com"]
+}`;
+---
+<Layout
+  title="Extensions – DriftFetch"
+  description="Extensions teach DriftFetch about extra sites. They run in a restricted process and start turned off. Here is how to add one or build your own."
+  path="/extensions"
+  current="/extensions"
+  jsonld={[]}
+>
+  <section data-tide="1" style="background:#010930;color:#f2f5ff;padding:clamp(56px,8vw,104px) clamp(20px,4vw,48px) 120px">
+    <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto">
+      <h1 style="margin:0;font-size:clamp(42px,6vw,84px);line-height:1;font-weight:700;letter-spacing:-0.04em;max-width:12ch;text-wrap:balance">Teach it a new site.</h1>
+      <p style="margin:28px 0 0;max-width:32em;font-size:clamp(18px,1.6vw,20px);color:#c7cfea;text-wrap:pretty">Extensions add support for extra sites and accounts. They are optional, they run in a restricted process, and DriftFetch starts with none installed.</p>
+    </div>
+  </section>
+
+  <section data-tide="1" style="background:#fff;padding:110px clamp(20px,4vw,48px)">
+    <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto">
+      <h2 style={h2 + ";margin-bottom:40px"}>Adding one takes a minute</h2>
+      <ol style="list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:32px">
+        {steps.map(([n, t, d]) => (
+          <li style="display:flex;flex-direction:column;gap:10px;padding-top:20px;border-top:1px solid rgba(1,9,48,0.14)"><span style="font-size:15px;font-weight:700;color:#0a55d6">{n}</span><h3 style="margin:0;font-size:22px;font-weight:700;letter-spacing:-0.02em">{t}</h3><p style="margin:0;color:#353d5c;text-wrap:pretty">{d}</p></li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section data-tide="1" style="background:#e4e9f4;padding:110px clamp(20px,4vw,48px)">
+    <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:40px 72px">
+      <h2 style={h2}>How they’re <span style="background:linear-gradient(transparent 64%,#0cf3fe 64%,#0cf3fe 90%,transparent 90%);padding:0 2px">kept safe</span></h2>
+      <div style="display:flex;flex-direction:column">
+        {safety.map(([t, d]) => (
+          <div style="padding:22px 0 24px;border-top:1px solid rgba(1,9,48,0.14)"><h3 style="margin:0 0 4px;font-size:20px;font-weight:700;letter-spacing:-0.015em">{t}</h3><p style="margin:0;color:#353d5c;text-wrap:pretty">{d}</p></div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section data-tide="1" style="background:#0b67fe;color:#f2f5ff;padding:110px clamp(20px,4vw,48px)">
+    <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:40px 72px;align-items:start">
+      <div>
+        <h2 style={h2}>Build your own</h2>
+        <p style="margin:20px 0 0;color:#e8efff;max-width:28em;text-wrap:pretty">An extension is a folder with a <code style="font-family:'JetBrains Mono',monospace;font-size:0.9em">manifest.json</code> and a <code style="font-family:'JetBrains Mono',monospace;font-size:0.9em">provider.ts</code>. The provider says which links it recognises and returns the list of items to download. DriftFetch does the downloading, checking and saving.</p>
+        <a href={links.source + "/blob/main/app/docs/EXTENSIONS.md"} rel="noopener" style="display:inline-flex;align-items:center;height:48px;margin-top:28px;padding:0 20px;border-radius:10px;background:#fff;color:#010930;font-weight:700">Read the full guide</a>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+        <span style="font-size:14px;font-weight:600;color:#e8efff">Bundle it into one file</span>
+        <code style={code}>node scripts/build-extension.mjs {"<provider-directory>"}</code>
+        <span style="font-size:14px;font-weight:600;color:#e8efff;margin-top:8px">A minimal manifest</span>
+        <code style={code}>{manifest}</code>
+      </div>
+    </div>
+  </section>
+</Layout>
