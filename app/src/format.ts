@@ -95,6 +95,7 @@ export const when = (at?: number) => {
 /** The short reason shown on a failed row; the details panel has the rest. */
 export const failureSummary = (job: Job) => {
   const raw = `${job.error ?? ""} ${job.failureCode ?? ""}`;
+  if (/nothing could be read|NOTHING_READ/i.test(raw)) return "Nothing found";
   if (/sign.?in|login required|session (?:expired|unavailable)/i.test(raw))
     return "Sign-in needed";
   if (/CURRENT_REMOVED|removed or deleted/i.test(raw))

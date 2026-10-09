@@ -371,6 +371,8 @@ export function friendlyError(raw: string): string {
     return "The collection could not be fully read. Check the source counts and pagination details. Saved files are kept. Use Download again for a fresh lookup.";
   if (/CURRENT_REMOVED/.test(raw))
     return "This post or its media was removed or deleted at the source, so nothing is left to download.";
+  if (/CURRENT_NOTHING_READ/.test(raw))
+    return "Nothing could be read from this link. The content may be gone (stories expire after a day), the saved login may have lapsed, or the site may have changed and a tool needs updating. Check that the link still opens in your browser, refresh the login in Settings → Sites & sign-ins if it does, then retry.";
   if (/CURRENT_NO_IMAGES/.test(raw))
     return "No accessible original files were found for this image search. Check the tags and source access, then retry.";
   if (/CURRENT_TIMEOUT/i.test(raw))

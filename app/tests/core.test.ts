@@ -323,6 +323,7 @@ describe("metadata and recovery", () => {
       "Session expired",
     ],
     ["No space left on device", "disk is full"],
+    ["CURRENT_NOTHING_READ", "Nothing could be read from this link"],
     [
       "Error: spawn C:\\app\\resources\\ffprobe.exe ENOENT",
       "download tool is missing or blocked",

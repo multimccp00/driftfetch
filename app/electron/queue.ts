@@ -704,6 +704,18 @@ export class Queue {
             })),
             collectionLimited: linked.length > 100,
           };
+        // gallery-dl read the link without error but listed nothing, while yt-dlp asked for a
+        // login. That does not prove the sign-in is bad (expired stories, a changed site and a
+        // stale engine look the same), so don't blame the sign-in alone.
+        if (
+          !metadata &&
+          listed?.code === 0 &&
+          !listed.timedOut &&
+          /log.?in|sign.?in|cookies|authentication/i.test(
+            String(extractionError),
+          )
+        )
+          extractionError = new Error("CURRENT_NOTHING_READ");
       }
       if (!metadata)
         throw extractionError instanceof Error

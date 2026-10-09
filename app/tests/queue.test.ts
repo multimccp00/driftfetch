@@ -698,6 +698,51 @@ describe("persistent scheduler", () => {
       "https://example.invalid/original.png",
     ]);
   });
+  it("says nothing was read, not 'sign in', when yt-dlp wants a login and gallery-dl lists nothing", async () => {
+    const r = create(false);
+    vi.spyOn(r.engine, "probe").mockReturnValue({
+      done: Promise.resolve({
+        code: 1,
+        stdout: "",
+        stderr:
+          "ERROR: [instagram:story] You need to log in to access this content. Use --cookies",
+      }),
+      stop: async () => {},
+    } as Running);
+    r.engine.listImages = () =>
+      ({
+        done: Promise.resolve({ code: 0, stdout: "", stderr: "" }),
+        stop: async () => {},
+      }) as Running;
+    r.queue.addLinks("http://127.0.0.1:1/stories/nobody");
+    await waitUntil(() => r.queue.jobs[0].status === "failed");
+    expect(r.queue.jobs[0].error).toContain("Nothing could be read");
+    expect(r.queue.jobs[0].failureCode).toBe("NOTHING_READ");
+  });
+  it("still reports a login error when gallery-dl itself fails", async () => {
+    const r = create(false);
+    vi.spyOn(r.engine, "probe").mockReturnValue({
+      done: Promise.resolve({
+        code: 1,
+        stdout: "",
+        stderr: "ERROR: You need to log in to access this content.",
+      }),
+      stop: async () => {},
+    } as Running);
+    r.engine.listImages = () =>
+      ({
+        done: Promise.resolve({
+          code: 1,
+          stdout: "",
+          stderr: "AuthRequired: 'login required'",
+        }),
+        stop: async () => {},
+      }) as Running;
+    r.queue.addLinks("http://127.0.0.1:1/stories/nobody2");
+    await waitUntil(() => r.queue.jobs[0].status === "failed");
+    expect(r.queue.jobs[0].error).toContain("login required");
+    expect(r.queue.jobs[0].error).not.toContain("Nothing could be read");
+  });
   it("reports image-engine access errors instead of the video engine's unsupported URL", async () => {
     const r = create(false);
     vi.spyOn(r.engine, "probe").mockReturnValue({

@@ -46,6 +46,7 @@ export function failureCode(error: unknown): string {
     return "API_CREDENTIALS_REJECTED";
   if (/CURRENT_INCOMPLETE_FILES/.test(raw)) return "INCOMPLETE_FILES";
   if (/CURRENT_INCOMPLETE_DISCOVERY/.test(raw)) return "INCOMPLETE_DISCOVERY";
+  if (/CURRENT_NOTHING_READ/.test(raw)) return "NOTHING_READ";
   if (/CURRENT_TIMEOUT/.test(raw)) return "READ_TIMEOUT";
   if (/rate limit/i.test(raw)) return "RATE_LIMIT";
   const http =
@@ -115,7 +116,9 @@ export function diagnosticReport(
   sessionKind: string,
 ): string {
   const error = job.error || "";
-  const reason = /Session unavailable/i.test(error)
+  const reason = /Nothing could be read/i.test(error)
+    ? "nothing-read"
+    : /Session unavailable/i.test(error)
     ? "session-unavailable"
     : /login required|Session expired/i.test(error)
       ? "session-required-or-expired"

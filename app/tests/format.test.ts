@@ -45,6 +45,13 @@ it("turns a failure into a short reason", () => {
     "Site refused access",
   );
   expect(reason("The destination disk is full.")).toBe("Not enough disk space");
+  // The "nothing read" message mentions the login, but must not be labelled as a sign-in problem.
+  expect(
+    reason(
+      "Nothing could be read from this link. The saved login may have lapsed.",
+      "NOTHING_READ",
+    ),
+  ).toBe("Nothing found");
   expect(reason("This video is DRM-protected")).toBe("Protected by DRM");
   expect(reason("Connection failed. Check your network")).toBe(
     "Connection problem",

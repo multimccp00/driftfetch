@@ -25,6 +25,7 @@ it("reports extension selection without domains, IDs or credential data and does
 it("retains safe HTTP and nested connection codes without exposing raw errors", () => {
   const cause = Object.assign(new Error("private path"), { code: "EACCES" });
   expect(failureCode(new TypeError("fetch failed", { cause }))).toBe("EACCES");
+  expect(failureCode(new Error("CURRENT_NOTHING_READ"))).toBe("NOTHING_READ");
   expect(
     failureCode(
       new Error("HTTP Error 403 at https://example.invalid/?token=SECRET"),
