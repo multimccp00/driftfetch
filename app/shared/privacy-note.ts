@@ -75,7 +75,7 @@ export const privacyNote = {
     {
       heading: "Questions and changes",
       paragraphs: [
-        "Questions about this note: SET-BEFORE-RELEASE",
+        "Questions about this note: driftfetch@proton.me",
         "If this note changes in a way that matters, DriftFetch shows it again the next time you open it.",
       ],
     },

@@ -21,7 +21,7 @@ All of them are distributed exactly as published by their authors. DriftFetch do
   - FFmpeg: https://github.com/FFmpeg/FFmpeg (tag `n9.0.2`, commit `946fcce07b6dcd0331c8cc609192aeff5e1924f8`). The patches and the build script (`scripts/build-ffmpeg.sh`, `scripts/ffmpeg-patches/`) are part of the DriftFetch source repository and are also included in the source zip
   - gallery-dl: https://codeberg.org/mikf/gallery-dl (tag `v1.32.15`)
   - openpgp: https://github.com/openpgpjs/openpgpjs (tag `v6.3.2`)
-- **From us.** For at least three years after you received DriftFetch, you may ask for a copy of the source of any component in the table, at no more than the cost of physically providing it. Write to: SET-BEFORE-RELEASE (an email address or web page that you control and will keep monitoring).
+- **From us.** For at least three years after you received DriftFetch, you may ask for a copy of the source of any component in the table, at no more than the cost of physically providing it. Write to: driftfetch@proton.me.
 
 ## Replacing the LGPL libraries
 
