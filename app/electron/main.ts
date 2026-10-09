@@ -97,8 +97,11 @@ const listed = (job: Job): Job =>
       }
     : job;
 // Packaged builds carry the icon in dist; from source it sits in public, which may not be built yet.
-// A separate ID from source runs: Windows ties taskbar icons to this, and a stale shortcut or cache for the installed ID must not apply.
-const appUserModelId = app.isPackaged ? "local.driftfetch.app" : "local.driftfetch.app.dev";
+// Source runs get their own ID. Windows ties the taskbar icon to it, so it must not match any old shortcut
+// (an earlier dev shortcut claiming "local.driftfetch.app.dev" made the taskbar show Electron's icon).
+const appUserModelId = app.isPackaged
+  ? "local.driftfetch.app"
+  : "local.driftfetch.app.source";
 const appIcon = () =>
   path.join(app.getAppPath(), app.isPackaged ? "dist" : "public", "icon.png");
 // Windows taskbar needs a multi-size .ico from source; the packaged exe already embeds it.
@@ -313,13 +316,6 @@ async function init() {
       devTools: !app.isPackaged,
     },
   });
-  // From source the taskbar button would show electron.exe's icon; name DriftFetch's explicitly.
-  if (!app.isPackaged)
-    window.setAppDetails({
-      appId: appUserModelId,
-      appIconPath: windowIcon(),
-      appIconIndex: 0,
-    });
   window.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
   window.webContents.on("will-navigate", (event) => event.preventDefault());
   window.on("close", (event) => {
