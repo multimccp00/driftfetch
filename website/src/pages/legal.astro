@@ -128,17 +128,17 @@ const licences = [
     <p style="margin:18px 0 0;max-width:38em;color:#353d5c">Everything a website has to tell you, in one place and in plain words. Last updated October 2026.</p>
 
 
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:48px 72px;margin-top:64px;align-items:start">
-      <nav aria-label="On this page" style="position:sticky;top:96px;display:flex;flex-direction:column;gap:6px;font-size:15.5px">
+    <div class="legal-grid">
+      <nav aria-label="On this page" class="legal-nav">
         <span style="font-weight:700;margin-bottom:6px">On this page</span>
         {toc.map((t) => (<><a href={t.href} style="color:#353d5c;text-decoration:none" class="hetmxgi">{t.label}</a></>))}
       </nav>
 
-      <div style="grid-column:span 3;min-width:0;max-width:44em;display:flex;flex-direction:column;gap:72px">
+      <div class="legal-body">
 
         <section id="imprint" aria-labelledby="h-imprint" style="scroll-margin-top:96px">
           <h2 id="h-imprint" style="margin:0 0 16px;font-size:32px;line-height:1.1;font-weight:800;letter-spacing:-0.03em">Legal notice</h2>
-          <dl style="margin:0;display:grid;grid-template-columns:max-content 1fr;gap:6px 24px">
+          <dl class="legal-dl">
             <dt style="font-weight:600">Responsible for this site</dt><dd style="margin:0">DriftFetch project, maintained by <a href="https://github.com/multimccp00">multimccp00</a> on GitHub</dd>
             <dt style="font-weight:600">Email</dt><dd style="margin:0"><a href="mailto:driftfetch@proton.me">driftfetch@proton.me</a></dd>
           </dl>

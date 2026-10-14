@@ -22,7 +22,7 @@ export const FAQ = [
   { q: "Which sites does it work with?", a: "Sites that yt-dlp and gallery-dl support, such as YouTube, Vimeo, Internet Archive and Dailymotion. Some sites need you to sign in once inside the app." },
   { q: "Do I need an account?", a: "No. There’s nothing to sign up for. If a site needs a sign-in, it’s stored encrypted on your PC and never sent anywhere else." },
   { q: "Mac or Linux?", a: "Not yet. DriftFetch is built and tested for Windows 10 and 11 only." },
-  { q: "Where do my files go?", a: "To Downloads\DriftFetch by default, in a folder per site. You can change the folder, the sorting and the file names in Settings." },
+  { q: "Where do my files go?", a: "To Downloads\\DriftFetch by default, in a folder per site. You can change the folder, the sorting and the file names in Settings." },
   { q: "Is downloading allowed?", a: "Only save content you have the right to keep, and follow each site’s terms. DriftFetch doesn’t remove DRM or get around paywalls." },
 ];
 

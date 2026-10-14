@@ -37,3 +37,16 @@ summary::-webkit-details-marker { display: none; }
   .only-narrow { display: none; }
 }
 @media (max-width: 859px) { .only-wide { display: none; } }
+
+/* Legal page: sidebar + body on wide screens, single column on phones. */
+.legal-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 40px; margin-top: 48px; align-items: start; }
+.legal-nav { display: flex; flex-direction: column; gap: 6px; font-size: 15.5px; }
+.legal-body { min-width: 0; max-width: 44em; display: flex; flex-direction: column; gap: 56px; overflow-wrap: anywhere; }
+@media (min-width: 860px) {
+  .legal-grid { grid-template-columns: 240px minmax(0, 1fr); gap: 72px; margin-top: 64px; }
+  .legal-nav { position: sticky; top: 96px; }
+  .legal-body { gap: 72px; }
+}
+.legal-dl { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px 0; }
+.legal-dl dd { padding-bottom: 12px; }
+@media (min-width: 560px) { .legal-dl { grid-template-columns: max-content 1fr; gap: 6px 24px; } .legal-dl dd { padding-bottom: 0; } }

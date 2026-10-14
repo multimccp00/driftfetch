@@ -25,6 +25,7 @@ function draw(now: number) {
   lastSy = sy;
   vel = vel * 0.93 + Math.abs(v) * 0.07;
   const A = rm ? 18 : 22 + Math.min(48, vel * 1.8);
+  const k = Math.min(1, VW / 1000); // shorter wavelength on phones so the waves read
 
   let prev: string | null = null, j = 0;
   document.querySelectorAll<HTMLElement>("[data-tide]").forEach((el) => {
@@ -34,7 +35,7 @@ function draw(now: number) {
     if (prev && col !== prev && col !== CLEAR) {
       const yv = el.getBoundingClientRect().top, jj = j++;
       if (yv > -140 && yv < vh + 140) {
-        const wy = (x: number) => yv + A * (0.62 * Math.sin(x / 230 + T * 0.6 + jj * 1.7 + sy * 0.0025) + 0.38 * Math.sin(x / 97 - T * 0.85 + jj));
+        const wy = (x: number) => yv + A * (0.62 * Math.sin(x / (230 * k) + T * 0.6 + jj * 1.7 + sy * 0.0025) + 0.38 * Math.sin(x / (97 * k) - T * 0.85 + jj));
         const fill = (c: string, edge: number) => {
           ctx.fillStyle = c;
           ctx.beginPath();
