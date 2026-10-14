@@ -2,7 +2,7 @@
 export const site = {
   name: "DriftFetch",
   version: "0.2.1", // keep in step with ../package.json
-  owner: "[Your name]", // TODO: footer / legal notice
+  owner: "DriftFetch contributors", // footer copyright line
   email: "driftfetch@proton.me",
   url: (import.meta.env.SITE ?? "https://driftfetch.app").replace(/\/$/, ""),
   // GitHub "owner/repo". Empty until the repo exists; links fall back to "#".
