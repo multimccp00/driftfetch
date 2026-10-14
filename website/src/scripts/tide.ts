@@ -36,7 +36,13 @@ function draw(now: number) {
       const yv = el.getBoundingClientRect().top, jj = j++;
       if (yv > -140 && yv < vh + 140) {
         const wy = (x: number) => yv + A * (0.62 * Math.sin(x / (230 * k) + T * 0.6 + jj * 1.7 + sy * 0.0025) + 0.38 * Math.sin(x / (97 * k) - T * 0.85 + jj));
+        // prev colour only below the seam, next colour only above it: the section's own
+        // background (gradients included) shows everywhere else, so no hard line at the edge.
         const fill = (c: string, edge: number) => {
+          ctx.save();
+          ctx.beginPath();
+          if (edge < yv) ctx.rect(0, yv - 1, VW + 8, vh); else ctx.rect(0, -vh, VW + 8, yv + 1 + vh); // 1px overlap hides the anti-alias seam
+          ctx.clip();
           ctx.fillStyle = c;
           ctx.beginPath();
           ctx.moveTo(0, edge);
@@ -44,6 +50,7 @@ function draw(now: number) {
           ctx.lineTo(VW + 8, edge);
           ctx.closePath();
           ctx.fill();
+          ctx.restore();
         };
         fill(prev, yv - A - 8);
         fill(col, yv + A + 8);
