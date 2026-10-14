@@ -5,26 +5,38 @@ const { current } = Astro.props;
 const nav = [["Sites", "/sites"], ["Extensions", "/extensions"], ["FAQ", "/faq"], ["About", "/about"], ["Donate", "/donate"]];
 ---
 <header style="position:relative;z-index:30;padding:0 clamp(20px,4vw,48px);background:#010930">
-  <div class="hd" style="max-width:1180px;margin:0 auto;border-bottom:1px solid rgba(255,255,255,0.1)">
+  <div class="hd" style="max-width:1180px;margin:0 auto">
     <a href={u("/")} class="hd-logo" aria-label="DriftFetch home" style="display:flex;align-items:center;gap:10px;color:#fff"><img src={u("/driftfetch-icon.png")} alt="" width="28" height="28" style="width:28px;height:28px;border-radius:7px;display:block"><span style="font-size:18px;font-weight:700;letter-spacing:-0.02em">DriftFetch</span></a>
     <nav aria-label="Main" class="hd-nav" style="font-size:15px;font-weight:500">
       {nav.map(([label, href]) => <a href={u(href)} class="nav-link" aria-current={current === href ? "page" : undefined} style={`color:${current === href ? "#fff" : "#b7c1e0"}`}>{label}</a>)}
     </nav>
-    <a href={u("/download")} class="nav-dl" aria-current={current === "/download" ? "page" : undefined} style="display:flex;align-items:center;gap:8px;height:40px;padding:0 14px;border-radius:8px;background:#0b67fe;color:#fff;font-weight:600;font-size:15px"><Fragment set:html={Icon("arrow-down-to-line", 16, 2)} />Download</a>
+    <a href={u("/download")} class="nav-dl" aria-current={current === "/download" ? "page" : undefined}><Fragment set:html={Icon("arrow-down-to-line", 16, 2)} />Download</a>
+    <details class="hd-menu">
+      <summary aria-label="Menu"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path class="m-open" d="M4 7h16M4 12h16M4 17h16"/><path class="m-close" d="M6 6l12 12M18 6L6 18"/></svg></summary>
+      <nav aria-label="Menu" class="hd-panel">
+        {nav.map(([label, href]) => <a href={u(href)} aria-current={current === href ? "page" : undefined}>{label}</a>)}
+      </nav>
+    </details>
   </div>
 </header>
 <style>
-  .hd { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 0 16px; padding: 10px 0 2px; }
-  .hd-logo { grid-column: 1; grid-row: 1; }
-  .nav-dl { grid-column: 2; grid-row: 1; }
-  .hd-nav { grid-column: 1 / -1; grid-row: 2; display: flex; justify-content: space-between; }
-  .nav-link { display: inline-flex; align-items: center; min-height: 44px; }
+  .hd { display: flex; align-items: center; gap: 10px; min-height: 64px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .hd-logo { margin-right: auto; }
+  .hd-nav { display: none; }
+  .nav-dl { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border-radius: 8px; background: #0b67fe; color: #fff; font-weight: 600; font-size: 15px; }
+  .nav-dl:hover { background: #2a7bff; color: #fff; }
+  .hd-menu summary { list-style: none; cursor: pointer; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #fff; border-radius: 8px; }
+  .hd-menu summary::-webkit-details-marker { display: none; }
+  .hd-menu .m-close, .hd-menu[open] .m-open { display: none; }
+  .hd-menu[open] .m-close { display: block; }
+  .hd-panel { position: absolute; left: 0; right: 0; top: 100%; background: #010930; border-top: 1px solid rgba(255,255,255,0.1); border-bottom: 1px solid rgba(255,255,255,0.1); padding: 4px clamp(20px,4vw,48px) 12px; box-shadow: 0 18px 30px rgba(1,9,48,0.45); }
+  .hd-panel a { display: flex; align-items: center; min-height: 52px; color: #b7c1e0; font-size: 18px; font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .hd-panel a:last-child { border-bottom: 0; }
+  .hd-panel a[aria-current="page"] { color: #fff; }
   @media (min-width: 860px) {
-    .hd { display: flex; min-height: 76px; padding: 0; gap: 22px; }
-    .hd-logo { margin-right: auto; }
-    .hd-nav { gap: 22px; }
-    .nav-link { min-height: 0; }
+    .hd { min-height: 76px; gap: 22px; }
+    .hd-menu { display: none; }
+    .hd-nav { display: flex; gap: 22px; }
+    .nav-link:hover { color: #fff !important; }
   }
-  .nav-link:hover { color: #fff !important; }
-  .nav-dl:hover { background: #2a7bff !important; color: #fff !important; }
 </style>
