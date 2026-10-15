@@ -16,7 +16,6 @@ const dl = (file: string) => gh(`/releases/download/v${site.version}/${file}`);
 export const links = {
   source: gh(""),
   issues: gh("/issues"),
-  releases: gh("/releases"),
   releaseNotes: gh(`/releases/tag/v${site.version}`),
   installer: dl(`DriftFetch-Setup-${site.version}-x64.exe`),
   portable: dl(`DriftFetch-Portable-${site.version}-x64.exe`),
