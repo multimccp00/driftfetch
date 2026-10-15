@@ -27,7 +27,7 @@ const ld = [...jsonld, ...extra].map((o) => JSON.stringify(o).replaceAll("__VERS
   <title>{title}</title>
   <meta name="description" content={description}>
   <link rel="canonical" href={canonical}>
-  <meta name="robots" content="index,follow">
+  <meta name="robots" content={path === "/404" ? "noindex" : "index,follow"}>
   <meta name="theme-color" content="#010930">
   <link rel="icon" href={u("/favicon.ico")} sizes="any">
   <link rel="icon" type="image/png" sizes="32x32" href={u("/favicon-32.png")}>

@@ -14,7 +14,7 @@ npm run build    # -> dist/
 - `src/layouts/Layout.astro` head/SEO/JSON-LD, header, footer, tide script.
 - `src/data/site.ts` version, repo, email, Buy Me a Coffee link, release file names. **Edit this first.**
 - `src/scripts/tide.ts` wave edges; `src/scripts/home.ts` homepage demo.
-- `public/` icons, `og.png`, `app.png` (screenshot of the app for the home page).
+- `public/` icons, `og.png`, `app.webp` (screenshot of the app for the home page).
 - Design source: `design-handoff/`.
 
 ## Deploying

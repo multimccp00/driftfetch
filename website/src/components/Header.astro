@@ -6,7 +6,7 @@ const nav = [["Sites", "/sites"], ["Extensions", "/extensions"], ["FAQ", "/faq"]
 ---
 <header style="position:relative;z-index:30;padding:0 clamp(20px,4vw,48px);background:#010930;border-bottom:1px solid rgba(255,255,255,0.1)">
   <div class="hd" style="max-width:1180px;margin:0 auto">
-    <a href={u("/")} class="hd-logo" aria-label="DriftFetch home" style="display:flex;align-items:center;gap:10px;color:#fff"><img src={u("/driftfetch-icon.png")} alt="" width="28" height="28" style="width:28px;height:28px;border-radius:7px;display:block"><span style="font-size:18px;font-weight:700;letter-spacing:-0.02em">DriftFetch</span></a>
+    <a href={u("/")} class="hd-logo" aria-label="DriftFetch home" style="display:flex;align-items:center;gap:10px;color:#fff"><img src={u("/driftfetch-icon-96.png")} alt="" width="28" height="28" style="width:28px;height:28px;border-radius:7px;display:block"><span style="font-size:18px;font-weight:700;letter-spacing:-0.02em">DriftFetch</span></a>
     <nav aria-label="Main" class="hd-nav" style="font-size:15px;font-weight:500">
       {nav.map(([label, href]) => <a href={u(href)} class="nav-link" aria-current={current === href ? "page" : undefined} style={`color:${current === href ? "#fff" : "#b7c1e0"}`}>{label}</a>)}
     </nav>

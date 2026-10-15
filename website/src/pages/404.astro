@@ -1,0 +1,13 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { u } from "../data/site";
+---
+<Layout title="Page not found – DriftFetch" description="This page doesn't exist. Head back to the DriftFetch home page." path="/404" jsonld={[]}>
+  <section data-tide="1" style="background:#010930;color:#f2f5ff;padding:clamp(56px,8vw,104px) clamp(20px,4vw,48px) 140px">
+    <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto">
+      <h1 style="margin:0;font-size:clamp(42px,6vw,84px);line-height:1;font-weight:700;letter-spacing:-0.04em">That link drifted away.</h1>
+      <p style="margin:28px 0 0;max-width:32em;font-size:20px;color:#c7cfea">The page you wanted isn't here. It may have moved, or the address has a typo.</p>
+      <p style="margin:32px 0 0"><a href={u("/")} style="display:inline-flex;align-items:center;height:52px;padding:0 22px;border-radius:8px;background:#0b67fe;color:#fff;font-weight:600">Back to the home page</a></p>
+    </div>
+  </section>
+</Layout>
