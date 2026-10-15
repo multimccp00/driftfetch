@@ -22,8 +22,8 @@ Status on 2026-10-15: the app's 254 tests pass, the type-check is clean and `npm
 - [ ] **Build-time gallery-dl signature.** `scripts/prepare-engines.mjs` checks gallery-dl against `SHA256SUMS` only. The app already verifies `SHA256SUMS.sig`; the build script could do the same, as it does for yt-dlp.
 - [ ] **Old name "Current".** The `.current-extension` and `.currentbackup` file types, `CURRENT_*` settings and internal error codes keep the old name. Nothing visible leaks into the UI. Decide whether to rename, and keep reading the old names so existing extensions and backups still load.
 - [ ] **Local extensions.** Two extensions are built as `.current-extension` files in `app/local-extensions/` but not added in the app yet (Settings > Extensions > Add extension file). These files stay local and are never committed.
-- [ ] **Smoke suite flake.** Earlier notes say about one run in three a screenshot step times out at a different check, and a rerun passes. Still suspected environmental and unproven.
-- [ ] **Smoke suite against a packaged build.** `CURRENT_PACKAGED_EXE` no longer works: the `enableNodeCliInspectArguments: false` fuse (2026-10-15) blocks the `--inspect` flag Playwright's Electron launcher needs, so `electron.launch` times out. Packaged builds can still be driven through `--remote-debugging-port` and `chromium.connectOverCDP` (used for the 2026-10-15 check); move the smoke suite to that, or keep it for source runs only.
+- [ ] **Smoke suite flake.** Earlier notes say about one run in three a screenshot step times out at a different check, and a rerun passes. Likely cause: Windows occlusion, where a window covered by others stops painting. Packaged runs hit it twice in a row on 2026-10-15 and passed twice once spawned with `--disable-backgrounding-occluded-windows --disable-features=CalculateNativeWinOcclusion`. Source runs do not pass these switches yet.
+- [x] **Smoke suite against a packaged build.** The `enableNodeCliInspectArguments: false` fuse blocks Playwright's Electron launcher, so with `CURRENT_PACKAGED_EXE` set `scripts/smoke.mjs` now spawns the exe with `--remote-debugging-port` and drives its window through `chromium.connectOverCDP`. Packaged runs use manual intake instead of the clipboard and skip what needs the main process: cookie import, Locate file and backup export/restore (stubbed dialogs), the floating capture panel (stubbed clipboard) and the hidden-window check. Skips are printed and listed under `skipped` in `report.json`. Passed 2026-10-15 against an install of `DriftFetch-Setup-0.2.1-x64.exe`; source runs still pass 18/18.
 - [ ] **Dev dependency audit.** `npm audit` flags `http-cache-semantics`, `source-map-js` and `sprintf-js` in dev dependencies. Nothing in the shipped app (`npm audit --omit=dev` is clean).
 - [ ] **Disk space.** `app/release/` (6 GB) and `app/test-results/` (17 GB) are git-ignored. Keep the last two releases and clear the rest.
 
@@ -56,7 +56,7 @@ Status on 2026-10-15: the app's 254 tests pass, the type-check is clean and `npm
 - [ ] **Legal and tax review.** Have an accountant or the tax office check the legal page and how donations are treated.
 
 ## Suggested order
-1. App: click through the installer by hand; decide how the smoke suite drives packaged builds.
+1. App: click through the installer by hand.
 2. App: portable privacy text and the support matrix.
 3. Website: download-button state and the site-page check.
 4. Release prep: git history decision, signing, source zip, legal review.
