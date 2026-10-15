@@ -12,7 +12,7 @@ Status on 2026-10-15: the app's 254 tests pass, the type-check is clean and `npm
 - [x] **Extension picker** opens in `app/local-extensions/`, where built extension files sit side by side.
 - [x] **Contact address** is set in `SOURCE-OFFER.md` and the privacy note, and `npm run release:check` passes.
 - [x] **Packaged build tested (2026-10-09).** `npm run package` built `DriftFetch-Setup-0.2.1-x64.exe`; silent install, bundled engines, smoke suite 18/18, extension sandbox, taskbar icon and uninstaller all checked. This build is now out of date (see "Repackage and retest").
-- [x] **Engine upkeep.** The in-app updater refreshes gallery-dl as well as yt-dlp, verified against each maintainer's signature.
+- [x] **Engine upkeep.** The in-app updater refreshes gallery-dl as well as yt-dlp, verified against each maintainer's signature. On by default it also runs at every start (Settings > Update engines automatically) and downloads only when a newer release exists; downloads wait until the check is done. The privacy note, installer page and website say so.
 - [x] **Engine and Electron bump (2026-10-15).** gallery-dl v1.32.16 (its `SHA256SUMS` signature checked against the pinned key) and Electron 44.7.2. `engines.lock.json`, `SOURCE-OFFER.md` and `THIRD-PARTY-NOTICES.md` updated.
 - [x] **Portable privacy text.** The privacy note (version 4, shown again once) and Settings > Privacy name the portable "DriftFetch data" folder next to the `.exe` as well as `%APPDATA%\DriftFetch`.
 
