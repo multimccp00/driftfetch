@@ -5,7 +5,6 @@ import {
   dialog,
   ipcMain,
   Menu,
-  Notification,
   nativeImage,
   powerMonitor,
   session,
@@ -141,23 +140,25 @@ const snapshot = (): Snapshot => ({
   extensions: extensions?.list() || [],
 });
 // Completions gathered between broadcasts, so a 50-item batch is one toast.
-let finishedTitles: string[] = [];
+let finishedIds: string[] = [];
 function changed() {
   const completed = completionTracker.update(queue?.jobs ?? []);
   if (!quitting && queue?.settings.completionAction === "notify")
-    finishedTitles.push(...completed.map((job) => job.title));
+    finishedIds.push(...completed.map((job) => job.id));
   if (broadcastTimer || quitting) return;
   broadcastTimer = setTimeout(() => {
     broadcastTimer = undefined;
-    if (finishedTitles.length) {
-      new Notification({
-        title: "DriftFetch",
-        body:
-          finishedTitles.length === 1
-            ? `Finished: ${finishedTitles[0]}`
-            : `Finished ${finishedTitles.length} downloads`,
-      }).show();
-      finishedTitles = [];
+    // Someone looking at DriftFetch already sees the list; the popup is for when it is in the background.
+    if (
+      finishedIds.length &&
+      window &&
+      !window.isDestroyed() &&
+      window.isFocused()
+    )
+      finishedIds = [];
+    if (finishedIds.length) {
+      popup?.finished(finishedIds);
+      finishedIds = [];
     }
     if (window && !window.isDestroyed() && queue)
       window.webContents.send("state", snapshot());
@@ -301,10 +302,14 @@ async function init() {
     extensions,
   );
   queue.onHold = (source, minutes) =>
-    new Notification({
-      title: "DriftFetch paused downloads from " + source,
-      body: `${source} asked it to slow down. Paused for about ${minutes} minutes to protect your account. Open DriftFetch to continue now or leave it.`,
-    }).show();
+    popup?.notify({
+      title: `Paused ${source}`,
+      lines: [
+        `${source} asked DriftFetch to slow down, so its downloads are paused for about ${minutes} minutes to protect your account.`,
+        "Open DriftFetch and press Retry to continue now, or leave it paused.",
+      ],
+      tone: "warn",
+    });
   completionTracker.update(queue.jobs);
   // Later checks happen when History opens; a sleeping disk stays asleep.
   void queue.checkFiles();
@@ -376,9 +381,9 @@ async function init() {
       jobs: queue!.jobs,
       theme: queue!.settings.theme,
     }),
-    () => {
+    (page) => {
       showWindow();
-      window!.webContents.send("navigate", "captures");
+      window!.webContents.send("navigate", page);
     },
     (job) => collectionPreviews.thumbnail(job),
     (jobId, action) => {
@@ -786,7 +791,10 @@ async function init() {
     const folder = path.join(app.getAppPath(), "local-extensions");
     const defaultPath = app.isPackaged
       ? undefined
-      : await fs.access(folder).then(() => folder, () => undefined);
+      : await fs.access(folder).then(
+          () => folder,
+          () => undefined,
+        );
     const chosen = await dialog.showOpenDialog(window!, {
       title: "Add an optional DriftFetch extension",
       defaultPath,

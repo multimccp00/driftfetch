@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { Film, Images, LoaderCircle, X } from "lucide-react";
+import {
+  CircleAlert,
+  CircleCheck,
+  Film,
+  Images,
+  LoaderCircle,
+  X,
+} from "lucide-react";
 import { collectionNoun, statusLabel } from "./format";
 import "./tokens.css";
 import "./popup.css";
@@ -14,10 +21,14 @@ type Item = {
   quality?: string;
   collectionKind?: "images" | "videos";
 };
+type Notice = { title: string; lines: string[]; tone: "ok" | "warn" };
 type State = {
   checking: boolean;
   theme?: "dark" | "light" | "system";
   items: Item[];
+  notice?: Notice;
+  /** The rows are finished downloads, not captured links. */
+  finished?: boolean;
 };
 declare global {
   interface Window {
@@ -59,6 +70,7 @@ function Popup() {
     media.addEventListener("change", apply);
     return () => media.removeEventListener("change", apply);
   }, [state.theme]);
+  if (state.notice) return <NoticeView notice={state.notice} />;
   // One capture gets the quick actions; several share the plain footer.
   const only = state.items.length === 1 ? state.items[0] : undefined;
   const actionable = !!only?.jobId && open.includes(only.status);
@@ -70,15 +82,21 @@ function Popup() {
       <header>
         <img src="icon.png" alt="" />
         <strong>
-          {state.checking
-            ? "Checking your links"
-            : imageGalleries.length
-              ? `${imageGalleries.length === 1 ? "Image gallery" : "Image galleries"} found`
-              : state.items.length === 1
-                ? "Link captured"
-                : "Links captured"}
+          {state.finished
+            ? state.items.length === 1
+              ? "Download finished"
+              : "Downloads finished"
+            : state.checking
+              ? "Checking your links"
+              : imageGalleries.length
+                ? `${imageGalleries.length === 1 ? "Image gallery" : "Image galleries"} found`
+                : state.items.length === 1
+                  ? "Link captured"
+                  : "Links captured"}
         </strong>
-        <small>{state.items.length} captured</small>
+        <small>
+          {state.items.length} {state.finished ? "finished" : "captured"}
+        </small>
         <button
           aria-label="Dismiss notification"
           onClick={() => window.capturePopup.action("dismiss")}
@@ -121,7 +139,13 @@ function Popup() {
         ))}
       </div>
       <footer>
-        {only ? (
+        {state.finished ? (
+          <div className="actions">
+            <button onClick={() => window.capturePopup.action("open")}>
+              Open DriftFetch
+            </button>
+          </div>
+        ) : only ? (
           <div className="actions">
             {actionable && (
               <button
@@ -159,6 +183,46 @@ function Popup() {
             </button>
           </>
         )}
+      </footer>
+    </section>
+  );
+}
+/** Finished downloads and warnings, in the same panel as captured links. */
+function NoticeView({ notice }: { notice: Notice }) {
+  const Icon = notice.tone === "ok" ? CircleCheck : CircleAlert;
+  return (
+    <section
+      className={`notice ${notice.tone}`}
+      role={notice.tone === "warn" ? "alert" : "status"}
+      onMouseEnter={() => window.capturePopup.action("hover")}
+      onMouseLeave={() => window.capturePopup.action("leave")}
+    >
+      <header>
+        <img src="icon.png" alt="" />
+        <strong>{notice.title}</strong>
+        <button
+          aria-label="Dismiss notification"
+          onClick={() => window.capturePopup.action("dismiss")}
+        >
+          <X size={14} />
+        </button>
+      </header>
+      <div className="items notice-body">
+        <Icon size={22} className="notice-icon" aria-hidden />
+        <ul>
+          {notice.lines.map((line, i) => (
+            <li key={i} title={line}>
+              {line}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <footer>
+        <div className="actions">
+          <button onClick={() => window.capturePopup.action("open")}>
+            Open DriftFetch
+          </button>
+        </div>
       </footer>
     </section>
   );

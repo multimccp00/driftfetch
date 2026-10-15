@@ -215,3 +215,39 @@ footer button:hover {
     animation: none !important;
   }
 }
+.notice-body {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px 14px 8px;
+}
+.notice-icon {
+  flex: none;
+  margin-top: 1px;
+}
+.notice.ok .notice-icon {
+  color: var(--ok);
+}
+.notice.warn .notice-icon {
+  color: var(--danger);
+}
+.notice-body ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+.notice-body li {
+  color: var(--text-1);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.notice.ok .notice-body li {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

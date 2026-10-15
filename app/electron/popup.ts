@@ -1,9 +1,18 @@
 import { app, BrowserWindow, ipcMain, screen } from "electron";
 import path from "node:path";
 import type { Capture, Job } from "../src/shared";
+/** A message shown in the capture popup instead of a Windows toast. */
+export type PopupNotice = {
+  title: string;
+  lines: string[];
+  tone: "ok" | "warn";
+};
 export class CapturePopup {
   private window?: BrowserWindow;
   private ids: string[] = [];
+  private notice?: PopupNotice;
+  /** Jobs shown as "finished", in the same rows as captured links. */
+  private finishedIds: string[] = [];
   private timer?: ReturnType<typeof setTimeout>;
   private dismissed = false;
   private hovering = false;
@@ -11,7 +20,7 @@ export class CapturePopup {
   private thumbs = new Map<string, string | null>();
   constructor(
     private data: () => { captures: Capture[]; jobs: Job[]; theme: string },
-    private open: () => void,
+    private open: (page: "captures" | "history") => void,
     private thumbnail: (job: Job) => Promise<string | null>,
     private act: (jobId: string, action: "choose" | "cancel") => void,
   ) {
@@ -33,7 +42,8 @@ export class CapturePopup {
         this.act(jobId, verb);
         this.hide();
       } else if (action === "open") {
-        this.open();
+        // Finished downloads open History; captured links open the capture log.
+        this.open(this.finishedIds.length ? "history" : "captures");
         this.hide();
       } else if (action === "dismiss") this.hide();
       else if (action === "hover") {
@@ -57,6 +67,30 @@ export class CapturePopup {
     this.ids = [
       ...new Set([...ids, ...(this.window?.isVisible() ? this.ids : [])]),
     ].slice(0, 20);
+    this.notice = undefined;
+    this.finishedIds = [];
+    this.reveal();
+  }
+  /** Finished downloads, shown in the same rows and layout as captured links. */
+  finished(jobIds: string[]) {
+    this.ids = [];
+    this.notice = undefined;
+    this.finishedIds = [
+      ...new Set([
+        ...jobIds,
+        ...(this.window?.isVisible() ? this.finishedIds : []),
+      ]),
+    ].slice(0, 20);
+    this.reveal();
+  }
+  /** Finished downloads and warnings use the same popup as captured links. */
+  notify(notice: PopupNotice) {
+    this.ids = [];
+    this.finishedIds = [];
+    this.notice = notice;
+    this.reveal();
+  }
+  private reveal() {
     this.dismissed = false;
     if (this.timer) clearTimeout(this.timer);
     this.timer = undefined;
@@ -115,8 +149,12 @@ export class CapturePopup {
     const captures = this.ids
       .map((id) => data.captures.find((c) => c.id === id))
       .filter((c): c is Capture => !!c);
-    const items = captures.map((c) => {
-      const j = data.jobs.find((j) => j.id === c.jobId);
+    const row = (
+      id: string,
+      j: Job | undefined,
+      source: string,
+      status: string,
+    ) => {
       if (j && !this.thumbs.has(j.id)) {
         this.thumbs.set(j.id, null);
         void this.thumbnail(j).then((image) => {
@@ -126,24 +164,44 @@ export class CapturePopup {
         });
       }
       return {
-        id: c.id,
+        id,
         jobId: j?.id,
         thumbnail: (j && this.thumbs.get(j.id)) || undefined,
-        source: c.source,
+        source,
         title: j?.title || "Video link",
-        status: c.duplicate ? "duplicate" : j?.status || "removed",
+        status,
         collectionKind: j?.collectionKind,
         quality: j?.quality,
       };
-    });
+    };
+    const items = this.finishedIds.length
+      ? this.finishedIds
+          .map((id) => data.jobs.find((j) => j.id === id))
+          .filter((j): j is Job => !!j)
+          .map((j) => row(j.id, j, j.source, j.status))
+      : captures.map((c) => {
+          const j = data.jobs.find((j) => j.id === c.jobId);
+          return row(
+            c.id,
+            j,
+            c.source,
+            c.duplicate ? "duplicate" : j?.status || "removed",
+          );
+        });
     const checking = items.some((i) => i.status === "resolving");
     this.window.webContents.send("popup-state", {
       items,
       checking,
       theme: data.theme,
+      notice: this.notice,
+      finished: this.finishedIds.length > 0,
     });
+    // Warnings stay up longer: they ask the user to decide something.
     if (this.window.isVisible() && !this.timer && !this.hovering)
-      this.timer = setTimeout(() => this.hide(), 5000);
+      this.timer = setTimeout(
+        () => this.hide(),
+        this.notice?.tone === "warn" ? 15000 : 5000,
+      );
   }
   hide() {
     this.dismissed = true;

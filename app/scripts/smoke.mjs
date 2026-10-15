@@ -705,7 +705,9 @@ try {
           }),
         );
         await page.evaluate(() => window.current.windowAction("close"));
-        const popupReady = app.waitForEvent("window");
+        // Finished-download notices may already have opened the popup window.
+        const shown = app.windows().find((w) => w.url().includes("popup.html"));
+        const popupReady = shown ? Promise.resolve(shown) : app.waitForEvent("window");
         await app.evaluate(
           (_e, url) => {
             globalThis.captureTest.text = url;
