@@ -282,6 +282,11 @@ async function init() {
     changed,
     extensions,
   );
+  queue.onHold = (source, minutes) =>
+    new Notification({
+      title: "DriftFetch paused downloads from " + source,
+      body: `${source} asked it to slow down. Paused for about ${minutes} minutes to protect your account. Open DriftFetch to continue now or leave it.`,
+    }).show();
   completionTracker.update(queue.jobs);
   // Later checks happen when History opens; a sleeping disk stays asleep.
   void queue.checkFiles();

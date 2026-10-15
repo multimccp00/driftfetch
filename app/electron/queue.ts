@@ -19,6 +19,9 @@ import { incompleteCollection } from "../shared/collection-discovery";
 import { reportedDownloadFile } from "./download-files";
 import { savedFileQuality } from "../shared/quality";
 import {
+  isProtectedSource,
+  isRateLimited,
+  protectedCooldown,
   rateLimitWait,
   requiredSpace,
   retryDelay,
@@ -178,9 +181,67 @@ export class Queue {
     rest.splice(index + (beforeId && after ? 1 : 0), 0, job);
     rest.forEach((item, i) => this.save(item, { queueOrder: i }));
   }
+  /** Protected sources (Instagram) that are cooling down after a rate limit, by site, until this time. */
+  private cooldowns = new Map<string, number>();
+  /** Called once when a protected source pauses itself, so the app can tell the user. */
+  onHold?: (source: string, minutes: number) => void;
+  private siteOf(source: string | undefined) {
+    return (source ?? "").split(".").slice(-2).join(".");
+  }
+  private cooling(job: Job) {
+    const until = this.cooldowns.get(this.siteOf(job.source));
+    return !!until && until > Date.now();
+  }
+  /** Stops the rate-limited source instead of retrying: the account is at risk, not just the download. */
+  private holdSource(job: Job, raw: string, stage: "extraction" | "download") {
+    const source = job.source || domainOf(job.originalUrl);
+    const until = Date.now() + protectedCooldown(raw);
+    const minutes = Math.round((until - Date.now()) / 60_000);
+    const first = !this.cooling({ ...job, source });
+    this.cooldowns.set(this.siteOf(source), until);
+    const resumes = this.settings.automaticRetries;
+    const error = `${source} asked DriftFetch to slow down, so downloads from it are paused for about ${minutes} minutes to protect your account. ${
+      resumes
+        ? "They resume by themselves. Press Retry to continue now, or Cancel to stop."
+        : "Press Retry to continue, or Cancel to stop."
+    }`;
+    const patch: Partial<Job> = {
+      status: "failed",
+      retryAt: resumes ? until : undefined,
+      speed: undefined,
+      eta: undefined,
+      error,
+    };
+    this.save(job, {
+      ...patch,
+      failureStage: stage,
+      failureCode: failureCode(raw),
+      checkedEngineVersion: this.engine.info.version,
+    });
+    // Everything else waiting on the same source holds too; running ones fail on their own.
+    for (const other of this.jobs)
+      if (
+        other !== job &&
+        this.siteOf(other.source) === this.siteOf(source) &&
+        ["queued", "resolving"].includes(other.status) &&
+        !this.running.has(other.id)
+      )
+        this.save(other, {
+          ...patch,
+          failureStage: other.status === "resolving" ? "extraction" : "download",
+        });
+    if (first) this.onHold?.(source, minutes);
+  }
   private fail(job: Job, err: unknown, stage: "extraction" | "download") {
     const raw = String(err),
       attempts = job.retryCount || 0;
+    if (
+      isProtectedSource(job.source || domainOf(job.originalUrl)) &&
+      isRateLimited(raw)
+    ) {
+      this.holdSource(job, raw, stage);
+      return;
+    }
     const delay = this.settings.automaticRetries
       ? retryDelay(raw, attempts)
       : undefined;
@@ -403,6 +464,7 @@ export class Queue {
       if (
         job.status === "resolving" &&
         !this.running.has(job.id) &&
+        !this.cooling(job) &&
         this.resolving.size < 2
       ) {
         this.resolving.add(job.id);
@@ -425,6 +487,7 @@ export class Queue {
       if (
         job.status === "queued" &&
         !this.running.has(job.id) &&
+        !this.cooling(job) &&
         (this.settings.concurrency === 0 ||
           active < this.settings.concurrency) &&
         this.sourceHasRoom(job)
@@ -1064,7 +1127,9 @@ export class Queue {
       } else if (
         !this.running.has(id) &&
         ["review", "paused", "failed", "cancelled"].includes(job.status)
-      )
+      ) {
+        // Retry is the user's "keep going": lift the pause for this source.
+        this.cooldowns.delete(this.siteOf(job.source || domainOf(job.originalUrl)));
         this.save(job, {
           status: job.mediaKey ? "queued" : "resolving",
           startRequested: !job.mediaKey,
@@ -1074,6 +1139,7 @@ export class Queue {
           scheduleHeld: false,
           error: undefined,
         });
+      }
     }
     if (removedNow.length) this.undoable = { jobs: removedNow, at: Date.now() };
     this.pump();

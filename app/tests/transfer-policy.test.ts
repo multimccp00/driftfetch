@@ -1,3 +1,10 @@
+import {
+  isProtectedSource,
+  isRateLimited,
+  protectedCooldown,
+  protectedCooldownMs,
+  sourceLimits as limitsFor,
+} from "../shared/transfer-policy";
 import { expect, it } from "vitest";
 import {
   defaultSettings,
@@ -133,4 +140,19 @@ it("reads the wait a source announces and retries after it", () => {
   expect(retryDelay(raw, 0)).toBe(330_000);
   expect(retryDelay(raw, 9)).toBe(330_000); // no attempt cap: the source sets the wait
   expect(friendlyError(raw)).toMatch(/about 4 minute/);
+});
+
+it("gives Instagram a gentle default and treats it as a protected source", () => {
+  const limits = limitsFor({ sourceRules: [] } as any, "www.instagram.com");
+  expect(limits).toEqual({ maxSimultaneous: 1, requestDelaySec: 10 });
+  expect(isProtectedSource("instagram.com")).toBe(true);
+  expect(isProtectedSource("cdninstagram.com.evil.test")).toBe(false);
+  expect(isProtectedSource("youtube.com")).toBe(false);
+});
+it("holds a protected source for at least the cooldown after a rate limit", () => {
+  expect(isRateLimited("HTTP Error 429: Too Many Requests")).toBe(true);
+  expect(isRateLimited("connection reset")).toBe(false);
+  expect(protectedCooldown("429")).toBe(protectedCooldownMs);
+  const long = "Waiting for 3 hours until 14:09:58 (rate limit)";
+  expect(protectedCooldown(long)).toBe(3 * 3_600_000 + 90_000);
 });

@@ -23,7 +23,31 @@ const defaultSourceLimits: Record<
 > = {
   // Reddit allows about 10 API requests a minute without OAuth.
   "reddit.com": { maxSimultaneous: 1, requestDelaySec: 6 },
+  // Instagram can lock a signed-in account that looks automated: one at a time, spaced out.
+  "instagram.com": { maxSimultaneous: 1, requestDelaySec: 10 },
 };
+
+/** Sites where an account can be locked for hammering. A rate limit stops work there for a long cooldown. */
+const protectedSources = ["instagram.com"];
+/** Shortest pause after a rate limit on a protected source, longer than any ordinary retry. */
+export const protectedCooldownMs = 60 * 60_000;
+export function isProtectedSource(source: string | undefined): boolean {
+  return (
+    !!source &&
+    protectedSources.some((d) => source === d || source.endsWith("." + d))
+  );
+}
+export function isRateLimited(raw: string): boolean {
+  return (
+    rateLimitWait(raw) !== undefined ||
+    /429|too many requests|rate limit/i.test(raw)
+  );
+}
+/** When work on a protected source may resume: the source's own wait if longer, else the cooldown. */
+export function protectedCooldown(raw: string): number {
+  const wait = rateLimitWait(raw);
+  return Math.max(protectedCooldownMs, wait === undefined ? 0 : wait + 90_000);
+}
 export function sourceLimits(
   settings: Settings,
   source: string | undefined,
