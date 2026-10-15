@@ -217,6 +217,8 @@ export interface EngineInfo {
   ffmpegAvailable: boolean;
   jsRuntimeAvailable: boolean;
   jsRuntimeVersion?: string;
+  /** gallery-dl's version, bundled or updated from inside the app. */
+  galleryVersion?: string;
   canRollback: boolean;
   busy: boolean;
   message?: string;

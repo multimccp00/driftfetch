@@ -206,3 +206,97 @@ describe("bundled engine refresh", () => {
     expect(fs.existsSync(path.join(installed, "deno.exe"))).toBe(false);
   });
 });
+
+describe("gallery-dl updater", () => {
+  const base = "https://codeberg.org/mikf/gallery-dl/releases/download/v9.9.9/";
+  async function galleryEngine(bundledBinary: Buffer | string) {
+    const e = engine();
+    e.galleryKey = trustedKey.trusted;
+    fs.writeFileSync(path.join(e.directory, "gallery-dl.exe"), bundledBinary);
+    return e;
+  }
+  async function galleryRelease(
+    binary: Buffer,
+    options: { signedBy?: "trusted" | "other"; host?: string } = {},
+  ) {
+    const list =
+      createHash("sha256").update(binary).digest("hex") +
+      "  gallery-dl.exe" +
+      String.fromCharCode(10);
+    const signature = await sign(
+      list,
+      options.signedBy === "other" ? otherKey : trustedKey,
+    );
+    const at = options.host ?? base;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => {
+        if (url.includes("/api/v1/repos/mikf/gallery-dl/releases/latest"))
+          return Response.json({
+            tag_name: "v9.9.9",
+            assets: ["gallery-dl.exe", "SHA256SUMS", "SHA256SUMS.sig"].map(
+              (name) => ({ name, browser_download_url: at + name }),
+            ),
+          });
+        if (url.endsWith("gallery-dl.exe")) return new Response(new Uint8Array(binary));
+        if (url.endsWith("SHA256SUMS")) return new Response(list);
+        if (url.endsWith("SHA256SUMS.sig")) return new Response(new Uint8Array(signature));
+        return new Response("", { status: 404 });
+      }),
+    );
+  }
+  it("pins gallery-dl's maintainer key", async () => {
+    const { galleryDlKeyFingerprint, galleryDlPublicKey } =
+      await import("../electron/gallery-dl-public-key");
+    const key = await openpgp.readKey({ armoredKey: galleryDlPublicKey });
+    expect(key.getFingerprint()).toBe(galleryDlKeyFingerprint);
+    expect(galleryDlKeyFingerprint).toBe(
+      "3e09f5908333dd83dbdce7375680ca389d365a88",
+    );
+  });
+  it("rejects a gallery-dl release signed by another key", async () => {
+    const e = await galleryEngine("bundled build");
+    await galleryRelease(Buffer.from("malicious build"), { signedBy: "other" });
+    await expect((e as any).updateGalleryDl()).rejects.toThrow(
+      "Signature verification failed",
+    );
+    expect(
+      fs.readFileSync(path.join(e.directory, "gallery-dl.exe"), "utf8"),
+    ).toBe("bundled build");
+  });
+  it("refuses a gallery-dl download from an unexpected host", async () => {
+    const e = await galleryEngine("bundled build");
+    await galleryRelease(Buffer.from("build"), {
+      host: "https://example.invalid/",
+    });
+    await expect((e as any).updateGalleryDl()).rejects.toThrow(
+      "Unexpected update source",
+    );
+  });
+  it("skips the update when no gallery-dl is installed", async () => {
+    const e = engine();
+    e.galleryKey = trustedKey.trusted;
+    const fetch = vi.fn();
+    vi.stubGlobal("fetch", fetch);
+    await (e as any).updateGalleryDl();
+    expect(fetch).not.toHaveBeenCalled();
+  });
+  it.runIf(
+    process.platform === "win32" &&
+      fs.existsSync("resources/engines/gallery-dl.exe"),
+  )(
+    "installs a verified gallery-dl and keeps the previous one for rollback",
+    async () => {
+      const real = fs.readFileSync("resources/engines/gallery-dl.exe");
+      // Engine(dir, dir): the "bundled" copy and the updated copy share a folder here,
+      // so the bundled one is a real binary placed under the updated name.
+      const e = await galleryEngine(real);
+      await galleryRelease(real);
+      await (e as any).updateGalleryDl();
+      const updated = path.join(e.directory, "gallery-dl.exe");
+      expect(fs.readFileSync(updated).equals(real)).toBe(true);
+      expect(fs.existsSync(updated + ".previous")).toBe(true);
+    },
+    60000,
+  );
+});

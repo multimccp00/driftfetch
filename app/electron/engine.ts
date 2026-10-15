@@ -10,6 +10,10 @@ import { domainOf, normalizeUrl } from "./core";
 import { preferredLabelFormat } from "../shared/quality";
 import { verifyDetached, type SigningKey } from "./signature";
 import { ytDlpKeyFingerprint, ytDlpPublicKey } from "./yt-dlp-public-key";
+import {
+  galleryDlKeyFingerprint,
+  galleryDlPublicKey,
+} from "./gallery-dl-public-key";
 
 interface ProcessResult {
   code: number;
@@ -408,6 +412,11 @@ export class Engine {
     armored: ytDlpPublicKey,
     fingerprint: ytDlpKeyFingerprint,
   };
+  /** Pinned key that must have signed gallery-dl's checksum list. */
+  galleryKey: SigningKey = {
+    armored: galleryDlPublicKey,
+    fingerprint: galleryDlKeyFingerprint,
+  };
   constructor(
     public directory: string,
     private bundled: string,
@@ -420,16 +429,42 @@ export class Engine {
   private tool(file: string) {
     return path.join(this.bundled, file);
   }
+  /** gallery-dl updated from inside the app lives in userData; until then the bundled copy runs. */
+  get galleryExecutable() {
+    const updated = path.join(this.directory, "gallery-dl.exe");
+    return existsSync(updated) ? updated : this.tool("gallery-dl.exe");
+  }
+  private async versionOf(exe: string): Promise<string | undefined> {
+    try {
+      const result = await runProcess(exe, ["--version"], undefined, 15000)
+        .done;
+      return result.code ? undefined : result.stdout.trim() || undefined;
+    } catch {
+      return undefined;
+    }
+  }
   async init() {
     await fs.mkdir(this.directory, { recursive: true });
     // Earlier versions copied every tool here and never refreshed them.
-    for (const file of [
-      "ffmpeg.exe",
-      "ffprobe.exe",
-      "deno.exe",
-      "gallery-dl.exe",
-    ])
+    for (const file of ["ffmpeg.exe", "ffprobe.exe", "deno.exe"])
       await fs.rm(path.join(this.directory, file), { force: true });
+    // An updated gallery-dl is dropped once this release bundles one at least as new.
+    const updatedGallery = path.join(this.directory, "gallery-dl.exe");
+    if (existsSync(updatedGallery)) {
+      const bundled = await fs
+        .readFile(this.tool("manifest.json"), "utf8")
+        .then((text) =>
+          String(JSON.parse(text)["gallery-dl.exe"]?.version ?? "").replace(
+            /^v/,
+            "",
+          ),
+        )
+        .catch(() => undefined);
+      const updated = await this.versionOf(updatedGallery);
+      if (!updated || (bundled && !needsBundledEngine(bundled, updated)))
+        for (const file of [updatedGallery, updatedGallery + ".previous"])
+          await fs.rm(file, { force: true });
+    }
     // yt-dlp self-updates, so it lives in userData; replace it only when this
     // release ships a newer one.
     const bundledExe = this.tool("yt-dlp.exe");
@@ -481,7 +516,10 @@ export class Engine {
         this.info.jsRuntimeAvailable = false;
       }
     }
-    this.info.canRollback = existsSync(this.executable + ".previous");
+    this.info.galleryVersion = await this.versionOf(this.galleryExecutable);
+    this.info.canRollback =
+      existsSync(this.executable + ".previous") ||
+      existsSync(path.join(this.directory, "gallery-dl.exe.previous"));
     if (this.info.available) {
       try {
         const result = await runProcess(
@@ -552,7 +590,7 @@ export class Engine {
     auth: string[] = [],
     requestDelaySec = 0,
   ): Running | undefined {
-    const exe = this.tool("gallery-dl.exe");
+    const exe = this.galleryExecutable;
     if (!existsSync(exe)) return;
     // gallery-dl accepts yt-dlp's --cookies / --cookies-from-browser syntax.
     return runProcess(
@@ -574,7 +612,7 @@ export class Engine {
   download(job: Job, auth: string[], onLine: (line: string) => void): Running {
     if (job.mediaKey?.startsWith("GalleryDL:"))
       return runProcess(
-        this.tool("gallery-dl.exe"),
+        this.galleryExecutable,
         [
           ...galleryOutputArgs,
           "--directory",
@@ -617,7 +655,7 @@ export class Engine {
       );
       writeFileSync(batchFile, job.imageUrls.join("\n"), "utf8");
       const running = runProcess(
-        this.tool("gallery-dl.exe"),
+        this.galleryExecutable,
         [
           ...galleryOutputArgs,
           "--directory",
@@ -690,12 +728,33 @@ export class Engine {
       15000,
     );
   }
+  /** Updates yt-dlp and gallery-dl, each verified against its maintainers' pinned key. */
   async update() {
     if (this.info.busy)
       throw new Error("An engine operation is already running.");
     this.info.busy = true;
-    this.info.message = "Downloading and verifying the engine…";
+    this.info.message = "Downloading and verifying the engines…";
     this.changed();
+    const failures: string[] = [];
+    for (const [name, step] of [
+      ["yt-dlp", () => this.updateYtDlp()],
+      ["gallery-dl", () => this.updateGalleryDl()],
+    ] as const)
+      try {
+        await step();
+      } catch (err) {
+        failures.push(
+          `${name}: ${err instanceof Error ? err.message : "Update failed. The installed engine was kept."}`,
+        );
+      }
+    this.info.message = failures.length
+      ? failures.join(" ")
+      : "Engines updated and verified.";
+    this.info.busy = false;
+    await this.refresh();
+    if (failures.length) throw new Error(this.info.message);
+  }
+  private async updateYtDlp() {
     const staged = path.join(this.directory, `yt-dlp-${randomUUID()}.exe`);
     try {
       const release = await fetch(
@@ -774,17 +833,101 @@ export class Engine {
       if (existsSync(this.executable))
         await fs.copyFile(this.executable, this.executable + ".previous");
       await fs.rename(staged, this.executable);
-      this.info.message = "Engine updated and verified.";
-    } catch (err) {
-      this.info.message =
-        err instanceof Error
-          ? err.message
-          : "Update failed. The installed engine was kept.";
-      throw err;
     } finally {
       await fs.rm(staged, { force: true });
-      this.info.busy = false;
-      await this.refresh();
+    }
+  }
+  private async updateGalleryDl() {
+    // Only refresh a gallery-dl that is installed; a build without one stays without.
+    if (!existsSync(this.galleryExecutable)) return;
+    const target = path.join(this.directory, "gallery-dl.exe");
+    const staged = path.join(this.directory, `gallery-dl-${randomUUID()}.exe`);
+    try {
+      // gallery-dl publishes Windows builds and signed checksums on Codeberg.
+      const release = await fetch(
+        "https://codeberg.org/api/v1/repos/mikf/gallery-dl/releases/latest",
+        {
+          headers: { "User-Agent": "DriftFetch-Downloader" },
+          signal: AbortSignal.timeout(30000),
+        },
+      );
+      if (!release.ok) throw new Error("Could not check for engine updates.");
+      const data = (await release.json()) as any;
+      if (!Array.isArray(data?.assets))
+        throw new Error("Could not check for engine updates.");
+      const latest = String(data.tag_name ?? "").replace(/^v/, "");
+      // Already current: nothing to download.
+      if (
+        this.info.galleryVersion &&
+        !needsBundledEngine(this.info.galleryVersion, latest)
+      )
+        return;
+      const find = (name: string) =>
+        data.assets.find((a: any) => a.name === name);
+      const asset = find("gallery-dl.exe"),
+        sums = find("SHA256SUMS"),
+        signature = find("SHA256SUMS.sig");
+      if (!asset || !sums || !signature)
+        throw new Error("The release is missing verification files.");
+      for (const u of [
+        asset.browser_download_url,
+        sums.browser_download_url,
+        signature.browser_download_url,
+      ])
+        if (
+          !String(u).startsWith(
+            "https://codeberg.org/mikf/gallery-dl/releases/download/",
+          )
+        )
+          throw new Error("Unexpected update source.");
+      const [binary, checksum, signed] = await Promise.all([
+        fetch(asset.browser_download_url, {
+          signal: AbortSignal.timeout(180000),
+        }),
+        fetch(sums.browser_download_url, {
+          signal: AbortSignal.timeout(30000),
+        }),
+        fetch(signature.browser_download_url, {
+          signal: AbortSignal.timeout(30000),
+        }),
+      ]);
+      if (!binary.ok || !checksum.ok || !signed.ok)
+        throw new Error("The engine download failed.");
+      const buffer = Buffer.from(await binary.arrayBuffer());
+      // The checksum list is only trusted if the pinned maintainer key signed it.
+      const listBytes = new Uint8Array(await checksum.arrayBuffer());
+      try {
+        await verifyDetached(
+          listBytes,
+          new Uint8Array(await signed.arrayBuffer()),
+          this.galleryKey,
+        );
+      } catch {
+        throw new Error(
+          "Signature verification failed. The installed engine was kept.",
+        );
+      }
+      const expected = Buffer.from(listBytes)
+        .toString("utf8")
+        .split(/\r?\n/)
+        .find((l) => /\s\*?gallery-dl\.exe$/.test(l))
+        ?.split(/\s+/)[0];
+      if (
+        !expected ||
+        createHash("sha256").update(buffer).digest("hex") !== expected
+      )
+        throw new Error(
+          "Checksum verification failed. The installed engine was kept.",
+        );
+      await fs.writeFile(staged, buffer);
+      const version = await this.versionOf(staged);
+      if (!version || !/^\d+\.\d+/.test(version))
+        throw new Error("The new engine failed its startup check.");
+      // Keep what ran before (the bundled copy on a first update) for Restore previous.
+      await fs.copyFile(this.galleryExecutable, target + ".previous");
+      await fs.rename(staged, target);
+    } finally {
+      await fs.rm(staged, { force: true });
     }
   }
   async rollback() {
@@ -794,14 +937,23 @@ export class Engine {
       throw new Error("No previous engine is available.");
     this.info.busy = true;
     this.changed();
-    const temp = this.executable + ".swap";
     try {
-      await fs.copyFile(this.executable, temp);
-      await fs.copyFile(this.executable + ".previous", this.executable);
-      await fs.copyFile(temp, this.executable + ".previous");
-      this.info.message = "Previous engine restored.";
+      for (const exe of [
+        this.executable,
+        path.join(this.directory, "gallery-dl.exe"),
+      ]) {
+        if (!existsSync(exe + ".previous")) continue;
+        const temp = exe + ".swap";
+        try {
+          if (existsSync(exe)) await fs.copyFile(exe, temp);
+          await fs.copyFile(exe + ".previous", exe);
+          if (existsSync(temp)) await fs.copyFile(temp, exe + ".previous");
+        } finally {
+          await fs.rm(temp, { force: true });
+        }
+      }
+      this.info.message = "Previous engines restored.";
     } finally {
-      await fs.rm(temp, { force: true });
       this.info.busy = false;
       await this.refresh();
     }

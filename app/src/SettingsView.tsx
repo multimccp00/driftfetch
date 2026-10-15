@@ -402,8 +402,8 @@ export function SettingsView({
     ],
     [
       "gallery-dl",
-      "Bundled",
-      state.engine.available,
+      state.engine.galleryVersion || "Not installed",
+      !!state.engine.galleryVersion,
       "Finds images in galleries and profiles",
     ],
     [
