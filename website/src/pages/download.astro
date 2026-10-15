@@ -4,7 +4,7 @@ import { u, site, links } from "../data/site";
 ---
 <Layout
   title="Download DriftFetch for Windows – free and open source"
-  description="Download DriftFetch for Windows 10 and 11 as an installer or a portable zip. Free and open source, with install help."
+  description="Download DriftFetch for Windows 10 and 11 as an installer or a single portable file. Free and open source, with install help."
   path="/download"
   current="/download"
   jsonld={[{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Is DriftFetch safe?","acceptedAnswer":{"@type":"Answer","text":"It’s open source, so anyone can read the code and see exactly what it does."}},{"@type":"Question","name":"Why does Windows say “Windows protected your PC”?","acceptedAnswer":{"@type":"Answer","text":"Windows shows this for new apps that haven’t been downloaded many times yet. Click “More info”, then “Run anyway”."}},{"@type":"Question","name":"How do I uninstall it?","acceptedAnswer":{"@type":"Answer","text":"Installer: open Windows Settings › Apps, find DriftFetch and choose Uninstall. Portable: delete its folder. Either way, your downloaded files stay where they are."}}]}]}
@@ -21,7 +21,7 @@ import { u, site, links } from "../data/site";
           <a href={links.portable} style="display:flex;align-items:center;gap:10px;height:54px;padding:0 22px 0 18px;border-radius:9px;box-shadow:inset 0 0 0 1.5px rgba(242,245,255,0.45);color:#fff;font-size:17px;font-weight:600" class="h79vki2"><span class="ic"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="15" cy="19" r="2" />
   <path d="M20.9 19.8A2 2 0 0 0 22 18V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h5.1" />
   <path d="M15 11v-1" />
-  <path d="M15 17v-2" /></svg></span>Portable (.zip)</a>
+  <path d="M15 17v-2" /></svg></span>Portable (.exe)</a>
         </div>
         <p style="margin:16px 0 0;font-size:14px;color:#8a96bd">Version {site.version} · Windows 10 and 11, 64-bit · MIT licence · <a href={u("/versions")} style="color:#c7cfea;border-bottom:1px solid rgba(199,207,234,0.4)">Earlier versions</a></p>
       </div>
@@ -37,7 +37,7 @@ import { u, site, links } from "../data/site";
           <div style="display:flex;flex-direction:column;gap:12px;padding:28px;border-radius:12px;background:#e4e9f4"><span style="width:40px;height:40px;border-radius:10px;background:#010930;color:#0cf3fe;display:flex;align-items:center;justify-content:center"><span class="ic"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="15" cy="19" r="2" />
   <path d="M20.9 19.8A2 2 0 0 0 22 18V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h5.1" />
   <path d="M15 11v-1" />
-  <path d="M15 17v-2" /></svg></span></span><h3 style="margin:0;font-size:22px;font-weight:700;letter-spacing:-0.02em">Portable</h3><p style="margin:0;color:#353d5c;text-wrap:pretty">Unzip it anywhere, even a USB stick, and run DriftFetch.exe. Settings stay next to the app and nothing is written to Windows. To remove it, delete the folder.</p></div>
+  <path d="M15 17v-2" /></svg></span></span><h3 style="margin:0;font-size:22px;font-weight:700;letter-spacing:-0.02em">Portable</h3><p style="margin:0;color:#353d5c;text-wrap:pretty">Put it anywhere, even a USB stick, and run it. Settings stay next to the app and nothing is written to Windows. To remove it, delete the folder.</p></div>
         </div>
       </div>
     </section>
@@ -45,7 +45,7 @@ import { u, site, links } from "../data/site";
       <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto">
         <h2 style="margin:0;font-size:clamp(32px,4vw,52px);line-height:1.02;font-weight:800;letter-spacing:-0.04em;text-wrap:balance;margin-bottom:48px">Installing takes <span style="background:linear-gradient(transparent 64%,#0cf3fe 64%,#0cf3fe 90%,transparent 90%);padding:0 2px">a minute</span></h2>
         <ol style="list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:32px 40px">
-          <li style="display:flex;flex-direction:column;gap:10px;padding-top:20px;border-top:1px solid rgba(1,9,48,0.14)"><span style="font-size:15px;font-weight:700;color:#0a55d6">01</span><h3 style="margin:0;font-size:22px;font-weight:700;letter-spacing:-0.02em">Run the installer</h3><p style="margin:0;color:#353d5c;text-wrap:pretty">Open the installer. It installs for your user only, so it doesn’t need admin rights. Using the portable version? Unzip it and run DriftFetch.exe instead.</p></li>
+          <li style="display:flex;flex-direction:column;gap:10px;padding-top:20px;border-top:1px solid rgba(1,9,48,0.14)"><span style="font-size:15px;font-weight:700;color:#0a55d6">01</span><h3 style="margin:0;font-size:22px;font-weight:700;letter-spacing:-0.02em">Run the installer</h3><p style="margin:0;color:#353d5c;text-wrap:pretty">Open the installer. It installs for your user only, so it doesn’t need admin rights. Using the portable version? Just run its .exe instead.</p></li>
           <li style="display:flex;flex-direction:column;gap:10px;padding-top:20px;border-top:1px solid rgba(1,9,48,0.14)"><span style="font-size:15px;font-weight:700;color:#0a55d6">02</span><h3 style="margin:0;font-size:22px;font-weight:700;letter-spacing:-0.02em">If Windows warns you</h3><p style="margin:0;color:#353d5c;text-wrap:pretty">New apps can trigger “Windows protected your PC”. Click “More info”, then “Run anyway”.</p></li>
           <li style="display:flex;flex-direction:column;gap:10px;padding-top:20px;border-top:1px solid rgba(1,9,48,0.14)"><span style="font-size:15px;font-weight:700;color:#0a55d6">03</span><h3 style="margin:0;font-size:22px;font-weight:700;letter-spacing:-0.02em">Look in your tray</h3><p style="margin:0;color:#353d5c;text-wrap:pretty">DriftFetch starts next to the clock. Copy a video link and it takes it from there.</p></li>
         </ol>
