@@ -11,12 +11,13 @@ const nav = [["Sites", "/sites"], ["Extensions", "/extensions"], ["FAQ", "/faq"]
       {nav.map(([label, href]) => <a href={u(href)} class="nav-link" aria-current={current === href ? "page" : undefined} style={`color:${current === href ? "#fff" : "#b7c1e0"}`}>{label}</a>)}
     </nav>
     <a href={u("/download")} class="nav-dl" aria-current={current === "/download" ? "page" : undefined}><Fragment set:html={Icon("arrow-down-to-line", 16, 2)} />Download</a>
-    <details class="hd-menu">
-      <summary aria-label="Menu"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path class="m-open" d="M4 7h16M4 12h16M4 17h16"/><path class="m-close" d="M6 6l12 12M18 6L6 18"/></svg></summary>
-      <nav aria-label="Menu" class="hd-panel">
+    <button type="button" class="hd-burger" aria-label="Menu" aria-expanded="false" aria-controls="hd-panel"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path class="m-top" d="M4 7h16"/><path class="m-mid" d="M4 12h16"/><path class="m-bot" d="M4 17h16"/></svg></button>
+    <div class="hd-scrim" aria-hidden="true"></div>
+    <nav aria-label="Menu" class="hd-panel" id="hd-panel">
+      <div class="hd-panel-in">
         {nav.map(([label, href]) => <a href={u(href)} aria-current={current === href ? "page" : undefined}>{label}</a>)}
-      </nav>
-    </details>
+      </div>
+    </nav>
   </div>
 </header>
 <style>
@@ -25,38 +26,41 @@ const nav = [["Sites", "/sites"], ["Extensions", "/extensions"], ["FAQ", "/faq"]
   .hd-nav { display: none; }
   .nav-dl { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border-radius: 8px; background: #0b67fe; color: #fff; font-weight: 600; font-size: 15px; }
   .nav-dl:hover { background: #2a7bff; color: #fff; }
-  .hd-menu summary { list-style: none; cursor: pointer; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #fff; border-radius: 8px; }
-  .hd-menu summary::-webkit-details-marker { display: none; }
-  .hd-menu .m-close, .hd-menu[open] .m-open { display: none; }
-  .hd-menu[open] .m-close { display: block; }
-  .hd-menu summary svg { transition: transform .25s ease; }
-  .hd-menu[open] summary svg { transform: rotate(90deg); }
-  .hd-menu[open] summary { background: rgba(255,255,255,0.08); }
-  .hd-menu[open]::before { content: ""; position: fixed; inset: 0; z-index: -1; background: rgba(1,9,48,0.6); backdrop-filter: blur(3px); animation: hd-fade .25s ease-out; }
-  .hd-panel { position: absolute; left: 0; right: 0; top: 100%; z-index: 1; background: linear-gradient(180deg, #0a1a5c 0%, #010930 70%); border-radius: 0 0 20px 20px; padding: 6px clamp(20px,4vw,48px) 14px; border-bottom: 1px solid rgba(12,243,254,0.25); box-shadow: 0 24px 40px rgba(1,9,48,0.55); transform-origin: top; animation: hd-drop .28s cubic-bezier(.2,.8,.2,1); }
-  .hd-panel a { position: relative; display: flex; align-items: center; justify-content: space-between; min-height: 56px; color: #b7c1e0; font-size: 20px; font-weight: 700; letter-spacing: -0.02em; border-bottom: 1px solid rgba(255,255,255,0.08); animation: hd-item .35s cubic-bezier(.2,.8,.2,1) backwards; }
-  .hd-panel a::after { content: "→"; color: #0cf3fe; opacity: 0; transform: translateX(-6px); transition: opacity .2s, transform .2s; }
+  .hd-burger { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 8px; background: transparent; color: #fff; cursor: pointer; transition: background .25s; }
+  .hd-burger svg path { transform-box: fill-box; transform-origin: center; transition: transform .3s cubic-bezier(.2,.8,.2,1), opacity .2s; }
+  .hd-open .hd-burger { background: rgba(255,255,255,0.08); }
+  .hd-open .m-top { transform: translateY(5px) rotate(45deg); }
+  .hd-open .m-mid { opacity: 0; }
+  .hd-open .m-bot { transform: translateY(-5px) rotate(-45deg); }
+  .hd-scrim { position: fixed; inset: 0; z-index: -1; background: rgba(1,9,48,0.6); backdrop-filter: blur(3px); opacity: 0; visibility: hidden; transition: opacity .3s ease, visibility 0s .3s; }
+  .hd-open .hd-scrim { opacity: 1; visibility: visible; transition: opacity .3s ease; }
+  .hd-panel { position: absolute; left: 0; right: 0; top: 100%; z-index: 1; display: grid; grid-template-rows: 0fr; background: #010930; border-radius: 0 0 20px 20px; visibility: hidden; opacity: 0; box-shadow: 0 24px 40px rgba(1,9,48,0.5); transition: grid-template-rows .35s cubic-bezier(.2,.8,.2,1), opacity .25s ease, visibility 0s .35s; }
+  .hd-open .hd-panel { grid-template-rows: 1fr; visibility: visible; opacity: 1; transition: grid-template-rows .35s cubic-bezier(.2,.8,.2,1), opacity .25s ease; }
+  .hd-panel-in { overflow: hidden; padding: 0 clamp(20px,4vw,48px); border-top: 1px solid rgba(255,255,255,0.1); }
+  .hd-panel a { position: relative; display: flex; align-items: center; justify-content: space-between; min-height: 56px; color: #b7c1e0; font-size: 20px; font-weight: 700; letter-spacing: -0.02em; border-bottom: 1px solid rgba(255,255,255,0.08); opacity: 0; transform: translateY(-8px); transition: opacity .2s, transform .2s; }
+  .hd-open .hd-panel a { opacity: 1; transform: none; transition: opacity .35s ease, transform .35s cubic-bezier(.2,.8,.2,1); }
+  .hd-open .hd-panel a:nth-child(1) { transition-delay: .06s; } .hd-open .hd-panel a:nth-child(2) { transition-delay: .1s; } .hd-open .hd-panel a:nth-child(3) { transition-delay: .14s; } .hd-open .hd-panel a:nth-child(4) { transition-delay: .18s; } .hd-open .hd-panel a:nth-child(5) { transition-delay: .22s; }
+  .hd-panel a:last-child { border-bottom: 0; margin-bottom: 8px; }
+  .hd-panel a::after { content: "→"; color: #0cf3fe; opacity: 0; transition: opacity .2s; }
   .hd-panel a:active, .hd-panel a[aria-current="page"] { color: #fff; }
-  .hd-panel a:active::after, .hd-panel a[aria-current="page"]::after { opacity: 1; transform: none; }
+  .hd-panel a:active::after, .hd-panel a[aria-current="page"]::after { opacity: 1; }
   .hd-panel a[aria-current="page"]::before { content: ""; position: absolute; left: -12px; top: 18px; bottom: 18px; width: 3px; border-radius: 2px; background: #0cf3fe; }
-  .hd-panel a:last-child { border-bottom: 0; }
-  .hd-panel a:nth-child(1) { animation-delay: .04s; } .hd-panel a:nth-child(2) { animation-delay: .08s; } .hd-panel a:nth-child(3) { animation-delay: .12s; } .hd-panel a:nth-child(4) { animation-delay: .16s; } .hd-panel a:nth-child(5) { animation-delay: .2s; }
-  @keyframes hd-drop { from { opacity: 0; transform: translateY(-10px) scaleY(.96); } }
-  @keyframes hd-item { from { opacity: 0; transform: translateY(-8px); } }
-  @keyframes hd-fade { from { opacity: 0; } }
-  @media (prefers-reduced-motion: reduce) { .hd-panel, .hd-panel a, .hd-menu[open]::before { animation: none; } .hd-menu summary svg { transition: none; } }
+  @media (prefers-reduced-motion: reduce) { .hd-panel, .hd-panel a, .hd-scrim, .hd-burger svg path { transition: none !important; } }
   @media (min-width: 860px) {
     .hd { min-height: 76px; gap: 22px; }
-    .hd-menu { display: none; }
+    .hd-burger, .hd-scrim, .hd-panel { display: none; }
     .hd-nav { display: flex; gap: 22px; }
     .nav-link:hover { color: #fff !important; }
   }
 </style>
 <script>
-  // Close the mobile menu on Escape or a tap outside it.
-  const m = document.querySelector<HTMLDetailsElement>(".hd-menu");
-  if (m) {
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape") m.open = false; });
-    document.addEventListener("click", (e) => { if (m.open && !(e.target as Element).closest("summary, .hd-panel")) m.open = false; });
+  // Mobile menu: toggle .hd-open on the header container; close on Escape, outside tap or link tap.
+  const hd = document.querySelector<HTMLElement>(".hd");
+  const btn = document.querySelector<HTMLButtonElement>(".hd-burger");
+  if (hd && btn) {
+    const set = (open: boolean) => { hd.classList.toggle("hd-open", open); btn.setAttribute("aria-expanded", String(open)); };
+    btn.addEventListener("click", () => set(!hd.classList.contains("hd-open")));
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") set(false); });
+    document.addEventListener("click", (e) => { if (!(e.target as Element).closest(".hd-burger, .hd-panel")) set(false); });
   }
 </script>
