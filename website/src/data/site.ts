@@ -22,7 +22,6 @@ export const versionLinks = (v: string) => ({
 export const links = {
   source: gh(""),
   issues: gh("/issues"),
-  releaseNotes: gh(`/releases/tag/v${site.version}`),
   installer: dl(`DriftFetch-Setup-${site.version}-x64.exe`),
   portable: dl(`DriftFetch-Portable-${site.version}-x64.exe`),
   donate: site.bmc || "#",
