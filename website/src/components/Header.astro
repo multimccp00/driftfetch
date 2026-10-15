@@ -29,10 +29,22 @@ const nav = [["Sites", "/sites"], ["Extensions", "/extensions"], ["FAQ", "/faq"]
   .hd-menu summary::-webkit-details-marker { display: none; }
   .hd-menu .m-close, .hd-menu[open] .m-open { display: none; }
   .hd-menu[open] .m-close { display: block; }
-  .hd-panel { position: absolute; left: 0; right: 0; top: 100%; background: #010930; border-top: 1px solid rgba(255,255,255,0.1); border-bottom: 1px solid rgba(255,255,255,0.1); padding: 4px clamp(20px,4vw,48px) 12px; box-shadow: 0 18px 30px rgba(1,9,48,0.45); }
-  .hd-panel a { display: flex; align-items: center; min-height: 52px; color: #b7c1e0; font-size: 18px; font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .hd-menu summary svg { transition: transform .25s ease; }
+  .hd-menu[open] summary svg { transform: rotate(90deg); }
+  .hd-menu[open] summary { background: rgba(255,255,255,0.08); }
+  .hd-menu[open]::before { content: ""; position: fixed; inset: 0; z-index: -1; background: rgba(1,9,48,0.6); backdrop-filter: blur(3px); animation: hd-fade .25s ease-out; }
+  .hd-panel { position: absolute; left: 0; right: 0; top: 100%; z-index: 1; background: linear-gradient(180deg, #0a1a5c 0%, #010930 70%); border-radius: 0 0 20px 20px; padding: 6px clamp(20px,4vw,48px) 14px; border-bottom: 1px solid rgba(12,243,254,0.25); box-shadow: 0 24px 40px rgba(1,9,48,0.55); transform-origin: top; animation: hd-drop .28s cubic-bezier(.2,.8,.2,1); }
+  .hd-panel a { position: relative; display: flex; align-items: center; justify-content: space-between; min-height: 56px; color: #b7c1e0; font-size: 20px; font-weight: 700; letter-spacing: -0.02em; border-bottom: 1px solid rgba(255,255,255,0.08); animation: hd-item .35s cubic-bezier(.2,.8,.2,1) backwards; }
+  .hd-panel a::after { content: "→"; color: #0cf3fe; opacity: 0; transform: translateX(-6px); transition: opacity .2s, transform .2s; }
+  .hd-panel a:active, .hd-panel a[aria-current="page"] { color: #fff; }
+  .hd-panel a:active::after, .hd-panel a[aria-current="page"]::after { opacity: 1; transform: none; }
+  .hd-panel a[aria-current="page"]::before { content: ""; position: absolute; left: -12px; top: 18px; bottom: 18px; width: 3px; border-radius: 2px; background: #0cf3fe; }
   .hd-panel a:last-child { border-bottom: 0; }
-  .hd-panel a[aria-current="page"] { color: #fff; }
+  .hd-panel a:nth-child(1) { animation-delay: .04s; } .hd-panel a:nth-child(2) { animation-delay: .08s; } .hd-panel a:nth-child(3) { animation-delay: .12s; } .hd-panel a:nth-child(4) { animation-delay: .16s; } .hd-panel a:nth-child(5) { animation-delay: .2s; }
+  @keyframes hd-drop { from { opacity: 0; transform: translateY(-10px) scaleY(.96); } }
+  @keyframes hd-item { from { opacity: 0; transform: translateY(-8px); } }
+  @keyframes hd-fade { from { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .hd-panel, .hd-panel a, .hd-menu[open]::before { animation: none; } .hd-menu summary svg { transition: none; } }
   @media (min-width: 860px) {
     .hd { min-height: 76px; gap: 22px; }
     .hd-menu { display: none; }
@@ -40,3 +52,11 @@ const nav = [["Sites", "/sites"], ["Extensions", "/extensions"], ["FAQ", "/faq"]
     .nav-link:hover { color: #fff !important; }
   }
 </style>
+<script>
+  // Close the mobile menu on Escape or a tap outside it.
+  const m = document.querySelector<HTMLDetailsElement>(".hd-menu");
+  if (m) {
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") m.open = false; });
+    document.addEventListener("click", (e) => { if (m.open && !(e.target as Element).closest("summary, .hd-panel")) m.open = false; });
+  }
+</script>
