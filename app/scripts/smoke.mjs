@@ -1,10 +1,11 @@
-import { _electron as electron } from "playwright";
+import { _electron as electron, chromium } from "playwright";
 import { createRequire } from "node:module";
 import fs from "node:fs/promises";
 import { existsSync, createReadStream } from "node:fs";
 import path from "node:path";
 import http from "node:http";
-import { spawnSync } from "node:child_process";
+import net from "node:net";
+import { spawn, spawnSync } from "node:child_process";
 import assert from "node:assert/strict";
 
 const require = createRequire(import.meta.url);
@@ -14,7 +15,13 @@ const privacyVersion = Number(
     await fs.readFile("shared/privacy-note.ts", "utf8"),
   )[1],
 );
-const noClipboard = process.env.CURRENT_SMOKE_NO_CLIPBOARD === "1";
+// Packaged builds disable --inspect (the enableNodeCliInspectArguments fuse), so
+// Playwright's Electron launcher cannot attach. They are spawned with a remote
+// debugging port and driven through their pages over CDP instead; checks that need
+// the main process (dialog and clipboard stubs, BrowserWindow state) are skipped.
+const packaged = !!process.env.CURRENT_PACKAGED_EXE;
+const noClipboard =
+  process.env.CURRENT_SMOKE_NO_CLIPBOARD === "1" || packaged;
 const runDir = path.resolve("test-results", "smoke-" + Date.now());
 await fs.mkdir(runDir, { recursive: true });
 const sample = path.join(runDir, "sample.mp4");
@@ -184,23 +191,80 @@ let engineLog = "";
 const consoleErrors = [];
 const report = {
   runDir,
-  packaged: !!process.env.CURRENT_PACKAGED_EXE,
+  packaged,
   checks: [],
+  skipped: [],
 };
-async function launch() {
-  app = await electron.launch({
-    executablePath,
-    args: process.env.CURRENT_PACKAGED_EXE ? [] : ["."],
-    env,
-    timeout: 60000,
+const freePort = () =>
+  new Promise((resolve) => {
+    const probe = net.createServer().listen(0, "127.0.0.1", () => {
+      const { port } = probe.address();
+      probe.close(() => resolve(port));
+    });
   });
-  const child = app.process();
-  appChild = child;
-  child.stderr?.on("data", (chunk) => {
+// Spawns the packaged exe and returns its main window page, attached over CDP.
+async function attachPackaged() {
+  const port = await freePort();
+  appChild = spawn(
+    executablePath,
+    [
+      `--remote-debugging-port=${port}`,
+      // A window covered by others stops painting, and screenshots then time out.
+      "--disable-backgrounding-occluded-windows",
+      "--disable-features=CalculateNativeWinOcclusion",
+    ],
+    { env, stdio: ["ignore", "ignore", "pipe"] },
+  );
+  appChild.stderr.on("data", (chunk) => {
     engineLog = (engineLog + chunk.toString()).slice(-16000);
   });
+  const end = Date.now() + 60000;
+  for (;;) {
+    try {
+      app = await chromium.connectOverCDP(`http://127.0.0.1:${port}`);
+      break;
+    } catch (error) {
+      if (Date.now() > end || appChild.exitCode !== null) throw error;
+      await new Promise((r) => setTimeout(r, 250));
+    }
+  }
+  for (;;) {
+    const main = app
+      .contexts()
+      .flatMap((c) => c.pages())
+      .find((p) => p.url().endsWith("app.asar/dist/index.html"));
+    if (main) return main;
+    if (Date.now() > end) throw new Error("Main window did not open");
+    await new Promise((r) => setTimeout(r, 250));
+  }
+}
+// Quits the app and waits for its process to exit.
+async function closeApp() {
+  if (!packaged) return await app.close();
+  const exited = new Promise((r) =>
+    appChild.exitCode !== null ? r() : appChild.once("exit", r),
+  );
+  const deadline = setTimeout(terminateTestApp, 30000);
+  await page.evaluate(() => window.current.windowAction("quit")).catch(() => {});
+  await exited;
+  clearTimeout(deadline);
+}
+async function launch() {
   try {
-    page = await app.firstWindow({ timeout: 30000 });
+    if (packaged) page = await attachPackaged();
+    else {
+      app = await electron.launch({
+        executablePath,
+        args: ["."],
+        env,
+        timeout: 60000,
+      });
+      appChild = app.process();
+      appChild.stderr?.on("data", (chunk) => {
+        engineLog = (engineLog + chunk.toString()).slice(-16000);
+      });
+      page = await app.firstWindow({ timeout: 30000 });
+    }
   } catch (error) {
     terminateTestApp();
     throw error;
@@ -274,10 +338,18 @@ async function until(fn, timeout = 60000) {
       ),
   );
 }
+// Records a part of a check that packaged runs cannot do without the main process.
+function skipPackaged(what) {
+  report.skipped.push(what);
+  console.log("SKIP " + what);
+}
 async function check(name, fn) {
+  const skipped = report.skipped.length;
   await fn();
   report.checks.push(name);
-  console.log("PASS " + name);
+  console.log(
+    (report.skipped.length > skipped ? "PASS (with skips) " : "PASS ") + name,
+  );
 }
 try {
   await launch();
@@ -589,6 +661,10 @@ try {
       );
       const job = blocked.jobs.find((j) => j.originalUrl.endsWith("/private"));
       assert(job.error.includes("Session expired"));
+      if (packaged)
+        return skipPackaged(
+          "Cookie import and retry: the file dialog is stubbed in the main process",
+        );
       const cookies = path.join(runDir, "fixture-cookies.txt");
       await fs.writeFile(
         cookies,
@@ -668,7 +744,7 @@ try {
           !before.jobs.some((old) => old.id === j.id) &&
           j.originalUrl.endsWith("/slow.mp4"),
       );
-      await app.close();
+      await closeApp();
       app = undefined;
       await launch();
       const recovered = await until(
@@ -687,6 +763,15 @@ try {
   await check(
     "Floating capture panel, capture log, diagnostics, and opt-out",
     async () => {
+      if (packaged) {
+        skipPackaged(
+          "Floating capture panel: the clipboard is stubbed and the popup window inspected in the main process",
+        );
+        // The setting this check leaves behind, which the last check expects.
+        return await page.evaluate(() =>
+          window.current.settings({ captureNotifications: false }),
+        );
+      }
       await app.evaluate(({ clipboard }) => {
         globalThis.captureTest = {
           text: "",
@@ -957,6 +1042,14 @@ try {
       await historyRow.getByText("File missing", { exact: true }).waitFor();
       await historyRow.getByTitle("Download details", { exact: true }).click();
       await page.screenshot({ path: path.join(runDir, "missing-file.png") });
+      if (packaged) {
+        skipPackaged(
+          "Locate file: the file dialog is stubbed in the main process",
+        );
+        return await page
+          .getByRole("button", { name: "Close dialog", exact: true })
+          .click();
+      }
       await app.evaluate(({ dialog }, file) => {
         globalThis.originalLocateDialog = dialog.showOpenDialog;
         dialog.showOpenDialog = async () => ({
@@ -1046,6 +1139,15 @@ try {
         "1080p",
         "Label preference survives the 1080p cap",
       );
+      if (packaged) {
+        skipPackaged(
+          "Encrypted backup export and restore: the save and open dialogs are stubbed in the main process",
+        );
+        // The restored backup leaves automatic download off, which the last check expects.
+        return await page.evaluate(() =>
+          window.current.settings({ autoDownload: false }),
+        );
+      }
       const backupFile = path.join(runDir, "roundtrip.currentbackup");
       await app.evaluate(({ dialog }, file) => {
         globalThis.backupDialogs = {
@@ -1127,19 +1229,26 @@ try {
     "Close minimizes to tray; explicit quit persists history",
     async () => {
       await page.evaluate(() => window.current.windowAction("close"));
-      assert.equal(
+      // Over CDP the page reports itself visible even once the window is hidden.
+      if (packaged)
+        skipPackaged(
+          "Close hides the window: window visibility is read in the main process",
+        );
+      else {
+        assert.equal(
+          await app.evaluate(({ BrowserWindow }) =>
+            BrowserWindow.getAllWindows()
+              .find((w) => w.getTitle() === "DriftFetch")
+              .isVisible(),
+          ),
+          false,
+        );
         await app.evaluate(({ BrowserWindow }) =>
           BrowserWindow.getAllWindows()
             .find((w) => w.getTitle() === "DriftFetch")
-            .isVisible(),
-        ),
-        false,
-      );
-      await app.evaluate(({ BrowserWindow }) =>
-        BrowserWindow.getAllWindows()
-          .find((w) => w.getTitle() === "DriftFetch")
-          .show(),
-      );
+            .show(),
+        );
+      }
       await page.evaluate(() =>
         window.current.settings({ clipboardWatch: false }),
       );
@@ -1148,7 +1257,7 @@ try {
           async ({ clipboard }, text) => await clipboard.writeText(text),
           originalClipboard,
         );
-      await app.close();
+      await closeApp();
       app = undefined;
       await launch();
       const s = await state();
@@ -1178,7 +1287,7 @@ try {
         )
         .catch(() => {});
     const closeDeadline = setTimeout(terminateTestApp, 5000);
-    await app.close().catch(() => {});
+    await closeApp().catch(() => {});
     clearTimeout(closeDeadline);
   }
   server.closeAllConnections();
