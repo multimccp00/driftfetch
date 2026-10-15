@@ -11,7 +11,7 @@ export type Sample = {
 };
 
 export const SAMPLES: Sample[] = [
-  { url: "https://youtube.com/watch?v=dQw4w9WgXcQ", label: "youtube.com/watch?v=dQw4w9WgXcQ", hint: "a video", icon: "film", title: "Northern Lights Timelapse — Iceland 4K", site: "youtube.com", q: "2160p", mb: 512, kind: "video", thumb: G.nl },
+  { url: "https://youtube.com/watch?v=dQw4w9WgXcQ", label: "youtube.com/watch?v=dQw4w9WgXcQ", hint: "a video", icon: "film", title: "A Very Famous Music Video from 1987", site: "youtube.com", q: "1080p", mb: 64, kind: "video", thumb: G.nl },
   { url: "https://reddit.com/r/travel/comments/lisbon", label: "reddit.com/r/travel/…/lisbon", hint: "an album", icon: "images", title: "Lisbon Travel Album", site: "reddit.com", kind: "gallery", mb: 96, thumb: G.lx },
   { url: "https://vimeo.com/123456", label: "vimeo.com/123456", hint: "a video", icon: "film", title: "Desert Drone Flight", site: "vimeo.com", q: "1080p", mb: 182, kind: "video", thumb: G.dd },
   { url: "https://patreon.com/posts/members-only-qa", label: "patreon.com/posts/members-only", hint: "needs sign-in", icon: "lock", title: "Members-only Q&A", site: "patreon.com", kind: "locked" },
