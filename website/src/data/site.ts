@@ -11,7 +11,13 @@ export const site = {
 };
 
 const gh = (p: string) => (site.repo ? `https://github.com/${site.repo}${p}` : "#");
-const dl = (file: string) => gh(`/releases/download/v${site.version}/${file}`);
+const dl = (file: string, v = site.version) => gh(`/releases/download/v${v}/${file}`);
+
+/** Direct file links for any released version (used by the earlier-versions page). */
+export const versionLinks = (v: string) => ({
+  installer: dl(`DriftFetch-Setup-${v}-x64.exe`, v),
+  portable: dl(`DriftFetch-Portable-${v}-x64.exe`, v),
+});
 
 export const links = {
   source: gh(""),
