@@ -79,6 +79,13 @@
       }
     ],
     "electronDist": "node_modules/electron/dist",
+    "electronFuses": {
+      "runAsNode": true,
+      "enableCookieEncryption": true,
+      "enableNodeOptionsEnvironmentVariable": false,
+      "enableNodeCliInspectArguments": false,
+      "onlyLoadAppFromAsar": true
+    },
     "asar": true,
     "npmRebuild": false,
     "win": {

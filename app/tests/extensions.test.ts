@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import {
   Extensions,
+  checkGalleryArguments,
   hideSecretOptions,
   parseExtension,
 } from "../electron/extensions";
@@ -375,4 +376,29 @@ it("keeps secret engine options out of the command line", async () => {
   await expect(fs.access(file)).rejects.toThrow();
   const plain = ["--option", "extractor.x.user-id=7"];
   expect((await hideSecretOptions(plain)).args).toEqual(plain);
+});
+
+it("only lets extensions pass sign-in values to the engine", () => {
+  const ok = [
+    "--option",
+    "extractor.example.api-key=K",
+    "-o",
+    "extractor.example.user-id=7",
+    "--username",
+    "me",
+    "--password",
+    "secret",
+  ];
+  expect(checkGalleryArguments(ok)).toEqual(ok);
+  for (const bad of [
+    ["--exec", "calc.exe"],
+    ["--exec-after", "calc.exe"],
+    ["--config", "C:/evil.json"],
+    ["--option", "postprocessors=[{\"name\":\"exec\"}]"],
+    ["--option", "extractor.example.postprocessors=x"],
+    ["-P", "exec"],
+    ["--option"],
+    "not an array",
+  ])
+    expect(() => checkGalleryArguments(bad)).toThrow("sign-in values");
 });

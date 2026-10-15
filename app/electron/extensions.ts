@@ -400,14 +400,38 @@ export class Extensions {
       [await credentials(domain, item.info.account.fields)],
       { timeoutMs: 5000 },
     );
-    if (
-      !Array.isArray(args) ||
-      args.length > 40 ||
-      args.some((arg) => typeof arg !== "string" || arg.includes("\0"))
-    )
-      throw new Error("Invalid extension engine options.");
-    return args;
+    return checkGalleryArguments(args);
   }
+}
+
+/** gallery-dl option keys an extension may set: sign-in values for one extractor, nothing else. */
+const credentialOption =
+  /^extractor\.[a-z0-9_-]+\.(?:username|password|api-key|api-secret|api-token|access-token|refresh-token|token|client-id|client-secret|user-id)=/i;
+/**
+ * Extensions run sandboxed, but their engine options reach gallery-dl outside the sandbox.
+ * Options such as --exec, post-processors or --config could start programs, so only
+ * sign-in values are accepted: `--option extractor.<site>.<field>=<value>`, `--username`, `--password`.
+ */
+export function checkGalleryArguments(args: unknown): string[] {
+  const invalid = (): never => {
+    throw new Error(
+      "Invalid extension engine options. Extensions may only pass sign-in values to the engine.",
+    );
+  };
+  if (!Array.isArray(args) || args.length > 40) invalid();
+  const list = args as unknown[];
+  if (list.some((arg) => typeof arg !== "string" || arg.includes("\0")))
+    invalid();
+  for (let i = 0; i < list.length; i += 2) {
+    const flag = list[i] as string,
+      value = list[i + 1] as string | undefined;
+    if (value === undefined) invalid();
+    else if (flag === "--option" || flag === "-o") {
+      if (!credentialOption.test(value)) invalid();
+    } else if (!["--username", "-u", "--password", "-p"].includes(flag))
+      invalid();
+  }
+  return list as string[];
 }
 
 /**

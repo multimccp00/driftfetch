@@ -14,7 +14,7 @@ import {
 } from "electron";
 import path from "node:path";
 import fs from "node:fs/promises";
-import { existsSync, renameSync, watch, type FSWatcher } from "node:fs";
+import { existsSync, renameSync, rmSync, watch, type FSWatcher } from "node:fs";
 import { pathToFileURL } from "node:url";
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
@@ -59,12 +59,27 @@ else {
   const appData = app.getPath("appData");
   const legacy = path.join(appData, "Current");
   const renamed = path.join(appData, "DriftFetch");
-  if (!existsSync(renamed) && existsSync(path.join(legacy, "current.sqlite")))
+  const legacyData = existsSync(path.join(legacy, "current.sqlite"));
+  if (!existsSync(renamed) && legacyData)
     try {
       renameSync(legacy, renamed);
     } catch {
       app.setPath("userData", legacy);
     }
+  else if (legacyData)
+    // Both folders exist, so the old one is a stale copy this app never reads.
+    // Drop its sign-ins (cookie stores and temporary cookie files); history stays.
+    for (const part of [
+      "Partitions",
+      "temporary-sessions",
+      path.join("Network", "Cookies"),
+      path.join("Network", "Cookies-journal"),
+    ])
+      try {
+        rmSync(path.join(legacy, part), { recursive: true, force: true });
+      } catch {
+        // Locked by a still-running old build; try again next start.
+      }
 }
 let window: BrowserWindow | undefined,
   tray: Tray | undefined,
@@ -226,6 +241,9 @@ async function configureFolderWatch(folder: string) {
     });
     watcher.on("close", () => timers.forEach(clearTimeout));
     folderWatcher = watcher;
+    // Files dropped while DriftFetch was closed, or before the folder came back, raise no event.
+    for (const name of await fs.readdir(folder).catch(() => [] as string[]))
+      if (/\.txt$/i.test(name) && !name.startsWith(".")) schedule(name);
   } catch {
     // Folder unavailable (unplugged drive, offline share): retried every minute.
   }
