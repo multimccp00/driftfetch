@@ -8,6 +8,8 @@ const runDir = path.resolve("test-results", `youtube-package-${Date.now()}`);
 const env = {
   ...process.env,
   CURRENT_USER_DATA: path.join(runDir, "userdata"),
+  // Runs against the bundled engines, not whatever is newest today.
+  CURRENT_NO_ENGINE_UPDATE: "1",
   PATH: `${process.env.SystemRoot}\\System32;${process.env.SystemRoot}`,
 };
 delete env.ELECTRON_RUN_AS_NODE;

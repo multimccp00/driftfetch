@@ -736,12 +736,13 @@ export class Engine {
     this.info.message = "Downloading and verifying the engines…";
     this.changed();
     const failures: string[] = [];
+    let updated = false;
     for (const [name, step] of [
       ["yt-dlp", () => this.updateYtDlp()],
       ["gallery-dl", () => this.updateGalleryDl()],
     ] as const)
       try {
-        await step();
+        if (await step()) updated = true;
       } catch (err) {
         failures.push(
           `${name}: ${err instanceof Error ? err.message : "Update failed. The installed engine was kept."}`,
@@ -749,7 +750,9 @@ export class Engine {
       }
     this.info.message = failures.length
       ? failures.join(" ")
-      : "Engines updated and verified.";
+      : updated
+        ? "Engines updated and verified."
+        : "Engines are up to date.";
     this.info.busy = false;
     await this.refresh();
     if (failures.length) throw new Error(this.info.message);
@@ -768,6 +771,14 @@ export class Engine {
       const data = (await release.json()) as any;
       if (!Array.isArray(data?.assets))
         throw new Error("Could not check for engine updates.");
+      // Already current: nothing to download, and Restore previous keeps the older copy.
+      const latest = String(data.tag_name ?? "");
+      if (
+        latest &&
+        this.info.available &&
+        !needsBundledEngine(this.info.version, latest)
+      )
+        return false;
       const asset = data.assets.find((a: any) => a.name === "yt-dlp.exe");
       const sums = data.assets.find((a: any) => a.name === "SHA2-256SUMS");
       const signature = data.assets.find(
@@ -833,13 +844,14 @@ export class Engine {
       if (existsSync(this.executable))
         await fs.copyFile(this.executable, this.executable + ".previous");
       await fs.rename(staged, this.executable);
+      return true;
     } finally {
       await fs.rm(staged, { force: true });
     }
   }
   private async updateGalleryDl() {
     // Only refresh a gallery-dl that is installed; a build without one stays without.
-    if (!existsSync(this.galleryExecutable)) return;
+    if (!existsSync(this.galleryExecutable)) return false;
     const target = path.join(this.directory, "gallery-dl.exe");
     const staged = path.join(this.directory, `gallery-dl-${randomUUID()}.exe`);
     try {
@@ -861,7 +873,7 @@ export class Engine {
         this.info.galleryVersion &&
         !needsBundledEngine(this.info.galleryVersion, latest)
       )
-        return;
+        return false;
       const find = (name: string) =>
         data.assets.find((a: any) => a.name === name);
       const asset = find("gallery-dl.exe"),
@@ -926,6 +938,7 @@ export class Engine {
       // Keep what ran before (the bundled copy on a first update) for Restore previous.
       await fs.copyFile(this.galleryExecutable, target + ".previous");
       await fs.rename(staged, target);
+      return true;
     } finally {
       await fs.rm(staged, { force: true });
     }

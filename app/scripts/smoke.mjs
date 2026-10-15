@@ -168,6 +168,8 @@ const base = `http://127.0.0.1:${server.address().port}`;
 const env = {
   ...process.env,
   CURRENT_USER_DATA: path.join(runDir, "userdata"),
+  // Runs against the bundled engines, not whatever is newest today.
+  CURRENT_NO_ENGINE_UPDATE: "1",
   // Clipboard capture ignores private hosts; the fixtures live on 127.0.0.1.
   CURRENT_ALLOW_LOCAL_CLIPBOARD: "1",
 };

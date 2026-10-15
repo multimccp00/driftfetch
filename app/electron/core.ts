@@ -29,6 +29,7 @@ export const defaultSettings = (downloads: string): Settings => ({
   grouping: "source",
   filenameTemplate: "{title} [{id}]",
   launchAtLogin: false,
+  autoUpdateEngines: true,
   theme: "dark",
   privacyNoticeVersion: 0,
 });
@@ -184,6 +185,7 @@ export function validateSettings(
       "autoDownloadCollections",
       "previewCollections",
       "launchAtLogin",
+      "autoUpdateEngines",
       "automaticRetries",
       "scheduleEnabled",
     ].some((k) => typeof s[k as keyof Settings] !== "boolean")

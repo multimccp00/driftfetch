@@ -35,7 +35,7 @@ export const privacyNote = {
       heading: "Who DriftFetch contacts",
       paragraphs: [
         "The website of every link you add, and the servers that website uses to deliver its media. Those sites see your internet address and the details a download program sends, in the same way as for a browser, plus the cookies of any sign-in you saved for that site.",
-        "GitHub and Codeberg, only when you press Check for updates in Settings, to download new versions of yt-dlp and gallery-dl. DriftFetch checks the maintainers' signature before it installs them.",
+        "GitHub and Codeberg, each time DriftFetch starts and when you press Check for updates in Settings, to look for and download new versions of yt-dlp and gallery-dl. DriftFetch checks the maintainers' signature before it installs them. Turn off Update engines automatically in Settings to check only when you press the button.",
         "The sources of thumbnails, when it shows one in your list or in a collection preview, and the extension providers you enable, for their own websites.",
         "Nothing else. DriftFetch has no servers of its own.",
       ],

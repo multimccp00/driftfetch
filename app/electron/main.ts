@@ -317,6 +317,16 @@ async function init() {
       ],
       tone: "warn",
     });
+  // Engine fixes arrive without a button press. Nothing has started yet: the
+  // queue's first pump is a tick away and waits while the engine is busy.
+  if (
+    queue.settings.autoUpdateEngines &&
+    process.env.CURRENT_NO_ENGINE_UPDATE !== "1"
+  )
+    void engine
+      .update()
+      .catch(() => {}) // The reason stays in the engine panel's message.
+      .finally(() => queue?.pump());
   completionTracker.update(queue.jobs);
   // Later checks happen when History opens; a sleeping disk stays asleep.
   void queue.checkFiles();

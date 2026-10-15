@@ -147,6 +147,20 @@ describe("engine updates", () => {
     await expect(e.update()).rejects.toThrow("offline");
     expect(fs.readFileSync(e.executable, "utf8")).toBe("existing version");
   });
+  it("downloads nothing when the installed yt-dlp is already the latest", async () => {
+    // Startup checks run every launch: they must not re-download or overwrite the rollback copy.
+    const e = engine();
+    e.info.available = true;
+    e.info.version = "2026.08.19";
+    const fetchMock = vi.fn(async () =>
+      Response.json({ tag_name: "2026.08.19", assets: [] }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    await e.update();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(e.info.message).toBe("Engines are up to date.");
+    expect(fs.existsSync(e.executable + ".previous")).toBe(false);
+  });
   it.runIf(
     process.platform === "win32" &&
       fs.existsSync("resources/engines/yt-dlp.exe"),

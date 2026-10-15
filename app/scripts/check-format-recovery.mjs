@@ -27,6 +27,8 @@ await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
 const env = {
   ...process.env,
   CURRENT_USER_DATA: path.join(dir, "userdata"),
+  // Runs against the bundled engines, not whatever is newest today.
+  CURRENT_NO_ENGINE_UPDATE: "1",
   PATH: `${process.env.SystemRoot}\\System32;${process.env.SystemRoot}`,
 };
 delete env.ELECTRON_RUN_AS_NODE;

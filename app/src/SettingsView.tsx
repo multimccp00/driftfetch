@@ -1071,6 +1071,18 @@ export function SettingsView({
       ),
     },
     {
+      id: "engine-auto",
+      section: "advanced",
+      group: "Download engine",
+      label: "Update engines automatically",
+      desc: "When DriftFetch starts, it checks GitHub and Codeberg and installs new versions of yt-dlp and gallery-dl after checking the maintainers’ signature. Downloads start once the check is done.",
+      control: toggle(
+        "Update engines automatically",
+        s.autoUpdateEngines,
+        "autoUpdateEngines",
+      ),
+    },
+    {
       id: "extensions-add",
       section: "advanced",
       group: "Extensions",

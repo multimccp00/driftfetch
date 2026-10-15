@@ -178,6 +178,8 @@ export interface Settings {
   grouping: "source" | "date" | "none";
   filenameTemplate: string;
   launchAtLogin: boolean;
+  /** Check for and install verified yt-dlp and gallery-dl updates when the app starts. */
+  autoUpdateEngines: boolean;
   /** "system" follows Windows. */
   theme: "dark" | "light" | "system";
   /** Version of the privacy note the user has seen; 0 = not yet shown. */
