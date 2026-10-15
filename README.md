@@ -28,7 +28,7 @@ DriftFetch is a wrapper that adds a queue, a clipboard watcher and a clear inter
 4. The tools download the media, **FFmpeg** (a small remux-only build) joins audio and video, and DriftFetch verifies the file and records it in History.
 5. The React interface shows live progress through a narrow, typed preload bridge. Cookies, passwords and signed URLs never reach the renderer or the logs.
 
-Everything stays on your machine. The app talks only to the sites you download from, and to GitHub when it checks for engine updates.
+Everything stays on your machine. The app talks only to the sites you download from, and to GitHub and Codeberg to check for engine updates (at every start, unless you turn that off in Settings).
 
 Support comes from the yt-dlp and gallery-dl extractors, so it is not a universal downloader and sites do change. [`app/docs/SUPPORT-MATRIX.md`](app/docs/SUPPORT-MATRIX.md) lists what has actually been checked.
 

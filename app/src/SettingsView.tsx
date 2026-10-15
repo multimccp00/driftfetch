@@ -942,7 +942,7 @@ export function SettingsView({
       section: "sites",
       group: "Compatibility",
       label: "Checked sites",
-      desc: "YouTube, Internet Archive, Dailymotion, Wikimedia Commons, PeerTube and more were checked in September 2026. Some sites need a sign-in. These are real checks, not a promise that every link will work (details in docs/SUPPORT-MATRIX.md).",
+      desc: "YouTube, Internet Archive, Dailymotion, Wikimedia Commons, PeerTube and more were checked in October 2026. Some sites need a sign-in. These are real checks, not a promise that every link will work (details in docs/SUPPORT-MATRIX.md).",
       words: "compatibility supported",
       control: btn(results ? "Hide results" : "View results", () =>
         setResults(!results),
