@@ -11,19 +11,19 @@ Status on 2026-10-15: the app's 254 tests pass, the type-check is clean and `npm
 - [x] **Icon files.** `resources/icon.ico` is rebuilt from the transparent `public/icon.png`, and `scripts/make-icon.ps1` no longer overwrites that PNG. The sign-in window has the icon too.
 - [x] **Extension picker** opens in `app/local-extensions/`, where built extension files sit side by side.
 - [x] **Contact address** is set in `SOURCE-OFFER.md` and the privacy note, and `npm run release:check` passes.
-- [x] **Packaged build tested (2026-10-09).** `npm run package` built `DriftFetch-Setup-0.2.1-x64.exe`; silent install, bundled engines, smoke suite 18/18, extension sandbox, taskbar icon and uninstaller all checked. This build is now out of date (see "Repackage and retest").
+- [x] **Packaged build tested (2026-10-15).** `npm run package` and `npm run package:portable` built `DriftFetch-Setup-0.2.1-x64.exe` and `DriftFetch-Portable-0.2.1-x64.exe` (Electron 44.7.2, gallery-dl v1.32.16). Silent install creates every file; all bundled engines pass their checksum, run from the installed copy, and download and merge test media; the installed app loads from `app.asar`, runs the startup engine check ("Engines are up to date.") and shows the new setting; the silent uninstall removes the files and the Start Menu shortcut. The portable build keeps all its data in "DriftFetch data" next to the `.exe`, leaves `%APPDATA%DriftFetch` untouched, and removes its temporary copy when it quits.
 - [x] **Engine upkeep.** The in-app updater refreshes gallery-dl as well as yt-dlp, verified against each maintainer's signature. On by default it also runs at every start (Settings > Update engines automatically) and downloads only when a newer release exists; downloads wait until the check is done. The privacy note, installer page and website say so.
 - [x] **Engine and Electron bump (2026-10-15).** gallery-dl v1.32.16 (its `SHA256SUMS` signature checked against the pinned key) and Electron 44.7.2. `engines.lock.json`, `SOURCE-OFFER.md` and `THIRD-PARTY-NOTICES.md` updated.
 - [x] **Portable privacy text.** The privacy note (version 4, shown again once) and Settings > Privacy name the portable "DriftFetch data" folder next to the `.exe` as well as `%APPDATA%\DriftFetch`.
 
 ### Still open
-- [ ] **Repackage and retest.** The 2026-10-09 installer predates the 2026-10-15 work: portable data beside the `.exe`, the gallery-dl updater, encrypted sign-in cookies, the extension engine-option fix, the capture-popup notifications, and the gallery-dl and Electron bumps. Run `npm run package` and `npm run package:portable`, then repeat the installed-build checks, including a portable run that keeps its data next to the `.exe`.
-- [ ] **Installer, by hand.** Not looked at by eye: the license/privacy page the installer shows and the wizard pages, because the test installs silently. Click through the real installer once.
+- [ ] **Installer, by hand.** Not looked at by eye: the privacy page the installer shows and the wizard pages, because the tests install silently. Click through the real installer once. While there: `build/installer.nsh` `customInit` creates the default folder (`%LOCALAPPDATA%ProgramsDriftFetch`) as soon as the wizard opens, so cancelling, or choosing another folder, leaves an empty folder behind.
 - [ ] **Support matrix.** `app/docs/SUPPORT-MATRIX.md` still says "Current" and cites "packaged smoke 0.5.9". Refresh it from the latest `npm run test:sources` run (2026-10-15: Vimeo needs a signed-in session, TED and Rumble need attention).
 - [ ] **Build-time gallery-dl signature.** `scripts/prepare-engines.mjs` checks gallery-dl against `SHA256SUMS` only. The app already verifies `SHA256SUMS.sig`; the build script could do the same, as it does for yt-dlp.
 - [ ] **Old name "Current".** The `.current-extension` and `.currentbackup` file types, `CURRENT_*` settings and internal error codes keep the old name. Nothing visible leaks into the UI. Decide whether to rename, and keep reading the old names so existing extensions and backups still load.
 - [ ] **Local extensions.** Two extensions are built as `.current-extension` files in `app/local-extensions/` but not added in the app yet (Settings > Extensions > Add extension file). These files stay local and are never committed.
 - [ ] **Smoke suite flake.** Earlier notes say about one run in three a screenshot step times out at a different check, and a rerun passes. Still suspected environmental and unproven.
+- [ ] **Smoke suite against a packaged build.** `CURRENT_PACKAGED_EXE` no longer works: the `enableNodeCliInspectArguments: false` fuse (2026-10-15) blocks the `--inspect` flag Playwright's Electron launcher needs, so `electron.launch` times out. Packaged builds can still be driven through `--remote-debugging-port` and `chromium.connectOverCDP` (used for the 2026-10-15 check); move the smoke suite to that, or keep it for source runs only.
 - [ ] **Dev dependency audit.** `npm audit` flags `http-cache-semantics`, `source-map-js` and `sprintf-js` in dev dependencies. Nothing in the shipped app (`npm audit --omit=dev` is clean).
 - [ ] **Disk space.** `app/release/` (6 GB) and `app/test-results/` (17 GB) are git-ignored. Keep the last two releases and clear the rest.
 
@@ -56,7 +56,7 @@ Status on 2026-10-15: the app's 254 tests pass, the type-check is clean and `npm
 - [ ] **Legal and tax review.** Have an accountant or the tax office check the legal page and how donations are treated.
 
 ## Suggested order
-1. App: repackage, retest the installed and portable builds, click through the installer.
+1. App: click through the installer by hand; decide how the smoke suite drives packaged builds.
 2. App: portable privacy text and the support matrix.
 3. Website: download-button state and the site-page check.
 4. Release prep: git history decision, signing, source zip, legal review.
