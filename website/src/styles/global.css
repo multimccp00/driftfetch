@@ -50,3 +50,5 @@ summary::-webkit-details-marker { display: none; }
 .legal-dl { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px 0; }
 .legal-dl dd { padding-bottom: 12px; }
 @media (min-width: 560px) { .legal-dl { grid-template-columns: max-content 1fr; gap: 6px 24px; } .legal-dl dd { padding-bottom: 0; } }
+/* WCAG 1.4.1: links inside running text are underlined, not told apart by colour alone. Button-style links set display and stay as they are. */
+main p a:not([style*="display"]), main li a:not([style*="display"]), main dd a { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }

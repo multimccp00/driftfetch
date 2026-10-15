@@ -79,14 +79,14 @@ const manifest = `{
     <div style="position:relative;z-index:2;max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:40px 72px;align-items:start">
       <div>
         <h2 style={h2}>Build your own</h2>
-        <p style="margin:20px 0 0;color:#e8efff;max-width:28em;text-wrap:pretty">An extension is a folder with a <code style="font-family:'JetBrains Mono',monospace;font-size:0.9em">manifest.json</code> and a <code style="font-family:'JetBrains Mono',monospace;font-size:0.9em">provider.ts</code>. The provider says which links it recognises and returns the list of items to download. DriftFetch does the downloading, checking and saving.</p>
+        <p style="margin:20px 0 0;color:#fff;max-width:28em;text-wrap:pretty">An extension is a folder with a <code style="font-family:'JetBrains Mono',monospace;font-size:0.9em">manifest.json</code> and a <code style="font-family:'JetBrains Mono',monospace;font-size:0.9em">provider.ts</code>. The provider says which links it recognises and returns the list of items to download. DriftFetch does the downloading, checking and saving.</p>
         <a href={links.source + "/blob/main/app/docs/EXTENSIONS.md"} rel="noopener" style="display:inline-flex;align-items:center;height:48px;margin-top:28px;padding:0 20px;border-radius:10px;background:#fff;color:#010930;font-weight:700">Read the full guide</a>
       </div>
       <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
-        <span style="font-size:14px;font-weight:600;color:#e8efff">Bundle it into one file</span>
-        <code style={code}>node scripts/build-extension.mjs {"<provider-directory>"}</code>
-        <span style="font-size:14px;font-weight:600;color:#e8efff;margin-top:8px">A minimal manifest</span>
-        <code style={code}>{manifest}</code>
+        <span style="font-size:14px;font-weight:600;color:#fff">Bundle it into one file</span>
+        <code style={code} tabindex="0">node scripts/build-extension.mjs {"<provider-directory>"}</code>
+        <span style="font-size:14px;font-weight:600;color:#fff;margin-top:8px">A minimal manifest</span>
+        <code style={code} tabindex="0">{manifest}</code>
       </div>
     </div>
   </section>

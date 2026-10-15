@@ -26,7 +26,9 @@ const nav = [["Sites", "/sites"], ["Extensions", "/extensions"], ["FAQ", "/faq"]
   .hd-nav { display: none; }
   .nav-dl { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border-radius: 8px; background: #0b67fe; color: #fff; font-weight: 600; font-size: 15px; }
   .nav-dl:hover { background: #2a7bff; color: #fff; }
-  .hd-burger { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 8px; background: transparent; color: #fff; cursor: pointer; transition: background .25s; }
+  /* Very narrow phones (320px): drop the arrow icon so logo, Download and menu fit on one line. */
+  @media (max-width: 359px) { .nav-dl :global(svg) { display: none; } .nav-dl { padding: 0 12px; } .hd { gap: 6px; } }
+  .hd-burger { margin-right: -8px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 8px; background: transparent; color: #fff; cursor: pointer; transition: background .25s; }
   .hd-burger svg path { transform-box: fill-box; transform-origin: center; transition: transform .3s cubic-bezier(.2,.8,.2,1), opacity .2s; }
   .hd-open .hd-burger { background: rgba(255,255,255,0.08); }
   .hd-open .m-top { transform: translateY(5px) rotate(45deg); }
