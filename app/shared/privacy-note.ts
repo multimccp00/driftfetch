@@ -11,7 +11,7 @@ export interface PrivacySection {
   paragraphs: string[];
 }
 export const privacyNote = {
-  version: 3,
+  version: 4,
   title: "Privacy note",
   summary:
     "DriftFetch runs on your computer. It has no account, no ads and no usage tracking, and it does not send your links, history or settings to its developers or to anyone else. It contacts the websites you ask it to download from, and nothing more unless you use a feature described below.",
@@ -19,7 +19,7 @@ export const privacyNote = {
     {
       heading: "What DriftFetch keeps on your computer",
       paragraphs: [
-        "Everything DriftFetch knows is stored in your Windows user profile, in the folder %APPDATA%\\DriftFetch: your download history (links, titles and where files were saved), your settings, a short log of recently captured links, and, only if you add them, saved site sign-ins and extension credentials.",
+        "Everything DriftFetch knows is stored on this computer, in the folder %APPDATA%\\DriftFetch, or, for the portable version, in the \"DriftFetch data\" folder next to the portable .exe: your download history (links, titles and where files were saved), your settings, a short log of recently captured links, and, only if you add them, saved site sign-ins and extension credentials.",
         "Saved sign-ins and credentials are encrypted with Windows' protection for your user account. A backup is created only when you export one, and it is protected by the password you choose.",
         "DriftFetch sends no crash reports, error reports or statistics to anyone.",
       ],
@@ -63,7 +63,7 @@ export const privacyNote = {
       heading: "Controlling your data",
       paragraphs: [
         "Remove entries from History or the download list, clear the capture log, and remove saved accounts in Settings. Downloaded files are never deleted by these actions.",
-        "Uninstalling DriftFetch keeps your data. To remove everything, delete the folder %APPDATA%\\DriftFetch after uninstalling.",
+        "Uninstalling DriftFetch keeps your data. To remove everything, delete the folder %APPDATA%\\DriftFetch after uninstalling. For the portable version, delete the portable .exe and the \"DriftFetch data\" folder next to it.",
       ],
     },
     {

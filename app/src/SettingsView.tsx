@@ -1142,7 +1142,7 @@ export function SettingsView({
       section: "advanced",
       group: "Backup & privacy",
       label: "Privacy",
-      desc: "No account, no ads, no tracking. Everything stays in %APPDATA%\\DriftFetch on this PC.",
+      desc: "No account, no ads, no tracking. Everything stays on this PC, in %APPDATA%\\DriftFetch, or next to the .exe for the portable version.",
       icon: <ShieldCheck size={17} />,
       control: btn("Read privacy note", () => setPrivacyOpen(true)),
     },
