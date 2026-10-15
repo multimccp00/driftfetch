@@ -17,6 +17,7 @@ const dl = (file: string, v = site.version) => gh(`/releases/download/v${v}/${fi
 export const versionLinks = (v: string) => ({
   installer: dl(`DriftFetch-Setup-${v}-x64.exe`, v),
   portable: dl(`DriftFetch-Portable-${v}-x64.exe`, v),
+  source: dl(`corresponding-source-${v}.zip`, v),
 });
 
 export const links = {
@@ -24,6 +25,8 @@ export const links = {
   issues: gh("/issues"),
   installer: dl(`DriftFetch-Setup-${site.version}-x64.exe`),
   portable: dl(`DriftFetch-Portable-${site.version}-x64.exe`),
+  // Source of the bundled GPL/LGPL programs (npm run sources), attached to every release.
+  sourceZip: dl(`corresponding-source-${site.version}.zip`),
   donate: site.bmc || "#",
 };
 
