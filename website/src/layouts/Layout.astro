@@ -8,7 +8,16 @@ import { u, site } from "../data/site";
 interface Props { title: string; description: string; path: string; current?: string | null; jsonld?: unknown[]; footer?: boolean }
 const { title, description, path, current = null, jsonld = [], footer = true } = Astro.props;
 const canonical = site.url + (import.meta.env.BASE_URL.replace(/\/$/, "")) + (path === "/" ? "/" : path);
-const ld = jsonld.map((o) => JSON.stringify(o).replaceAll("__VERSION__", site.version).replaceAll("https://driftfetch.app", site.url + import.meta.env.BASE_URL.replace(/\/$/, "")));
+const base = site.url + import.meta.env.BASE_URL.replace(/\/$/, "");
+const ogImage = site.url + u("/og.png");
+const ogAlt = "DriftFetch: copy a link and the video or gallery lands on your PC";
+const extra: unknown[] = path === "/"
+  ? [{ "@context": "https://schema.org", "@type": "WebSite", name: site.name, url: base + "/" }]
+  : [{ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [
+      { "@type": "ListItem", position: 1, name: site.name, item: base + "/" },
+      { "@type": "ListItem", position: 2, name: title.split(" – ")[0], item: canonical },
+    ] }];
+const ld = [...jsonld, ...extra].map((o) => JSON.stringify(o).replaceAll("__VERSION__", site.version).replaceAll("https://driftfetch.app", site.url + import.meta.env.BASE_URL.replace(/\/$/, "")));
 ---
 <!doctype html>
 <html lang="en">
@@ -27,8 +36,17 @@ const ld = jsonld.map((o) => JSON.stringify(o).replaceAll("__VERSION__", site.ve
   <meta property="og:title" content={title}>
   <meta property="og:description" content={description}>
   <meta property="og:url" content={canonical}>
-  <meta property="og:image" content={site.url + u("/og.png")}>
+  <meta property="og:site_name" content={site.name}>
+  <meta property="og:locale" content="en_US">
+  <meta property="og:image" content={ogImage}>
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content={ogAlt}>
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content={title}>
+  <meta name="twitter:description" content={description}>
+  <meta name="twitter:image" content={ogImage}>
+  <meta name="twitter:image:alt" content={ogAlt}>
   {ld.map((j) => <script type="application/ld+json" set:html={j} />)}
 </head>
 <body>
