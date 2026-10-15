@@ -4,7 +4,7 @@ import { Icon } from "./icon";
 const { current } = Astro.props;
 const nav = [["Sites", "/sites"], ["Extensions", "/extensions"], ["FAQ", "/faq"], ["About", "/about"], ["Donate", "/donate"]];
 ---
-<header style="position:relative;z-index:30;padding:0 clamp(20px,4vw,48px);background:#010930">
+<header style="position:relative;z-index:30;padding:0 clamp(20px,4vw,48px);background:#010930;border-bottom:1px solid rgba(255,255,255,0.1)">
   <div class="hd" style="max-width:1180px;margin:0 auto">
     <a href={u("/")} class="hd-logo" aria-label="DriftFetch home" style="display:flex;align-items:center;gap:10px;color:#fff"><img src={u("/driftfetch-icon.png")} alt="" width="28" height="28" style="width:28px;height:28px;border-radius:7px;display:block"><span style="font-size:18px;font-weight:700;letter-spacing:-0.02em">DriftFetch</span></a>
     <nav aria-label="Main" class="hd-nav" style="font-size:15px;font-weight:500">
@@ -21,7 +21,7 @@ const nav = [["Sites", "/sites"], ["Extensions", "/extensions"], ["FAQ", "/faq"]
   </div>
 </header>
 <style>
-  .hd { display: flex; align-items: center; gap: 10px; min-height: 64px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .hd { display: flex; align-items: center; gap: 10px; min-height: 64px; }
   .hd-logo { margin-right: auto; }
   .hd-nav { display: none; }
   .nav-dl { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border-radius: 8px; background: #0b67fe; color: #fff; font-weight: 600; font-size: 15px; }
@@ -36,7 +36,7 @@ const nav = [["Sites", "/sites"], ["Extensions", "/extensions"], ["FAQ", "/faq"]
   .hd-open .hd-scrim { opacity: 1; visibility: visible; transition: opacity .3s ease; }
   .hd-panel { position: absolute; left: 0; right: 0; top: 100%; z-index: 1; display: grid; grid-template-rows: 0fr; background: #010930; border-radius: 0 0 20px 20px; visibility: hidden; opacity: 0; box-shadow: 0 24px 40px rgba(1,9,48,0.5); transition: grid-template-rows .35s cubic-bezier(.2,.8,.2,1), opacity .25s ease, visibility 0s .35s; }
   .hd-open .hd-panel { grid-template-rows: 1fr; visibility: visible; opacity: 1; transition: grid-template-rows .35s cubic-bezier(.2,.8,.2,1), opacity .25s ease; }
-  .hd-panel-in { overflow: hidden; padding: 0 clamp(20px,4vw,48px); border-top: 1px solid rgba(255,255,255,0.1); }
+  .hd-panel-in { overflow: hidden; padding: 0 clamp(20px,4vw,48px); }
   .hd-panel a { position: relative; display: flex; align-items: center; justify-content: space-between; min-height: 56px; color: #b7c1e0; font-size: 20px; font-weight: 700; letter-spacing: -0.02em; border-bottom: 1px solid rgba(255,255,255,0.08); opacity: 0; transform: translateY(-8px); transition: opacity .2s, transform .2s; }
   .hd-open .hd-panel a { opacity: 1; transform: none; transition: opacity .35s ease, transform .35s cubic-bezier(.2,.8,.2,1); }
   .hd-open .hd-panel a:nth-child(1) { transition-delay: .06s; } .hd-open .hd-panel a:nth-child(2) { transition-delay: .1s; } .hd-open .hd-panel a:nth-child(3) { transition-delay: .14s; } .hd-open .hd-panel a:nth-child(4) { transition-delay: .18s; } .hd-open .hd-panel a:nth-child(5) { transition-delay: .22s; }
