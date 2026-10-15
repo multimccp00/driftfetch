@@ -23,7 +23,13 @@ import { CapturePopup } from "./popup";
 import { CompletionTracker } from "./completion-tracker";
 import { CollectionPreviews } from "./previews";
 import { diagnosticReport } from "../shared/diagnostics";
-import { chooseUpdate, createShortcut, isNewer } from "./app-updates";
+import {
+  chooseUpdate,
+  createShortcut,
+  isNewer,
+  packagedAppUserModelId,
+  verifyInstaller,
+} from "./app-updates";
 import { Store } from "./store";
 import { Engine } from "./engine";
 import { Queue } from "./queue";
@@ -100,7 +106,7 @@ const listed = (job: Job): Job =>
 // Source runs get their own ID. Windows ties the taskbar icon to it, so it must not match any old shortcut
 // (an earlier dev shortcut claiming "local.driftfetch.app.dev" made the taskbar show Electron's icon).
 const appUserModelId = app.isPackaged
-  ? "local.driftfetch.app"
+  ? packagedAppUserModelId
   : "local.driftfetch.app.source";
 const appIcon = () =>
   path.join(app.getAppPath(), app.isPackaged ? "dist" : "public", "icon.png");
@@ -998,6 +1004,8 @@ async function start() {
       quitReady = true;
       if (updateInstaller) {
         try {
+          // The file was checked when chosen; check it again so a swap in between cannot run.
+          await verifyInstaller(updateInstaller);
           await new Promise<void>((resolve, reject) => {
             const child = spawn(updateInstaller!, [], {
               shell: false,
@@ -1010,10 +1018,12 @@ async function start() {
               resolve();
             });
           });
-        } catch {
+        } catch (err) {
           dialog.showErrorBox(
             "Could not start the update",
-            "Your download state has been saved. Open the DriftFetch installer manually to complete the update.",
+            err instanceof Error && /checksum|sha256/i.test(err.message)
+              ? "The installer changed after it was checked, so DriftFetch did not run it. Your download state has been saved. Choose the update again, or get a fresh installer."
+              : "Your download state has been saved. Open the DriftFetch installer manually to complete the update.",
           );
         }
       }

@@ -12,6 +12,8 @@ export function isNewer(a: string, b: string) {
   }
   return false;
 }
+/** Windows groups taskbar icons and shortcuts by this id, so the installer, shortcut and running app must share it. */
+export const packagedAppUserModelId = "local.driftfetch.app";
 export function createShortcut() {
   if (!app.isPackaged)
     throw new Error("Shortcuts are available in the packaged app.");
@@ -23,7 +25,7 @@ export function createShortcut() {
         target: process.execPath,
         cwd: path.dirname(process.execPath),
         description: "DriftFetch download manager",
-        appUserModelId: "local.current.downloader",
+        appUserModelId: packagedAppUserModelId,
       },
     )
   )
@@ -44,6 +46,11 @@ export async function chooseUpdate(
   );
   if (!match || !isNewer(match[1], app.getVersion()))
     throw new Error("Choose a newer DriftFetch x64 installer.");
+  await verifyInstaller(file);
+  return file;
+}
+/** Checks the installer against the .sha256 file beside it. Run again right before launching it. */
+export async function verifyInstaller(file: string): Promise<void> {
   const expected = (await fs.readFile(file + ".sha256", "utf8").catch(() => ""))
     .trim()
     .split(/\s+/)[0];
@@ -57,5 +64,4 @@ export async function chooseUpdate(
     throw new Error(
       "The installer checksum does not match. Obtain a fresh update.",
     );
-  return file;
 }

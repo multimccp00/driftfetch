@@ -9,7 +9,12 @@ vi.mock("electron", () => ({
   dialog: { showOpenDialog: mocks.choose },
   shell: {},
 }));
-import { chooseUpdate, isNewer } from "../electron/app-updates";
+import {
+  chooseUpdate,
+  isNewer,
+  packagedAppUserModelId,
+  verifyInstaller,
+} from "../electron/app-updates";
 import { diagnosticReport } from "../shared/diagnostics";
 import type { Job } from "../src/shared";
 let dir: string;
@@ -34,6 +39,21 @@ it("verifies selected update bytes before allowing installation", async () => {
     createHash("sha256").update("synthetic installer bytes").digest("hex"),
   );
   await expect(chooseUpdate({} as any)).resolves.toBe(file);
+});
+it("rejects an installer that changed after it was chosen", async () => {
+  dir = await fs.mkdtemp(path.join(os.tmpdir(), "current-update-"));
+  const file = path.join(dir, "DriftFetch-Setup-0.3.0-x64.exe");
+  await fs.writeFile(file, "original");
+  await fs.writeFile(
+    file + ".sha256",
+    createHash("sha256").update("original").digest("hex"),
+  );
+  await expect(verifyInstaller(file)).resolves.toBeUndefined();
+  await fs.writeFile(file, "swapped");
+  await expect(verifyInstaller(file)).rejects.toThrow("checksum");
+});
+it("shortcut and app share one taskbar identity", () => {
+  expect(packagedAppUserModelId).toBe("local.driftfetch.app");
 });
 it("diagnostics omit identifying content while keeping failure categories", () => {
   const report = diagnosticReport(
