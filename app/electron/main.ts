@@ -49,8 +49,15 @@ import type { Job, Settings, Snapshot, VideoFormat } from "../src/shared";
 if (process.env.CURRENT_SOFTWARE_RENDERING === "1")
   app.disableHardwareAcceleration();
 app.setName("DriftFetch");
+// The portable build unpacks itself to a temporary folder on every start.
+// electron-builder passes the real file and folder: keep data beside the .exe
+// (nothing in %APPDATA%), and point autostart and shortcuts at the real file.
+const portableDir = process.env.PORTABLE_EXECUTABLE_DIR;
+const launcher = process.env.PORTABLE_EXECUTABLE_FILE || process.execPath;
 if (process.env.CURRENT_USER_DATA)
   app.setPath("userData", path.resolve(process.env.CURRENT_USER_DATA));
+else if (portableDir)
+  app.setPath("userData", path.join(portableDir, "DriftFetch data"));
 else {
   // Builds before the rename were called Current and kept everything in
   // %APPDATA%\Current. Move it once so sign-ins, history and settings carry
@@ -604,7 +611,7 @@ async function init() {
     );
   });
   handle("app-action", async (action) => {
-    if (action === "shortcut") return createShortcut();
+    if (action === "shortcut") return createShortcut(launcher);
     if (action !== "update") throw new Error("Unknown app action.");
     const installer = await chooseUpdate(window!);
     if (installer) {
@@ -653,7 +660,7 @@ async function init() {
     if (next.launchAtLogin !== queue!.settings.launchAtLogin)
       app.setLoginItemSettings({
         openAtLogin: next.launchAtLogin,
-        path: process.execPath,
+        path: launcher,
       });
     if (next.clipboardWatch !== queue!.settings.clipboardWatch)
       tracker.read(await clipboard.readText(), false);

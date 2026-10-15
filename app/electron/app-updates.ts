@@ -14,7 +14,7 @@ export function isNewer(a: string, b: string) {
 }
 /** Windows groups taskbar icons and shortcuts by this id, so the installer, shortcut and running app must share it. */
 export const packagedAppUserModelId = "local.driftfetch.app";
-export function createShortcut() {
+export function createShortcut(target = process.execPath) {
   if (!app.isPackaged)
     throw new Error("Shortcuts are available in the packaged app.");
   if (
@@ -22,8 +22,8 @@ export function createShortcut() {
       path.join(app.getPath("desktop"), "DriftFetch.lnk"),
       "create",
       {
-        target: process.execPath,
-        cwd: path.dirname(process.execPath),
+        target,
+        cwd: path.dirname(target),
         description: "DriftFetch download manager",
         appUserModelId: packagedAppUserModelId,
       },
