@@ -14,11 +14,11 @@ Status on 2026-10-15: the app's 254 tests pass, the type-check is clean and `npm
 - [x] **Packaged build tested (2026-10-09).** `npm run package` built `DriftFetch-Setup-0.2.1-x64.exe`; silent install, bundled engines, smoke suite 18/18, extension sandbox, taskbar icon and uninstaller all checked. This build is now out of date (see "Repackage and retest").
 - [x] **Engine upkeep.** The in-app updater refreshes gallery-dl as well as yt-dlp, verified against each maintainer's signature.
 - [x] **Engine and Electron bump (2026-10-15).** gallery-dl v1.32.16 (its `SHA256SUMS` signature checked against the pinned key) and Electron 44.7.2. `engines.lock.json`, `SOURCE-OFFER.md` and `THIRD-PARTY-NOTICES.md` updated.
+- [x] **Portable privacy text.** The privacy note (version 4, shown again once) and Settings > Privacy name the portable "DriftFetch data" folder next to the `.exe` as well as `%APPDATA%\DriftFetch`.
 
 ### Still open
 - [ ] **Repackage and retest.** The 2026-10-09 installer predates the 2026-10-15 work: portable data beside the `.exe`, the gallery-dl updater, encrypted sign-in cookies, the extension engine-option fix, the capture-popup notifications, and the gallery-dl and Electron bumps. Run `npm run package` and `npm run package:portable`, then repeat the installed-build checks, including a portable run that keeps its data next to the `.exe`.
 - [ ] **Installer, by hand.** Not looked at by eye: the license/privacy page the installer shows and the wizard pages, because the test installs silently. Click through the real installer once.
-- [ ] **Portable privacy text.** Settings > Privacy says everything stays in `%APPDATA%\DriftFetch`. A portable copy now keeps its data beside the `.exe`, so the text should name the real folder.
 - [ ] **Support matrix.** `app/docs/SUPPORT-MATRIX.md` still says "Current" and cites "packaged smoke 0.5.9". Refresh it from the latest `npm run test:sources` run (2026-10-15: Vimeo needs a signed-in session, TED and Rumble need attention).
 - [ ] **Build-time gallery-dl signature.** `scripts/prepare-engines.mjs` checks gallery-dl against `SHA256SUMS` only. The app already verifies `SHA256SUMS.sig`; the build script could do the same, as it does for yt-dlp.
 - [ ] **Old name "Current".** The `.current-extension` and `.currentbackup` file types, `CURRENT_*` settings and internal error codes keep the old name. Nothing visible leaks into the UI. Decide whether to rename, and keep reading the old names so existing extensions and backups still load.
