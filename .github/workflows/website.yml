@@ -3,7 +3,9 @@ on:
   push:
     branches: [main, master]
     paths: ["website/**", ".github/workflows/website.yml"]
-  # The download links check at build time whether the release exists.
+  # The download links check at build time whether the release exists. A release runs on its
+  # tag, which the github-pages environment refuses to deploy, so the redeploy job below
+  # starts this workflow again on main instead.
   release:
     types: [published]
   workflow_dispatch:
@@ -18,7 +20,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  redeploy:
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - run: gh workflow run website.yml --repo "$GITHUB_REPOSITORY" --ref ${{ github.event.repository.default_branch }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+
   build:
+    if: github.event_name != 'release'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -42,6 +55,7 @@ jobs:
 
   deploy:
     needs: build
+    if: github.event_name != 'release'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
