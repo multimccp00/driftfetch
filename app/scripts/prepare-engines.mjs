@@ -37,27 +37,34 @@ const lock =
 const tagOf = (file) => lock[file]?.source?.match(/\/download\/([^/]+)\//)?.[1];
 const releaseUrl = (base, file) =>
   tagOf(file) ? `${base}/tags/${tagOf(file)}` : `${base}/latest`;
-// The checksum list for yt-dlp must be signed by the key pinned in the app.
-const keySource = await fs.readFile("electron/yt-dlp-public-key.ts", "utf8");
-const pinnedKey = keySource.match(
-  /-----BEGIN PGP PUBLIC KEY BLOCK-----[\s\S]*?-----END PGP PUBLIC KEY BLOCK-----/,
-)?.[0];
-const pinnedFingerprint = keySource.match(
-  /ytDlpKeyFingerprint = "([0-9a-f]{40})"/,
-)?.[1];
-if (!pinnedKey || !pinnedFingerprint)
-  throw new Error("Could not read the pinned yt-dlp signing key.");
-async function verifyYtDlpSums(sums, signature) {
-  const key = await openpgp.readKey({ armoredKey: pinnedKey });
-  if (key.getFingerprint() !== pinnedFingerprint)
-    throw new Error("Pinned yt-dlp key does not match its fingerprint.");
+// The checksum lists for yt-dlp and gallery-dl must be signed by the keys pinned in the app.
+async function pinnedKey(file) {
+  const source = await fs.readFile(file, "utf8");
+  const armored = source.match(
+    /-----BEGIN PGP PUBLIC KEY BLOCK-----[\s\S]*?-----END PGP PUBLIC KEY BLOCK-----/,
+  )?.[0];
+  const fingerprint = source.match(/KeyFingerprint =\s*"([0-9a-f]{40})"/)?.[1];
+  if (!armored || !fingerprint)
+    throw new Error(`Could not read the pinned signing key in ${file}.`);
+  return { armored, fingerprint };
+}
+async function verifySums(name, keyFile, sums, signature) {
+  const pinned = await pinnedKey(keyFile);
+  const key = await openpgp.readKey({ armoredKey: pinned.armored });
+  if (key.getFingerprint() !== pinned.fingerprint)
+    throw new Error(`Pinned ${name} key does not match its fingerprint.`);
+  const text = Buffer.from(signature).toString("latin1");
   const result = await openpgp.verify({
     message: await openpgp.createMessage({ binary: sums }),
-    signature: await openpgp.readSignature({ binarySignature: signature }),
+    signature: text.startsWith("-----BEGIN PGP SIGNATURE-----")
+      ? await openpgp.readSignature({ armoredSignature: text })
+      : await openpgp.readSignature({ binarySignature: signature }),
     verificationKeys: key,
   });
+  if (!result.signatures[0])
+    throw new Error(`The ${name} checksum list has no signature.`);
   await result.signatures[0].verified;
-  console.log("yt-dlp checksum list: signature verified.");
+  console.log(`${name} checksum list: signature verified.`);
 }
 const manifestFile = path.join(root, "manifest.json");
 const manifest = existsSync(manifestFile)
@@ -92,7 +99,9 @@ if (!(await valid("yt-dlp.exe"))) {
   const sumsBytes = new Uint8Array(
     await (await get(sumsAsset.browser_download_url)).arrayBuffer(),
   );
-  await verifyYtDlpSums(
+  await verifySums(
+    "yt-dlp",
+    "electron/yt-dlp-public-key.ts",
     sumsBytes,
     new Uint8Array(
       await (await get(sigAsset.browser_download_url)).arrayBuffer(),
@@ -250,9 +259,21 @@ if (!(await valid("gallery-dl.exe"))) {
   ).json();
   const asset = release.assets.find((a) => a.name === "gallery-dl.exe");
   const sumsAsset = release.assets.find((a) => a.name === "SHA256SUMS");
-  if (!asset || !sumsAsset)
+  const sigAsset = release.assets.find((a) => a.name === "SHA256SUMS.sig");
+  if (!asset || !sumsAsset || !sigAsset)
     throw new Error("gallery-dl's release is missing verification files.");
-  const sums = await (await get(sumsAsset.browser_download_url)).text();
+  const sumsBytes = new Uint8Array(
+    await (await get(sumsAsset.browser_download_url)).arrayBuffer(),
+  );
+  await verifySums(
+    "gallery-dl",
+    "electron/gallery-dl-public-key.ts",
+    sumsBytes,
+    new Uint8Array(
+      await (await get(sigAsset.browser_download_url)).arrayBuffer(),
+    ),
+  );
+  const sums = Buffer.from(sumsBytes).toString("utf8");
   const hash = sums
     .split(/\r?\n/)
     .find((line) => /\s\*?gallery-dl\.exe$/.test(line))
