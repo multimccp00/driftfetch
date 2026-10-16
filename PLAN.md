@@ -1,6 +1,6 @@
 # Plan
 
-Status on 2026-10-16: the plan is a public pre-release, 0.9.0 (the site shows "pre-release" beside the version; set `stage` in `website/src/data/site.ts` to an empty string for a full release). The app's 256 tests pass, the type-check is clean and `npm run release:check` passes. The website builds and is live on GitHub Pages. Nothing is published yet: there is no tag and no GitHub release, so the download buttons on the live site open the releases page until the pre-release exists.
+Status on 2026-10-16: DriftFetch 0.9.0 is published as a GitHub pre-release (https://github.com/multimccp00/driftfetch/releases/tag/v0.9.0) and the site shows "pre-release" beside the version (set `stage` in `website/src/data/site.ts` to an empty string for a full release). The app's 256 tests pass, the type-check is clean and `npm run release:check` passes. The download buttons on the live site start the file downloads directly.
 
 ## App
 
@@ -46,7 +46,7 @@ Checked by reading the code. In place: sandbox, context isolation and no Node in
 - [ ] **Legal review.** See `app/docs/LEGAL-RESEARCH.md`. Open questions: codec patents for stream-header parsing, how the GPL applies to yt-dlp and gallery-dl as separate programs (in particular whether pointing to upstream for the Python parts inside yt-dlp's `.exe` is enough), and site terms and anti-circumvention law. None blocks a free release; keep DRM and paywall bypass out and attach the source zip to every release.
 - [x] **Product name search (2026-10-16).** No mark named DriftFetch, or combining "drift" and "fetch", at USPTO (live and dead), EUIPO, or WIPO's Global Brand Database (word search; its fuzzy and phonetic searches did not load). The web and GitHub show no other DriftFetch. Nearest marks in software classes 9/42: FETCH (Fetch Softworks, US, file-transfer software), FETCH (Amazon Technologies, EU), FETCH UP (TuneIn, EU), and DRIFT (Salesloft, US and EU, sales chat software). None names a download manager, and the combined name differs from each, so the risk looks low. This is a self-search, not a clearance opinion; national registers outside these databases were not checked one by one.
 - [ ] **Clean-install test.** Run `app/tmp/sandbox/clean-install.wsb` in Windows Sandbox (needs the feature enabled and a restart; keep hands off for about 10 minutes) and read `app/tmp/sandbox/out/results.json`. It installs through the wizard, runs the engines on a clean Windows, downloads through the app, uninstalls and tries the portable build. Not run yet. SmartScreen is not covered, because files shared into the sandbox carry no download mark.
-- [ ] **Publish the pre-release.** After the test passes: push, then `gh release create v0.9.0 --prerelease` with the installer, the portable build, the source zip, their `.sha256` files and `release/0.9.0/RELEASE-NOTES.md`; check the website download buttons switch to direct downloads and that the README's Status section reads right. Full 1.0.0 later: bump both versions, empty `stage`, rebuild.
+- [x] **Pre-release published (2026-10-16).** Tag `v0.9.0`, marked pre-release, with the installer, the portable build, the source zip, their `.sha256` files and the notes. The public links serve the files as attachments and the sizes and the zip's hash match. The first site run on the release failed because the `github-pages` environment only deploys from `main` and a release runs on its tag; `website.yml` now starts a run on `main` when a release is published (the live site was rebuilt that way). Full 1.0.0 later: bump both versions, empty `stage`, rebuild, and publish without `--prerelease`.
 
 ## Website
 
@@ -70,6 +70,6 @@ Checked by reading the code. In place: sandbox, context isolation and no Node in
 - [x] **Tax on donations.** The owner handles this outside the project (2026-10-16).
 
 ## Suggested order
-1. Run the clean-install test in Windows Sandbox and fix anything it finds.
-2. Publish v0.9.0 as a pre-release (with the source zip), then confirm the download buttons.
+1. Run the clean-install test in Windows Sandbox (its config now points at the published 0.9.0 files) and fix anything it finds; a fix means a new pre-release (0.9.1).
+2. Watch for bug reports on the pre-release.
 3. After real use, call it 1.0.0. Legal review stays optional.
