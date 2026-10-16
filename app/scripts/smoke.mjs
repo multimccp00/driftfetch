@@ -255,7 +255,12 @@ async function launch() {
     else {
       app = await electron.launch({
         executablePath,
-        args: ["."],
+        // A window covered by others stops painting on Windows, which stalls screenshots.
+        args: [
+          "--disable-backgrounding-occluded-windows",
+          "--disable-features=CalculateNativeWinOcclusion",
+          ".",
+        ],
         env,
         timeout: 60000,
       });
