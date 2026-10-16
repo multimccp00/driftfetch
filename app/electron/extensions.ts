@@ -457,7 +457,7 @@ export async function hideSecretOptions(
     i++;
   }
   if (!Object.keys(config).length) return { args, cleanup: async () => {} };
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "current-gallery-"));
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "driftfetch-gallery-"));
   const file = path.join(dir, "config.json");
   await fs.writeFile(file, JSON.stringify(config), { mode: 0o600 });
   return {

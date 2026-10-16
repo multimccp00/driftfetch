@@ -79,12 +79,12 @@ export function App() {
   const shiftHeld = useRef(false);
   const [full, setFull] = useState<Job>();
   useEffect(() => {
-    if (page === "history") void window.current?.checkFiles().catch(() => {});
+    if (page === "history") void window.driftfetch?.checkFiles().catch(() => {});
   }, [page]);
-  useEffect(() => window.current?.onNavigate(setPage), []);
+  useEffect(() => window.driftfetch?.onNavigate(setPage), []);
   useEffect(
     () =>
-      window.current?.onOpenJob((id) => {
+      window.driftfetch?.onOpenJob((id) => {
         setPage("downloads");
         setDetailId(id);
       }),
@@ -92,25 +92,25 @@ export function App() {
   );
   const [maximized, setMaximized] = useState(false);
   useEffect(() => {
-    void window.current
+    void window.driftfetch
       ?.isMaximized()
       .then(setMaximized)
       .catch(() => {});
-    return window.current?.onMaximized(setMaximized);
+    return window.driftfetch?.onMaximized(setMaximized);
   }, []);
   useEffect(() => {
-    if (!window.current) {
+    if (!window.driftfetch) {
       setToast(
         "Open DriftFetch using the desktop app to connect to the download engine.",
         true,
       );
       return;
     }
-    void window.current
+    void window.driftfetch
       .snapshot()
       .then(setState)
       .catch((e) => setToast(String(e), true));
-    return window.current.subscribe(setState);
+    return window.driftfetch.subscribe(setState);
   }, []);
   useEffect(() => {
     if (!toast || toast.error) return;
@@ -134,7 +134,7 @@ export function App() {
           undoable
             ? () =>
                 void execute(
-                  () => window.current.undoRemove(),
+                  () => window.driftfetch.undoRemove(),
                   "Restored to your list.",
                 )
             : undefined,
@@ -150,10 +150,10 @@ export function App() {
     }
   }
   const update = (patch: Partial<Settings>) =>
-    execute(() => window.current.settings(patch));
+    execute(() => window.driftfetch.settings(patch));
   const act = (ids: string[], action: Action) =>
     execute(
-      () => window.current.action(ids, action),
+      () => window.driftfetch.action(ids, action),
       action === "remove"
         ? ids.length === 1
           ? "Removed from your list."
@@ -203,7 +203,7 @@ export function App() {
         return;
       }
       void execute(async () => {
-        const result = await window.current.addLinks(text, page === "review");
+        const result = await window.driftfetch.addLinks(text, page === "review");
         setToast(addedToast(result));
       });
     };
@@ -218,7 +218,7 @@ export function App() {
     if (!pasted) return;
     setAdding(true);
     await execute(async () => {
-      const result = await window.current.addLinks(
+      const result = await window.driftfetch.addLinks(
         pasted.text,
         holdPasted || page === "review",
         groupName,
@@ -276,7 +276,7 @@ export function App() {
   useEffect(() => {
     if (!detailId) return setFull(undefined);
     let live = true;
-    void window.current
+    void window.driftfetch
       .jobDetail(detailId)
       .then((job) => live && setFull(job))
       .catch(() => {});
@@ -345,7 +345,7 @@ export function App() {
             aria-label="Minimize"
             title="Minimize"
             onClick={() =>
-              void window.current?.windowAction("minimize").catch(() => {})
+              void window.driftfetch?.windowAction("minimize").catch(() => {})
             }
           >
             <Minus size={14} strokeWidth={1.5} />
@@ -354,7 +354,7 @@ export function App() {
             aria-label={maximized ? "Restore" : "Maximize"}
             title={maximized ? "Restore" : "Maximize"}
             onClick={() =>
-              void window.current?.windowAction("maximize").catch(() => {})
+              void window.driftfetch?.windowAction("maximize").catch(() => {})
             }
           >
             {maximized ? (
@@ -368,7 +368,7 @@ export function App() {
             title="Close to tray"
             className="close-window"
             onClick={() =>
-              void window.current?.windowAction("close").catch(() => {})
+              void window.driftfetch?.windowAction("close").catch(() => {})
             }
           >
             <X size={15} strokeWidth={1.5} />
@@ -428,7 +428,7 @@ export function App() {
           <button
             className="sidebar-folder"
             title="Open download folder"
-            onClick={() => execute(() => window.current.openFolder())}
+            onClick={() => execute(() => window.driftfetch.openFolder())}
           >
             <Folder size={16} />
             <span>Download folder</span>
@@ -490,7 +490,7 @@ export function App() {
                     confirmLabel="Clear the whole log?"
                     disabled={!state.captures.length}
                     onConfirm={() =>
-                      void execute(() => window.current.clearCaptures())
+                      void execute(() => window.driftfetch.clearCaptures())
                     }
                   >
                     <Trash2 size={14} />
@@ -785,7 +785,7 @@ export function App() {
             cancel={() => setCollectionId(undefined)}
             confirm={() =>
               execute(async () => {
-                const result = await window.current.selectCollection(
+                const result = await window.driftfetch.selectCollection(
                   collection.id,
                   entryIds,
                 );

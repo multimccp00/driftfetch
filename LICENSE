@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 Current contributors
+Copyright (c) 2026 DriftFetch contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,5 +20,5 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-This licence covers Current's own source code only. The programs and libraries
+This licence covers DriftFetch's own source code only. The programs and libraries
 listed in THIRD-PARTY-NOTICES.md keep their own licences.

@@ -26,45 +26,45 @@ const server = http.createServer((req, res) => {
 await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
 const env = {
   ...process.env,
-  CURRENT_USER_DATA: path.join(dir, "userdata"),
+  DRIFTFETCH_USER_DATA: path.join(dir, "userdata"),
   // Runs against the bundled engines, not whatever is newest today.
-  CURRENT_NO_ENGINE_UPDATE: "1",
+  DRIFTFETCH_NO_ENGINE_UPDATE: "1",
   PATH: `${process.env.SystemRoot}\\System32;${process.env.SystemRoot}`,
 };
 delete env.ELECTRON_RUN_AS_NODE;
 let app;
 try {
   app = await electron.launch({
-    executablePath: path.resolve("release/0.4.0/win-unpacked/Current.exe"),
+    executablePath: path.resolve("release/0.4.0/win-unpacked/DriftFetch.exe"),
     env,
   });
   await app.evaluate(({ clipboard }) => {
     clipboard.readText = async () => "";
   });
   const page = await app.firstWindow();
-  await page.waitForFunction(() => !!window.current);
+  await page.waitForFunction(() => !!window.driftfetch);
   await page.evaluate(() =>
-    window.current.settings({ clipboardWatch: false, autoDownload: true }),
+    window.driftfetch.settings({ clipboardWatch: false, autoDownload: true }),
   );
   await page.evaluate(
-    (url) => window.current.addLinks(url),
+    (url) => window.driftfetch.addLinks(url),
     `http://127.0.0.1:${server.address().port}/changing`,
   );
   await page.waitForFunction(
-    async () => (await window.current.snapshot()).jobs[0]?.status === "failed",
+    async () => (await window.driftfetch.snapshot()).jobs[0]?.status === "failed",
     { timeout: 60000 },
   );
-  const before = await page.evaluate(() => window.current.snapshot());
+  const before = await page.evaluate(() => window.driftfetch.snapshot());
   await page.evaluate(
-    (id) => window.current.action([id], "pause"),
+    (id) => window.driftfetch.action([id], "pause"),
     before.jobs[0].id,
   );
   playable = true;
   await page.evaluate(
-    (id) => window.current.refreshFormats(id),
+    (id) => window.driftfetch.refreshFormats(id),
     before.jobs[0].id,
   );
-  const after = await page.evaluate(() => window.current.snapshot());
+  const after = await page.evaluate(() => window.driftfetch.snapshot());
   assert.equal(after.jobs.length, 1);
   assert.equal(after.jobs[0].id, before.jobs[0].id);
   assert.equal(after.jobs[0].status, "review");

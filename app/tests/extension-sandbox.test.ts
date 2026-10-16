@@ -17,7 +17,7 @@ const manifest = {
 };
 const entries = `[{id:'1',title:'t',url:'https://example.invalid/a.png'}]`;
 async function install(code: string) {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "current-sandbox-"));
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "driftfetch-sandbox-"));
   const extensions = new Extensions(dir);
   cleanup.push(async () => {
     extensions.shutdown();
@@ -40,7 +40,7 @@ const ask = (
   );
 
 it("denies file access to extension code", async () => {
-  const secret = path.join(os.tmpdir(), `current-secret-${Date.now()}.txt`);
+  const secret = path.join(os.tmpdir(), `driftfetch-secret-${Date.now()}.txt`);
   await fs.writeFile(secret, "private");
   cleanup.push(() => fs.rm(secret, { force: true }));
   const extensions = await install(`
@@ -60,8 +60,8 @@ it("denies file access to extension code", async () => {
 });
 
 it("denies starting programs and hides the app's environment", async () => {
-  process.env.CURRENT_TEST_SECRET = "shh";
-  cleanup.push(() => void delete process.env.CURRENT_TEST_SECRET);
+  process.env.DRIFTFETCH_TEST_SECRET = "shh";
+  cleanup.push(() => void delete process.env.DRIFTFETCH_TEST_SECRET);
   const extensions = await install(`
     module.exports = {
       matches: () => true,
@@ -69,7 +69,7 @@ it("denies starting programs and hides the app's environment", async () => {
         let spawned = 'spawn-allowed';
         try { require('child_process').spawnSync(process.execPath, ['-v']); }
         catch (e) { spawned = String(e.code); }
-        return { title: spawned + '/' + String(process.env.CURRENT_TEST_SECRET), entries: ${entries} };
+        return { title: spawned + '/' + String(process.env.DRIFTFETCH_TEST_SECRET), entries: ${entries} };
       }
     };`);
   expect((await ask(extensions))?.title).toBe("ERR_ACCESS_DENIED/undefined");
@@ -105,7 +105,7 @@ it("reports a crashed extension and starts a fresh process on the next call", as
 });
 
 it("refuses to enable code that does not export the provider functions", async () => {
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "current-sandbox-"));
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "driftfetch-sandbox-"));
   const extensions = new Extensions(dir);
   cleanup.push(async () => {
     extensions.shutdown();

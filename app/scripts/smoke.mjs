@@ -19,9 +19,9 @@ const privacyVersion = Number(
 // Playwright's Electron launcher cannot attach. They are spawned with a remote
 // debugging port and driven through their pages over CDP instead; checks that need
 // the main process (dialog and clipboard stubs, BrowserWindow state) are skipped.
-const packaged = !!process.env.CURRENT_PACKAGED_EXE;
+const packaged = !!process.env.DRIFTFETCH_PACKAGED_EXE;
 const noClipboard =
-  process.env.CURRENT_SMOKE_NO_CLIPBOARD === "1" || packaged;
+  process.env.DRIFTFETCH_SMOKE_NO_CLIPBOARD === "1" || packaged;
 const runDir = path.resolve("test-results", "smoke-" + Date.now());
 await fs.mkdir(runDir, { recursive: true });
 const sample = path.join(runDir, "sample.mp4");
@@ -106,7 +106,7 @@ const server = http.createServer((req, res) => {
     return;
   }
   if (url.pathname === "/private") {
-    if (!req.headers.cookie?.includes("session=current-fixture")) {
+    if (!req.headers.cookie?.includes("session=driftfetch-fixture")) {
       res.writeHead(401);
       res.end("Login required");
       return;
@@ -174,17 +174,17 @@ await new Promise((r) => server.listen(0, "127.0.0.1", r));
 const base = `http://127.0.0.1:${server.address().port}`;
 const env = {
   ...process.env,
-  CURRENT_USER_DATA: path.join(runDir, "userdata"),
+  DRIFTFETCH_USER_DATA: path.join(runDir, "userdata"),
   // Runs against the bundled engines, not whatever is newest today.
-  CURRENT_NO_ENGINE_UPDATE: "1",
+  DRIFTFETCH_NO_ENGINE_UPDATE: "1",
   // Clipboard capture ignores private hosts; the fixtures live on 127.0.0.1.
-  CURRENT_ALLOW_LOCAL_CLIPBOARD: "1",
+  DRIFTFETCH_ALLOW_LOCAL_CLIPBOARD: "1",
 };
-if (process.env.CURRENT_PACKAGED_EXE)
+if (process.env.DRIFTFETCH_PACKAGED_EXE)
   env.PATH = `${process.env.SystemRoot}\\System32;${process.env.SystemRoot}`;
 delete env.ELECTRON_RUN_AS_NODE;
-delete env.CURRENT_DEV_URL;
-const executablePath = process.env.CURRENT_PACKAGED_EXE || require("electron");
+delete env.DRIFTFETCH_DEV_URL;
+const executablePath = process.env.DRIFTFETCH_PACKAGED_EXE || require("electron");
 let app, originalClipboard, page;
 let appChild;
 let engineLog = "";
@@ -245,7 +245,7 @@ async function closeApp() {
     appChild.exitCode !== null ? r() : appChild.once("exit", r),
   );
   const deadline = setTimeout(terminateTestApp, 30000);
-  await page.evaluate(() => window.current.windowAction("quit")).catch(() => {});
+  await page.evaluate(() => window.driftfetch.windowAction("quit")).catch(() => {});
   await exited;
   clearTimeout(deadline);
 }
@@ -270,7 +270,7 @@ async function launch() {
     throw error;
   }
   page.on("pageerror", (e) => consoleErrors.push(e.message));
-  await page.waitForFunction(() => !!window.current, { timeout: 30000 });
+  await page.waitForFunction(() => !!window.driftfetch, { timeout: 30000 });
   // The privacy note appears on the first launch of a fresh profile and must be acknowledged.
   const understood = page.getByRole("button", { name: "I understand" });
   if (
@@ -318,7 +318,7 @@ const pasteLinks = (text) =>
 const settingsTab = (name) =>
   page.locator(".settings-nav").getByRole("button", { name });
 async function state() {
-  return await page.evaluate(() => window.current.snapshot());
+  return await page.evaluate(() => window.driftfetch.snapshot());
 }
 async function until(fn, timeout = 60000) {
   const end = Date.now() + timeout;
@@ -373,10 +373,10 @@ try {
   await page.screenshot({ path: path.join(runDir, "01-downloads-empty.png") });
   if (noClipboard)
     await page.evaluate(() =>
-      window.current.settings({ clipboardWatch: false }),
+      window.driftfetch.settings({ clipboardWatch: false }),
     );
   await page.evaluate(
-    async (dir) => window.current.settings({ downloadDir: dir }),
+    async (dir) => window.driftfetch.settings({ downloadDir: dir }),
     path.join(runDir, "downloads"),
   );
   await check(
@@ -385,7 +385,7 @@ try {
       const watched = path.join(runDir, "watched-links");
       await page.evaluate(
         async (dir) =>
-          window.current.settings({ folderWatchDir: dir, autoDownload: false }),
+          window.driftfetch.settings({ folderWatchDir: dir, autoDownload: false }),
         watched,
       );
       await new Promise((resolve) => setTimeout(resolve, 200));
@@ -403,7 +403,7 @@ try {
         await new Promise((resolve) => setTimeout(resolve, 100));
       }
       await page.evaluate(() =>
-        window.current.settings({ folderWatchDir: "", autoDownload: true }),
+        window.driftfetch.settings({ folderWatchDir: "", autoDownload: true }),
       );
     },
   );
@@ -414,7 +414,7 @@ try {
     async () => {
       if (noClipboard)
         await page.evaluate(
-          (url) => window.current.addLinks(url),
+          (url) => window.driftfetch.addLinks(url),
           base + "/redirect",
         );
       else
@@ -452,7 +452,7 @@ try {
     "Best quality prefers the high label and reports the actual saved 1080p resolution",
     async () => {
       await page.evaluate(
-        (url) => window.current.addLinks(url),
+        (url) => window.driftfetch.addLinks(url),
         base + "/quality-labels",
       );
       const s = await until((s) =>
@@ -470,17 +470,17 @@ try {
   );
   await check("Duplicate copied URL and resolved media identity", async () => {
     const a = await page.evaluate(
-      (url) => window.current.addLinks(url),
+      (url) => window.driftfetch.addLinks(url),
       base + "/redirect",
     );
     assert.equal(a.duplicates, 1);
     const b = await page.evaluate(
-      (url) => window.current.addLinks(url),
+      (url) => window.driftfetch.addLinks(url),
       base + "/embedded",
     );
     assert.equal(b.duplicates, 1);
     await page.evaluate(
-      (url) => window.current.addLinks(url),
+      (url) => window.driftfetch.addLinks(url),
       base + "/redirect-alias",
     );
     await until((s) => s.jobs.some((j) => j.status === "duplicate"));
@@ -528,11 +528,11 @@ try {
     );
     assert(grouped.jobs.some((j) => j.originalUrl.endsWith("?grouped=1")));
     // The appearance setting reaches the page.
-    await page.evaluate(() => window.current.settings({ theme: "light" }));
+    await page.evaluate(() => window.driftfetch.settings({ theme: "light" }));
     await page.waitForFunction(
       () => document.documentElement.dataset.theme === "light",
     );
-    await page.evaluate(() => window.current.settings({ theme: "dark" }));
+    await page.evaluate(() => window.driftfetch.settings({ theme: "dark" }));
     await page.waitForFunction(
       () => document.documentElement.dataset.theme === "dark",
     );
@@ -542,7 +542,7 @@ try {
     "Unsupported links remain visible with an actionable error",
     async () => {
       await page.evaluate(
-        (url) => window.current.addLinks(url),
+        (url) => window.driftfetch.addLinks(url),
         base + "/unsupported",
       );
       await until((s) => s.jobs.some((j) => j.status === "failed"));
@@ -553,7 +553,7 @@ try {
   );
   await check("Collections wait for explicit video selection", async () => {
     await page.evaluate(
-      (url) => window.current.addLinks(url),
+      (url) => window.driftfetch.addLinks(url),
       base + "/collection",
     );
     const s = await until((s) => s.jobs.some((j) => j.status === "collection"));
@@ -586,7 +586,7 @@ try {
   });
   await check("Bounded quality plus DASH audio/video merge", async () => {
     await page.evaluate(
-      (url) => window.current.addLinks(url),
+      (url) => window.driftfetch.addLinks(url),
       base + "/dash/manifest.mpd",
     );
     const s = await until((s) =>
@@ -595,7 +595,7 @@ try {
       ),
     );
     const job = s.jobs.find((j) => j.originalUrl.endsWith("/manifest.mpd"));
-    await page.evaluate((id) => window.current.action([id], "start"), job.id);
+    await page.evaluate((id) => window.driftfetch.action([id], "start"), job.id);
     const finished = await until(
       (s) => s.jobs.find((j) => j.id === job.id)?.status === "completed",
     );
@@ -621,7 +621,7 @@ try {
     "Pause retains partial files and resume uses HTTP ranges",
     async () => {
       await page.evaluate(
-        (url) => window.current.addLinks(url),
+        (url) => window.driftfetch.addLinks(url),
         base + "/slow.mp4",
       );
       const s = await until((s) =>
@@ -630,9 +630,9 @@ try {
         ),
       );
       const job = s.jobs.find((j) => j.originalUrl.endsWith("/slow.mp4"));
-      await page.evaluate((id) => window.current.action([id], "start"), job.id);
+      await page.evaluate((id) => window.driftfetch.action([id], "start"), job.id);
       await until((s) => s.jobs.find((j) => j.id === job.id)?.progress > 0);
-      await page.evaluate((id) => window.current.action([id], "pause"), job.id);
+      await page.evaluate((id) => window.driftfetch.action([id], "pause"), job.id);
       const paused = (await state()).jobs.find((j) => j.id === job.id);
       assert.equal(paused.status, "paused");
       assert(
@@ -640,7 +640,7 @@ try {
           (f) => f.includes(job.id.slice(0, 8)) && f.endsWith(".part"),
         ),
       );
-      await page.evaluate((id) => window.current.action([id], "start"), job.id);
+      await page.evaluate((id) => window.driftfetch.action([id], "start"), job.id);
       await until(
         (s) => s.jobs.find((j) => j.id === job.id)?.status === "completed",
       );
@@ -651,7 +651,7 @@ try {
     "Encrypted cookie import unlocks a protected fixture and cleans temporary files",
     async () => {
       await page.evaluate(
-        (url) => window.current.addLinks(url),
+        (url) => window.driftfetch.addLinks(url),
         base + "/private",
       );
       const blocked = await until((s) =>
@@ -668,7 +668,7 @@ try {
       const cookies = path.join(runDir, "fixture-cookies.txt");
       await fs.writeFile(
         cookies,
-        "# Netscape HTTP Cookie File\n127.0.0.1\tFALSE\t/\tFALSE\t0\tsession\tcurrent-fixture\n",
+        "# Netscape HTTP Cookie File\n127.0.0.1\tFALSE\t/\tFALSE\t0\tsession\tdriftfetch-fixture\n",
       );
       await app.evaluate(({ dialog }, file) => {
         globalThis.originalOpenDialog = dialog.showOpenDialog;
@@ -679,29 +679,29 @@ try {
       }, cookies);
       try {
         assert(
-          await page.evaluate(() => window.current.importSession("127.0.0.1")),
+          await page.evaluate(() => window.driftfetch.importSession("127.0.0.1")),
         );
       } finally {
         await app.evaluate(({ dialog }) => {
           dialog.showOpenDialog = globalThis.originalOpenDialog;
         });
       }
-      await page.evaluate((id) => window.current.action([id], "retry"), job.id);
+      await page.evaluate((id) => window.driftfetch.action([id], "retry"), job.id);
       await until(
         (s) => s.jobs.find((j) => j.id === job.id)?.status === "completed",
       );
       const { DatabaseSync } = require("node:sqlite");
       const db = new DatabaseSync(
-        path.join(runDir, "userdata", "current.sqlite"),
+        path.join(runDir, "userdata", "driftfetch.sqlite"),
       );
       const row = db
         .prepare("SELECT secret FROM sessions WHERE domain=?")
         .get("127.0.0.1");
       db.close();
       assert(
-        !Buffer.from(row.secret).toString("utf8").includes("current-fixture"),
+        !Buffer.from(row.secret).toString("utf8").includes("driftfetch-fixture"),
       );
-      await page.evaluate(() => window.current.removeSession("127.0.0.1"));
+      await page.evaluate(() => window.driftfetch.removeSession("127.0.0.1"));
       assert.equal((await state()).sessions.length, 0);
       assert.deepEqual(
         await fs.readdir(path.join(runDir, "userdata", "temporary-sessions")),
@@ -718,17 +718,17 @@ try {
       );
       assert(held);
       await page.evaluate(
-        (id) => window.current.action([id], "pause"),
+        (id) => window.driftfetch.action([id], "pause"),
         held.id,
       );
       await page.evaluate(() =>
-        window.current.settings({ autoDownload: true }),
+        window.driftfetch.settings({ autoDownload: true }),
       );
       const slow = before.jobs.find(
         (j) => j.originalUrl.endsWith("/slow.mp4") && j.status === "completed",
       );
       await page.evaluate(
-        (id) => window.current.action([id], "again"),
+        (id) => window.driftfetch.action([id], "again"),
         slow.id,
       );
       const started = await until((s) =>
@@ -756,7 +756,7 @@ try {
         "paused",
       );
       await page.evaluate(() =>
-        window.current.settings({ autoDownload: false }),
+        window.driftfetch.settings({ autoDownload: false }),
       );
     },
   );
@@ -769,7 +769,7 @@ try {
         );
         // The setting this check leaves behind, which the last check expects.
         return await page.evaluate(() =>
-          window.current.settings({ captureNotifications: false }),
+          window.driftfetch.settings({ captureNotifications: false }),
         );
       }
       await app.evaluate(({ clipboard }) => {
@@ -785,13 +785,13 @@ try {
       });
       try {
         await page.evaluate(() =>
-          window.current.settings({
+          window.driftfetch.settings({
             clipboardWatch: true,
             captureNotifications: true,
             autoDownload: false,
           }),
         );
-        await page.evaluate(() => window.current.windowAction("close"));
+        await page.evaluate(() => window.driftfetch.windowAction("close"));
         // Finished-download notices may already have opened the popup window.
         const shown = app.windows().find((w) => w.url().includes("popup.html"));
         const popupReady = shown ? Promise.resolve(shown) : app.waitForEvent("window");
@@ -838,7 +838,7 @@ try {
           j.originalUrl.endsWith("?capture=1"),
         );
         await page.evaluate(
-          (id) => window.current.copyDiagnostic(id),
+          (id) => window.driftfetch.copyDiagnostic(id),
           failed.id,
         );
         const diagnostic = await app.evaluate(
@@ -847,9 +847,9 @@ try {
         assert.equal(JSON.parse(diagnostic).stage, "extraction");
         assert(!diagnostic.includes(base));
         await page.evaluate(() =>
-          window.current.settings({ captureNotifications: false }),
+          window.driftfetch.settings({ captureNotifications: false }),
         );
-        await page.evaluate(() => window.current.windowAction("close"));
+        await page.evaluate(() => window.driftfetch.windowAction("close"));
         await app.evaluate((_e, url) => {
           globalThis.captureTest.text = url;
         }, base + "/unsupported?capture=3");
@@ -865,7 +865,7 @@ try {
           false,
         );
         await page.evaluate(() =>
-          window.current.settings({
+          window.driftfetch.settings({
             clipboardWatch: false,
             captureNotifications: true,
           }),
@@ -880,11 +880,11 @@ try {
           ),
         );
         await page.evaluate(() =>
-          window.current.settings({ captureNotifications: false }),
+          window.driftfetch.settings({ captureNotifications: false }),
         );
       } finally {
         await page.evaluate(() =>
-          window.current.settings({ clipboardWatch: false }),
+          window.driftfetch.settings({ clipboardWatch: false }),
         );
         await app.evaluate(({ clipboard, BrowserWindow }) => {
           clipboard.readText = globalThis.captureTest.read;
@@ -905,7 +905,7 @@ try {
       );
       const before = new Set((await state()).jobs.map((j) => j.id));
       await page.evaluate(
-        (id) => window.current.action([id], "again"),
+        (id) => window.driftfetch.action([id], "again"),
         original.id,
       );
       const ready = await until((s) =>
@@ -927,7 +927,7 @@ try {
         .getByRole("dialog")
         .getByRole("button", { name: "Close dialog", exact: true })
         .click();
-      await page.evaluate((id) => window.current.action([id], "start"), job.id);
+      await page.evaluate((id) => window.driftfetch.action([id], "start"), job.id);
       const done = await until(
         (s) => s.jobs.find((j) => j.id === job.id).status === "completed",
       );
@@ -987,11 +987,11 @@ try {
       );
       const before = new Set((await state()).jobs.map((j) => j.id));
       await page.evaluate(
-        (id) => window.current.action([id], "again"),
+        (id) => window.driftfetch.action([id], "again"),
         original.id,
       );
       await page.evaluate(
-        (id) => window.current.action([id], "again"),
+        (id) => window.driftfetch.action([id], "again"),
         original.id,
       );
       const ready = await until(
@@ -1021,7 +1021,7 @@ try {
         .waitFor();
       await page.screenshot({ path: path.join(runDir, "scheduled-queue.png") });
       await page.evaluate(() =>
-        window.current.settings({ scheduleEnabled: false }),
+        window.driftfetch.settings({ scheduleEnabled: false }),
       );
       const done = await until(
         (s) => s.jobs.find((j) => j.id === second.id).status === "completed",
@@ -1081,8 +1081,8 @@ try {
     "Review queue, same-entry format refresh, source evidence, and encrypted backup restore",
     async () => {
       await page.evaluate(async () => {
-        const s = await window.current.snapshot();
-        await window.current.action(
+        const s = await window.driftfetch.snapshot();
+        await window.driftfetch.action(
           s.jobs
             .filter(
               (j) =>
@@ -1091,7 +1091,7 @@ try {
             .map((j) => j.id),
           "pause",
         );
-        await window.current.settings({ autoDownload: true });
+        await window.driftfetch.settings({ autoDownload: true });
       });
       await page
         .locator(".sidebar")
@@ -1145,10 +1145,10 @@ try {
         );
         // The restored backup leaves automatic download off, which the last check expects.
         return await page.evaluate(() =>
-          window.current.settings({ autoDownload: false }),
+          window.driftfetch.settings({ autoDownload: false }),
         );
       }
-      const backupFile = path.join(runDir, "roundtrip.currentbackup");
+      const backupFile = path.join(runDir, "roundtrip.driftfetch-backup");
       await app.evaluate(({ dialog }, file) => {
         globalThis.backupDialogs = {
           save: dialog.showSaveDialog,
@@ -1190,7 +1190,7 @@ try {
           .waitFor();
         assert(!(await fs.readFile(backupFile)).includes(Buffer.from(base)));
         await page.evaluate(
-          (id) => window.current.action([id], "remove"),
+          (id) => window.driftfetch.action([id], "remove"),
           job.id,
         );
         await page
@@ -1228,7 +1228,7 @@ try {
   await check(
     "Close minimizes to tray; explicit quit persists history",
     async () => {
-      await page.evaluate(() => window.current.windowAction("close"));
+      await page.evaluate(() => window.driftfetch.windowAction("close"));
       // Over CDP the page reports itself visible even once the window is hidden.
       if (packaged)
         skipPackaged(
@@ -1250,7 +1250,7 @@ try {
         );
       }
       await page.evaluate(() =>
-        window.current.settings({ clipboardWatch: false }),
+        window.driftfetch.settings({ clipboardWatch: false }),
       );
       if (originalClipboard !== undefined)
         await app.evaluate(

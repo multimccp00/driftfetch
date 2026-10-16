@@ -1,4 +1,4 @@
-# Current 0.1.3 extraction error wording
+# DriftFetch 0.1.3 extraction error wording
 
 Unsupported extraction now explains that a source may require additional extraction support or an account session. It suggests connecting a Chrome profile only when full playback requires signing in, and makes clear that a session may not resolve unsupported extraction. It no longer assumes the submitted URL is a listing or redirect page.
 

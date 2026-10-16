@@ -37,17 +37,17 @@ export function failureCode(error: unknown): string {
     cause = value.cause;
   }
   const raw = String(error);
-  if (/CURRENT_EXTENSION_REQUIRED/.test(raw)) return "EXTENSION_REQUIRED";
+  if (/DRIFTFETCH_EXTENSION_REQUIRED/.test(raw)) return "EXTENSION_REQUIRED";
   if (/API credentials are unavailable/i.test(raw))
     return "API_CREDENTIALS_UNAVAILABLE";
   if (/API credentials are invalid/i.test(raw))
     return "API_CREDENTIALS_INVALID";
   if (/API credentials were rejected/i.test(raw))
     return "API_CREDENTIALS_REJECTED";
-  if (/CURRENT_INCOMPLETE_FILES/.test(raw)) return "INCOMPLETE_FILES";
-  if (/CURRENT_INCOMPLETE_DISCOVERY/.test(raw)) return "INCOMPLETE_DISCOVERY";
-  if (/CURRENT_NOTHING_READ/.test(raw)) return "NOTHING_READ";
-  if (/CURRENT_TIMEOUT/.test(raw)) return "READ_TIMEOUT";
+  if (/DRIFTFETCH_INCOMPLETE_FILES/.test(raw)) return "INCOMPLETE_FILES";
+  if (/DRIFTFETCH_INCOMPLETE_DISCOVERY/.test(raw)) return "INCOMPLETE_DISCOVERY";
+  if (/DRIFTFETCH_NOTHING_READ/.test(raw)) return "NOTHING_READ";
+  if (/DRIFTFETCH_TIMEOUT/.test(raw)) return "READ_TIMEOUT";
   if (/rate limit/i.test(raw)) return "RATE_LIMIT";
   const http =
     /\b(?:HTTP(?: Error)?\s+|status(?: code)?[: ]+)([45]\d\d)\b/i.exec(raw) ||

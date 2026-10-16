@@ -340,13 +340,13 @@ export function downloadArgs(job: Job): string[] {
     "--progress-delta",
     "0.5",
     "--progress-template",
-    "download:CURRENT_PROGRESS:%(progress)j",
+    "download:DRIFTFETCH_PROGRESS:%(progress)j",
     "--print",
-    "before_dl:CURRENT_FORMAT:%(height)j",
+    "before_dl:DRIFTFETCH_FORMAT:%(height)j",
     "--print",
-    "before_dl:CURRENT_FORMAT_ID:%(format_id)j",
+    "before_dl:DRIFTFETCH_FORMAT_ID:%(format_id)j",
     "--print",
-    "after_move:CURRENT_FILE:%(filepath)j",
+    "after_move:DRIFTFETCH_FILE:%(filepath)j",
     "--no-simulate",
     "--format",
     format,
@@ -642,7 +642,7 @@ export class Engine {
         (line) => {
           const file = line.replace(/^# /, "").trim();
           if (path.isAbsolute(file))
-            onLine("CURRENT_FILE:" + JSON.stringify(file));
+            onLine("DRIFTFETCH_FILE:" + JSON.stringify(file));
         },
         0,
         job.imageSearch ? 120_000 : 0,
@@ -651,7 +651,7 @@ export class Engine {
       // Outside the download folder, so a crash leaves nothing behind there.
       const batchFile = path.join(
         os.tmpdir(),
-        `current-gallery-${randomUUID()}.txt`,
+        `driftfetch-gallery-${randomUUID()}.txt`,
       );
       writeFileSync(batchFile, job.imageUrls.join("\n"), "utf8");
       const running = runProcess(
@@ -678,7 +678,7 @@ export class Engine {
         (line) => {
           const file = line.replace(/^# /, "").trim();
           if (path.isAbsolute(file))
-            onLine("CURRENT_FILE:" + JSON.stringify(file));
+            onLine("DRIFTFETCH_FILE:" + JSON.stringify(file));
         },
       );
       const cleanup = () => fs.rm(batchFile, { force: true }).catch(() => {});

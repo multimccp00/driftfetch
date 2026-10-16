@@ -1,4 +1,4 @@
-# Current 0.4.1
+# DriftFetch 0.4.1
 
 History now includes Clear history with a confirmation. It removes completed, cancelled and duplicate entries across all filters. Downloaded files, pending work and failed downloads remain. Removed history no longer participates in duplicate detection. The separate Recent captures log is retained.
 

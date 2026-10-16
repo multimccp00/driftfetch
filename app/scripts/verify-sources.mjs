@@ -91,7 +91,7 @@ const results = links.map((url) => {
 });
 const output = path.resolve(
   inlineUrl ? "test-results" : path.dirname(input),
-  `current-source-report-${new Date().toISOString().replace(/[:.]/g, "-")}.json`,
+  `driftfetch-source-report-${new Date().toISOString().replace(/[:.]/g, "-")}.json`,
 );
 await fs.writeFile(
   output,

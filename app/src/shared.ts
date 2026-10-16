@@ -299,6 +299,6 @@ export interface DesktopAPI {
 }
 declare global {
   interface Window {
-    current: DesktopAPI;
+    driftfetch: DesktopAPI;
   }
 }

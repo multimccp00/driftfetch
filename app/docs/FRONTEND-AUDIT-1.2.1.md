@@ -1,4 +1,4 @@
-# Current 1.2.1 — Frontend Audit
+# DriftFetch 1.2.1 — Frontend Audit
 
 Date: 2 October 2026 · Reviewer role: senior frontend engineer · Scope: renderer only — `src/` (`App.tsx`, `ReviewQueue.tsx`, `CollectionPreview.tsx`, `AccountsSettings.tsx`, `ExtensionsSettings.tsx`, `Popup.tsx`, `styles.css`, `popup.css`, `shared.ts`), `index.html`, `popup.html`, the preload bridges, and the uncommitted renderer changes.
 
@@ -75,8 +75,8 @@ When rows are selected on History, the toolbar shows **Start / Pause / Cancel** 
 - **Toast timer does not restart for repeated messages.** `setToast(sameText)` is a no-op, so the 6.5 s timer is not extended and screen readers do not re-announce. Store `{ id, text }` (`id: Date.now()`).
 - **Errors and successes share one toast style** with a `CircleHelp` icon and auto-dismiss after 6.5 s. Long failure messages (e.g. backup restore, engine update) vanish before they can be read. Add an `error` variant that stays until dismissed.
 - **Per-source rule "Save" clears the form before the save resolves** (`App.tsx:2239-2240`), so a rejected save loses the input. Move the reset into the `execute` callback after `await`. Also only `source`/`folder` reset; quality, speed, connections, auto stay from the previous rule.
-- **`checkFiles` effect is unguarded** (`App.tsx:109`): `window.current.checkFiles()` throws synchronously when the preload is absent (Vite dev in a plain browser), before `.catch` attaches. The sidebar is clickable while "Connecting…" is shown, so clicking History crashes the tree. Use `window.current?.checkFiles()`.
-- **"Quit Current" and the title-bar buttons** call `window.current.windowAction(...)` without `execute`, so a rejection is an unhandled promise.
+- **`checkFiles` effect is unguarded** (`App.tsx:109`): `window.driftfetch.checkFiles()` throws synchronously when the preload is absent (Vite dev in a plain browser), before `.catch` attaches. The sidebar is clickable while "Connecting…" is shown, so clicking History crashes the tree. Use `window.driftfetch?.checkFiles()`.
+- **"Quit DriftFetch" and the title-bar buttons** call `window.driftfetch.windowAction(...)` without `execute`, so a rejection is an unhandled promise.
 - **Status text is inconsistent:** the capture log (`App.tsx:438`) and details modal (`App.tsx:1245`) use `labels[status]` instead of `label(job)`, so image galleries show "Choose videos" there. Popup `names` (`Popup.tsx:22-35`) uses different words for the same states ("Queued" vs "In queue", "Downloaded" vs "Completed"). Export one `statusLabel(job)` from `shared.ts` and use it in all three places.
 - **Escape inside an enlarged collection preview closes the whole modal** (`CollectionPreview.tsx:126-138`), not just the enlarged image. Handle Escape in `CollectionPreview` when `large` is set and `stopPropagation`.
 - **History search placeholder** says "Search downloads…" on the History page.

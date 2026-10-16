@@ -34,14 +34,14 @@
     StrCpy $R1 ""
   ClearErrors
   CreateDirectory "$INSTDIR"
-  FileOpen $R0 "$INSTDIR\.current-install-check" w
+  FileOpen $R0 "$INSTDIR\.driftfetch-install-check" w
   ${If} ${Errors}
     MessageBox MB_OK|MB_ICONSTOP "DriftFetch cannot write to the installation folder:$\r$\n$INSTDIR$\r$\n$\r$\nChoose a writable folder or run the installer outside a restricted test environment." /SD IDOK
     SetErrorLevel 2
     Quit
   ${EndIf}
   FileClose $R0
-  Delete "$INSTDIR\.current-install-check"
+  Delete "$INSTDIR\.driftfetch-install-check"
   ${If} $R1 == ""
     RMDir "$INSTDIR"
   ${EndIf}

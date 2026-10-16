@@ -98,7 +98,7 @@ export const failureSummary = (job: Job) => {
   if (/nothing could be read|NOTHING_READ/i.test(raw)) return "Nothing found";
   if (/sign.?in|login required|session (?:expired|unavailable)/i.test(raw))
     return "Sign-in needed";
-  if (/CURRENT_REMOVED|removed or deleted/i.test(raw))
+  if (/DRIFTFETCH_REMOVED|removed or deleted/i.test(raw))
     return "Removed at the source";
   if (/free up space|disk is full|ENOSPC|LOW_SPACE/i.test(raw))
     return "Not enough disk space";

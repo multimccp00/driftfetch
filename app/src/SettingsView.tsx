@@ -217,7 +217,7 @@ export function SettingsView({
     execute(async () => {
       setBackupWorking(true);
       try {
-        const message = await window.current.backup(action, password);
+        const message = await window.driftfetch.backup(action, password);
         setBackup(undefined);
         setPassword("");
         setConfirmPassword("");
@@ -354,7 +354,7 @@ export function SettingsView({
       .replace(/\/.*$/, "")
       .toLowerCase();
     void execute(async () => {
-      await window.current.settings({
+      await window.driftfetch.settings({
         sourceRules: [
           ...s.sourceRules.filter((rule) => rule.source !== source),
           {
@@ -633,15 +633,15 @@ export function SettingsView({
             <>
               <FolderOpen size={14} /> Open
             </>,
-            () => void execute(() => window.current.openFolder()),
+            () => void execute(() => window.driftfetch.openFolder()),
           )}
           {btn(
             "Change…",
             () =>
               void execute(async () => {
-                const folder = await window.current.chooseFolder();
+                const folder = await window.driftfetch.chooseFolder();
                 if (folder)
-                  await window.current.settings({ downloadDir: folder });
+                  await window.driftfetch.settings({ downloadDir: folder });
               }),
           )}
         </>,
@@ -727,9 +727,9 @@ export function SettingsView({
         "Choose folder…",
         () =>
           void execute(async () => {
-            const folder = await window.current.chooseFolderWatch();
+            const folder = await window.driftfetch.chooseFolderWatch();
             if (folder)
-              await window.current.settings({ folderWatchDir: folder });
+              await window.driftfetch.settings({ folderWatchDir: folder });
           }),
       ),
     },
@@ -764,7 +764,7 @@ export function SettingsView({
             aria-label={`Remove session for ${saved.domain}`}
             confirmLabel="Remove? You must sign in again"
             onConfirm={() =>
-              void execute(() => window.current.removeSession(saved.domain))
+              void execute(() => window.driftfetch.removeSession(saved.domain))
             }
           >
             Remove
@@ -916,7 +916,7 @@ export function SettingsView({
                 </>,
                 () =>
                   void execute(async () => {
-                    const folder = await window.current.chooseFolder();
+                    const folder = await window.driftfetch.chooseFolder();
                     if (folder) setRuleFolder(folder);
                   }),
               )}
@@ -1035,13 +1035,13 @@ export function SettingsView({
         <span className="btn-row">
           {btn(
             "Restore previous",
-            () => void execute(() => window.current.engineAction("rollback")),
+            () => void execute(() => window.driftfetch.engineAction("rollback")),
             undefined,
             !state.engine.canRollback || state.engine.busy,
           )}
           {btn(
             state.engine.busy ? "Working…" : "Check for updates",
-            () => void execute(() => window.current.engineAction("update")),
+            () => void execute(() => window.driftfetch.engineAction("update")),
             "primary",
             state.engine.busy,
           )}
@@ -1097,7 +1097,7 @@ export function SettingsView({
         <>
           <Plus size={14} /> Add extension file…
         </>,
-        () => void execute(() => window.current.importExtension()),
+        () => void execute(() => window.driftfetch.importExtension()),
       ),
     },
     ...state.extensions.map<Row>((extension) => ({
@@ -1113,7 +1113,7 @@ export function SettingsView({
             extension.enabled ? "Disable" : "Enable",
             () =>
               void execute(() =>
-                window.current.extensionAction(
+                window.driftfetch.extensionAction(
                   extension.id,
                   extension.enabled ? "disable" : "enable",
                 ),
@@ -1126,7 +1126,7 @@ export function SettingsView({
             confirmLabel="Remove? It must be re-added"
             onConfirm={() =>
               void execute(() =>
-                window.current.extensionAction(extension.id, "remove"),
+                window.driftfetch.extensionAction(extension.id, "remove"),
               )
             }
           >
@@ -1167,7 +1167,7 @@ export function SettingsView({
       icon: <Scale size={17} />,
       control: btn(
         "Open licence folder",
-        () => void execute(() => window.current.openLicenses()),
+        () => void execute(() => window.driftfetch.openLicenses()),
       ),
     },
     {
@@ -1211,13 +1211,13 @@ export function SettingsView({
             "Create desktop shortcut",
             () =>
               void execute(
-                () => window.current.appAction("shortcut"),
+                () => window.driftfetch.appAction("shortcut"),
                 "Desktop shortcut updated.",
               ),
           )}
           {btn(
             "Install app update…",
-            () => void execute(() => window.current.appAction("update")),
+            () => void execute(() => window.driftfetch.appAction("update")),
           )}
         </span>
       ),
@@ -1232,7 +1232,7 @@ export function SettingsView({
       tone: "danger",
       control: btn(
         "Quit",
-        () => void execute(() => window.current.windowAction("quit")),
+        () => void execute(() => window.driftfetch.windowAction("quit")),
         "danger",
         false,
         {
@@ -1331,7 +1331,7 @@ export function SettingsView({
                 }
                 onClick={() =>
                   void connect(async () => {
-                    await window.current.saveAccount(normalized, values);
+                    await window.driftfetch.saveAccount(normalized, values);
                     setValues({});
                   })
                 }
@@ -1344,7 +1344,7 @@ export function SettingsView({
               className={`btn lg ${account ? "" : "primary"}`}
               disabled={connecting || !normalized}
               onClick={() =>
-                void connect(() => window.current.browserSession(normalized))
+                void connect(() => window.driftfetch.browserSession(normalized))
               }
             >
               <AppWindow size={16} strokeWidth={2} />
@@ -1354,7 +1354,7 @@ export function SettingsView({
               className="btn lg"
               disabled={connecting || !normalized}
               onClick={() =>
-                void connect(() => window.current.importSession(normalized))
+                void connect(() => window.driftfetch.importSession(normalized))
               }
             >
               <FileUp size={15} />
@@ -1396,7 +1396,7 @@ export function SettingsView({
                 }
                 onClick={() =>
                   void connect(() =>
-                    window.current.chromeSession(normalized, profile),
+                    window.driftfetch.chromeSession(normalized, profile),
                   )
                 }
               >

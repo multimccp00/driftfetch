@@ -59,7 +59,7 @@ function useThumbnail(job: Job) {
     let live = true;
     const load = () =>
       Promise.resolve()
-        .then(() => window.current.jobThumbnail(job.id))
+        .then(() => window.driftfetch.jobThumbnail(job.id))
         .catch(() => null)
         .then((image) => {
           thumbs.delete(key);

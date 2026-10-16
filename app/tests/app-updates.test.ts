@@ -27,7 +27,7 @@ it("compares semantic version components numerically", () => {
   expect(isNewer("bad", "0.2.0")).toBe(false);
 });
 it("verifies selected update bytes before allowing installation", async () => {
-  dir = await fs.mkdtemp(path.join(os.tmpdir(), "current-update-"));
+  dir = await fs.mkdtemp(path.join(os.tmpdir(), "driftfetch-update-"));
   const file = path.join(dir, "DriftFetch-Setup-0.3.0-x64.exe");
   await fs.writeFile(file, "synthetic installer bytes");
   mocks.choose.mockResolvedValue({ canceled: false, filePaths: [file] });
@@ -41,7 +41,7 @@ it("verifies selected update bytes before allowing installation", async () => {
   await expect(chooseUpdate({} as any)).resolves.toBe(file);
 });
 it("rejects an installer that changed after it was chosen", async () => {
-  dir = await fs.mkdtemp(path.join(os.tmpdir(), "current-update-"));
+  dir = await fs.mkdtemp(path.join(os.tmpdir(), "driftfetch-update-"));
   const file = path.join(dir, "DriftFetch-Setup-0.3.0-x64.exe");
   await fs.writeFile(file, "original");
   await fs.writeFile(

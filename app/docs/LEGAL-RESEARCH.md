@@ -1,12 +1,12 @@
 # Legal research notes: downloading, privacy and patents
 
-Prepared 2 October 2026 while preparing Current for distribution. **This is research by a software assistant, not legal advice.** It records what I could confirm from primary sources, what I could only find in secondary sources, and what I could not verify, so a lawyer can start from here rather than from nothing. Where a page failed to load, I say so.
+Prepared 2 October 2026 while preparing DriftFetch for distribution. **This is research by a software assistant, not legal advice.** It records what I could confirm from primary sources, what I could only find in secondary sources, and what I could not verify, so a lawyer can start from here rather than from nothing. Where a page failed to load, I say so.
 
 Confidence tags: **[primary]** read on the project's or rights-holder's own page; **[secondary]** reported by a news site, wiki or forum; **[code]** checked in this repository; **[unverified]** could not be confirmed.
 
 ---
 
-## 1. What JDownloader does, and what Current can take from it
+## 1. What JDownloader does, and what DriftFetch can take from it
 
 | Topic | Finding | Confidence |
 | --- | --- | --- |
@@ -17,22 +17,22 @@ Confidence tags: **[primary]** read on the project's or rights-holder's own page
 | Terms of use | I could **not** retrieve JDownloader's own terms (jdownloader.com did not resolve; the jdownloader.org legal/terms page does not exist). Wording about "not designed to bypass DRM, paywalls or access controls" and "the user is responsible for having the right to download" came from **jsdownloader.com, a different service**, and must not be attributed to JDownloader | [unverified] for JDownloader |
 | Legal history | In 2013 a Hamburg court held that recording copy-protected RTMPE streams infringed anti-circumvention law, and held the company's CEO personally liable for that code, which an anonymous contributor had added to a nightly build | [secondary] Techdirt, Wikipedia |
 
-**What this means for Current**
+**What this means for DriftFetch**
 
-- Current's privacy position is simpler than JDownloader's: no account, no ads, no bundled offers, no automatic updates, no error or statistics reports, and no servers of its own [code: no `crashReporter`, analytics or update-check code; a test enforces this]. The privacy note states exactly that and nothing more.
-- The Hamburg case is about **circumvention features and contributor code**, not about downloading in general. Current does not enable yt-dlp's unplayable-format options and reports DRM-protected videos as unsupported [code: `electron/core.ts`, no `--allow-unplayable-formats` anywhere]. If you accept outside contributions or extensions, review them before a release; extensions now run sandboxed, but they can still add site-specific behaviour.
-- Related background: in October 2020 the RIAA's DMCA notice took youtube-dl's GitHub repository down, claiming its purpose was to circumvent YouTube's technical protection measures; GitHub reinstated it on 16 November 2020 after an EFF letter [secondary: BleepingComputer, The Register]. That shows the legal theory used against downloaders (anti-circumvention, not patents), and why keeping DRM/paywall bypass out of Current matters.
+- DriftFetch's privacy position is simpler than JDownloader's: no account, no ads, no bundled offers, no automatic updates, no error or statistics reports, and no servers of its own [code: no `crashReporter`, analytics or update-check code; a test enforces this]. The privacy note states exactly that and nothing more.
+- The Hamburg case is about **circumvention features and contributor code**, not about downloading in general. DriftFetch does not enable yt-dlp's unplayable-format options and reports DRM-protected videos as unsupported [code: `electron/core.ts`, no `--allow-unplayable-formats` anywhere]. If you accept outside contributions or extensions, review them before a release; extensions now run sandboxed, but they can still add site-specific behaviour.
+- Related background: in October 2020 the RIAA's DMCA notice took youtube-dl's GitHub repository down, claiming its purpose was to circumvent YouTube's technical protection measures; GitHub reinstated it on 16 November 2020 after an EFF letter [secondary: BleepingComputer, The Register]. That shows the legal theory used against downloaders (anti-circumvention, not patents), and why keeping DRM/paywall bypass out of DriftFetch matters.
 
 ---
 
 ## 2. Patents: FFmpeg, gallery-dl and the rest
 
-### 2.1 What Current actually does with these tools
+### 2.1 What DriftFetch actually does with these tools
 
-- Current only ever **merges and probes**. The yt-dlp arguments contain `--merge-output-format mkv` and no recode, audio extraction, embedding or conversion options [code: `electron/engine.ts`]. yt-dlp merges with stream copy, so no video or audio is re-encoded in normal use.
-- **Update (same day as the first draft):** Current no longer ships a general FFmpeg. It ships its own **remux-only build** of FFmpeg n9.0.2 (`scripts/build-ffmpeg.sh`) with **no encoders, no decoders and no hardware-acceleration code**. `ffmpeg -decoders`, `-encoders` and `-hwaccels` list nothing, and `npm run release:check` refuses to pass otherwise [code]. What remains is container reading and writing, stream parsers (which read stream headers), bitstream filters and network protocols. Everything below that talks about "the shipped DLLs include codec implementations" describes the earlier BtbN build and is kept for the reasoning.
-- The earlier build was BtbN's LGPL shared FFmpeg `n9.0.2-22-g46d8f462ee`. It contained encoders and decoders (libopenh264, libopus, libmp3lame, libvpx, libaom, libsvtav1, libvvenc and others) even though Current never used them. The patent question for a distributor is mostly about what is shipped, not only what is used.
-- gallery-dl downloads image files over HTTP. FFmpeg is only an optional dependency for converting Pixiv "ugoira" animations, and only when its post-processor is configured [secondary: gallery-dl documentation]. Current starts it with `--config-ignore`, so that path is off [code]. gallery-dl implements no codec.
+- DriftFetch only ever **merges and probes**. The yt-dlp arguments contain `--merge-output-format mkv` and no recode, audio extraction, embedding or conversion options [code: `electron/engine.ts`]. yt-dlp merges with stream copy, so no video or audio is re-encoded in normal use.
+- **Update (same day as the first draft):** DriftFetch no longer ships a general FFmpeg. It ships its own **remux-only build** of FFmpeg n9.0.2 (`scripts/build-ffmpeg.sh`) with **no encoders, no decoders and no hardware-acceleration code**. `ffmpeg -decoders`, `-encoders` and `-hwaccels` list nothing, and `npm run release:check` refuses to pass otherwise [code]. What remains is container reading and writing, stream parsers (which read stream headers), bitstream filters and network protocols. Everything below that talks about "the shipped DLLs include codec implementations" describes the earlier BtbN build and is kept for the reasoning.
+- The earlier build was BtbN's LGPL shared FFmpeg `n9.0.2-22-g46d8f462ee`. It contained encoders and decoders (libopenh264, libopus, libmp3lame, libvpx, libaom, libsvtav1, libvvenc and others) even though DriftFetch never used them. The patent question for a distributor is mostly about what is shipped, not only what is used.
+- gallery-dl downloads image files over HTTP. FFmpeg is only an optional dependency for converting Pixiv "ugoira" animations, and only when its post-processor is configured [secondary: gallery-dl documentation]. DriftFetch starts it with `--config-ignore`, so that path is off [code]. gallery-dl implements no codec.
 
 ### 2.2 The facts about video-codec patents
 
@@ -56,7 +56,7 @@ Confidence tags: **[primary]** read on the project's or rights-holder's own page
 
 The pattern: projects that are not selling anything either rely on jurisdiction (VLC), leave decoding to the user (Audacity), or ship the tool and state that licensing belongs to whoever uses or distributes content (HandBrake). Nobody I found claims a clear safe harbour.
 
-### 2.4 Assessment for Current (analysis, not advice)
+### 2.4 Assessment for DriftFetch (analysis, not advice)
 
 | Component | Patent exposure | Why |
 | --- | --- | --- |
@@ -73,7 +73,7 @@ Jurisdiction matters a great deal (FFmpeg's own page says so). Where you live an
 | --- | --- | --- |
 | A. Keep the current LGPL build | Matches what many projects do; relies on low enforcement against free tools | None; keep the compliance steps below |
 | B. Build a **remux-only FFmpeg** (muxers, demuxers, parsers, bitstream filters, protocols; no encoders or decoders) | Ships no codec implementation, so most of the patent question disappears, and the binary is smaller (about 6 MB instead of about 170 MB) | **Done.** You must build and maintain FFmpeg yourself: `npm run ffmpeg:build` (WSL or Linux with mingw-w64), two small patches carried forward on every FFmpeg upgrade, and testing of new site types |
-| C. Download FFmpeg on first run with the user's consent, as Audacity does | Current would not distribute FFmpeg; the user obtains it from its publisher | Needs a download and verification step and an offline fallback; whether this changes your own liability is a legal question |
+| C. Download FFmpeg on first run with the user's consent, as Audacity does | DriftFetch would not distribute FFmpeg; the user obtains it from its publisher | Needs a download and verification step and an offline fallback; whether this changes your own liability is a legal question |
 | D. Take a Via LA licence | Clear cover for H.264 | Paperwork and possibly cost above the free threshold; does not cover other codecs |
 
 B is now in place. C or D remain available if a lawyer advises more caution.
@@ -85,15 +85,15 @@ Tested with the shipped binaries and, where stated, with yt-dlp itself (outputs 
 - Joining separate video and audio files into MKV or MP4: H.264+AAC (MP4+M4A), VP9+Opus (WebM), AV1+Opus. Passed.
 - MPEG-TS and HLS: H.264+AAC copied to MKV and to MP4 with `aac_adtstoasc`; local HLS playlists read directly. Passed after the two patches (without them AAC in TS has no sample rate and HLS has no picture size, because only a decoder fills them in).
 - yt-dlp end to end: a real YouTube video (AV1+Opus) merged to MKV; a local HLS stream through yt-dlp's native downloader plus its m3u8 fix-up, and through yt-dlp's FFmpeg downloader. All decoded cleanly.
-- Probing (`ffprobe`) of picture size and stream types, as Current does.
+- Probing (`ffprobe`) of picture size and stream types, as DriftFetch does.
 
 Known limits:
-- Anything that must **decode or re-encode** will fail: converting formats, extracting or converting audio, embedding thumbnails as converted images, burning subtitles, resizing. Current uses none of these. Adding such a feature later means shipping codecs again.
+- Anything that must **decode or re-encode** will fail: converting formats, extracting or converting audio, embedding thumbnails as converted images, burning subtitles, resizing. DriftFetch uses none of these. Adding such a feature later means shipping codecs again.
 - **HE-AAC** in ADTS (TS/HLS) reports its core sample rate, not the doubled rate a decoder would find. The stream data is copied unchanged, and the `aac_adtstoasc` filter writes the same core rate, so playback is unaffected in the cases tested.
 - FLV and similar millisecond-timestamp inputs show duplicate-timestamp warnings in a null-muxer check; the full FFmpeg produces the same warnings for the same input, so this is not new.
 - Sites or stream types I did not test (for example SAMPLE-AES HLS or unusual containers) may behave differently; the smoke suite and a few real downloads are the safety net, not an exhaustive test.
 
-### 2.6 FFmpeg's compliance checklist and where Current stands
+### 2.6 FFmpeg's compliance checklist and where DriftFetch stands
 
 From ffmpeg.org/legal.html [primary]:
 
@@ -113,9 +113,9 @@ From ffmpeg.org/legal.html [primary]:
 
 ## 3. Other legal areas this raised (not researched in depth)
 
-- **Circumvention law (DMCA section 1201 and equivalents).** The main legal theory used against downloaders. Keep DRM and paywall bypass out of Current, keep the DRM refusal message, and review contributions and extensions.
-- **Site terms of service and copyright.** Users, not Current, decide what to download; the privacy note and first-launch dialog say so, and the installer page repeats it.
-- **Privacy law.** Current collects nothing itself, so there is no controller relationship to document, but the clipboard monitor, saved sign-ins and the Chrome cookie option are worth describing accurately, which the privacy note does. If you add any online service, update, report or account, the note and this analysis change.
+- **Circumvention law (DMCA section 1201 and equivalents).** The main legal theory used against downloaders. Keep DRM and paywall bypass out of DriftFetch, keep the DRM refusal message, and review contributions and extensions.
+- **Site terms of service and copyright.** Users, not DriftFetch, decide what to download; the privacy note and first-launch dialog say so, and the installer page repeats it.
+- **Privacy law.** DriftFetch collects nothing itself, so there is no controller relationship to document, but the clipboard monitor, saved sign-ins and the Chrome cookie option are worth describing accurately, which the privacy note does. If you add any online service, update, report or account, the note and this analysis change.
 - **Names and trademarks.** Deferred at your request.
 
 ## Sources

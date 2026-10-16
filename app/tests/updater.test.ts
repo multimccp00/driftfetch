@@ -47,7 +47,7 @@ async function sign(text: string, key: Awaited<ReturnType<typeof makeKey>>) {
 }
 
 function engine() {
-  const p = fs.mkdtempSync(path.join(os.tmpdir(), "current-update-"));
+  const p = fs.mkdtempSync(path.join(os.tmpdir(), "driftfetch-update-"));
   paths.push(p);
   const e = new Engine(p, p, () => {});
   e.signingKey = trustedKey.trusted;
@@ -195,7 +195,7 @@ describe("bundled engine refresh", () => {
     expect(needsBundledEngine("2026.08.19", undefined)).toBe(false);
   });
   it("replaces an older installed yt-dlp and removes stale copies of the other tools", async () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "current-init-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "driftfetch-init-"));
     paths.push(dir);
     const installed = path.join(dir, "engines"),
       bundled = path.join(dir, "bundled");

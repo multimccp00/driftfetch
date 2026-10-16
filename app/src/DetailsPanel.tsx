@@ -265,7 +265,7 @@ export function DetailsPanel({
         b(
           <FolderOpen size={15} />,
           "Locate file",
-          () => void execute(() => window.current.locateFile(detail.id)),
+          () => void execute(() => window.driftfetch.locateFile(detail.id)),
           "primary",
         ),
         again,
@@ -280,7 +280,7 @@ export function DetailsPanel({
         b(
           <ExternalLink size={15} />,
           `Open ${detail.source}`,
-          () => void execute(() => window.current.openSource(detail.id)),
+          () => void execute(() => window.driftfetch.openSource(detail.id)),
         ),
       ];
     }
@@ -347,7 +347,7 @@ export function DetailsPanel({
               `Sign in to ${detail.source}`,
               () =>
                 void execute(
-                  () => window.current.browserSession(detail.source),
+                  () => window.driftfetch.browserSession(detail.source),
                   "Session saved. Retry the download when you are ready.",
                 ),
               "primary",
@@ -363,7 +363,7 @@ export function DetailsPanel({
           b(
             <ExternalLink size={15} />,
             "Open source page",
-            () => void execute(() => window.current.openSource(detail.id)),
+            () => void execute(() => window.driftfetch.openSource(detail.id)),
           ),
         );
         break;
@@ -372,13 +372,13 @@ export function DetailsPanel({
           b(
             <Play size={15} />,
             "Open file",
-            () => void execute(() => window.current.openFile(detail.id)),
+            () => void execute(() => window.driftfetch.openFile(detail.id)),
             "primary",
           ),
           b(
             <FolderOpen size={15} />,
             "Open folder",
-            () => void execute(() => window.current.openFolder(detail.id)),
+            () => void execute(() => window.driftfetch.openFolder(detail.id)),
           ),
           again,
         );
@@ -572,7 +572,7 @@ export function DetailsPanel({
                   )
                 }
                 onClick={() =>
-                  void execute(() => window.current.refreshFormats(detail.id))
+                  void execute(() => window.driftfetch.refreshFormats(detail.id))
                 }
               >
                 {detail.refreshing ? "Checking formats…" : "Recheck formats"}
@@ -617,7 +617,7 @@ export function DetailsPanel({
                     className={`radio-row ${on ? "on" : ""}`}
                     onClick={() =>
                       void execute(() =>
-                        window.current.setFormat(detail.id, option.value),
+                        window.driftfetch.setFormat(detail.id, option.value),
                       )
                     }
                   >
@@ -685,7 +685,7 @@ export function DetailsPanel({
           className="btn"
           onClick={() =>
             void execute(
-              () => window.current.copyDiagnostic(detail.id),
+              () => window.driftfetch.copyDiagnostic(detail.id),
               "Diagnostic report copied. URLs, titles, file paths, and credentials are omitted.",
             )
           }

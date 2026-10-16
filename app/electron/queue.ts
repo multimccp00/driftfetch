@@ -228,7 +228,8 @@ export class Queue {
       )
         this.save(other, {
           ...patch,
-          failureStage: other.status === "resolving" ? "extraction" : "download",
+          failureStage:
+            other.status === "resolving" ? "extraction" : "download",
         });
     if (first) this.onHold?.(source, minutes);
   }
@@ -252,7 +253,7 @@ export class Queue {
       checkedEngineVersion: this.engine.info.version,
       error: raw.includes("FFmpeg unavailable")
         ? "FFmpeg is missing. Reinstall DriftFetch to restore the bundled tools."
-        : raw.includes("CURRENT_LOW_SPACE")
+        : raw.includes("DRIFTFETCH_LOW_SPACE")
           ? "Not enough free space to safely start this download. Free up space on the destination drive, then retry."
           : friendlyError(raw),
       retryCount: delay ? attempts + 1 : attempts,
@@ -398,7 +399,7 @@ export class Queue {
         token.process = this.engine.probe(url, auth.args);
         const result = await token.process.done;
         if (token.stop) return;
-        if (result.timedOut) throw new Error("CURRENT_TIMEOUT");
+        if (result.timedOut) throw new Error("DRIFTFETCH_TIMEOUT");
         if (result.code !== 0) throw new Error(result.stderr);
         const metadata = metadataJob(
           JSON.parse(result.stdout),
@@ -684,7 +685,7 @@ export class Queue {
         : { code: 1, stdout: "", stderr: "", timedOut: false };
       if (token.stop) return;
       controller.signal.throwIfAborted();
-      if (result.timedOut) throw new Error("CURRENT_TIMEOUT");
+      if (result.timedOut) throw new Error("DRIFTFETCH_TIMEOUT");
       let extractionError: unknown = galleryError || result.stderr;
       // A story link to a photo story makes yt-dlp print null (it lists videos only).
       const info = result.code === 0 ? JSON.parse(result.stdout) : undefined;
@@ -713,7 +714,7 @@ export class Queue {
           throw new Error(
             /rate limit|\b429\b/i.test(listed.stderr)
               ? listed.stderr
-              : "CURRENT_TIMEOUT",
+              : "DRIFTFETCH_TIMEOUT",
           );
         // A recognized image source can fail on access even though yt-dlp
         // only reports an unsupported URL. Keep the relevant engine's error.
@@ -734,7 +735,7 @@ export class Queue {
           metadata = media;
         // gallery-dl only warns when the post or its media were removed.
         if (!media && /: deleted\s*$|\bremoved\b/im.test(listed?.stderr || ""))
-          extractionError = new Error("CURRENT_REMOVED");
+          extractionError = new Error("DRIFTFETCH_REMOVED");
         // A post that only links elsewhere (RedGIFs, Imgur, ...) makes gallery-dl
         // hand the link on instead of listing files. One link is looked up at its
         // own site; several become a list to choose from.
@@ -748,7 +749,7 @@ export class Queue {
           await targetAuth.cleanup().catch(() => {});
           if (token.stop) return;
           controller.signal.throwIfAborted();
-          if (probed.timedOut) throw new Error("CURRENT_TIMEOUT");
+          if (probed.timedOut) throw new Error("DRIFTFETCH_TIMEOUT");
           const info =
             probed.code === 0 ? JSON.parse(probed.stdout) : undefined;
           if (info) metadata = metadataJob(info, target);
@@ -778,7 +779,7 @@ export class Queue {
             String(extractionError),
           )
         )
-          extractionError = new Error("CURRENT_NOTHING_READ");
+          extractionError = new Error("DRIFTFETCH_NOTHING_READ");
       }
       if (!metadata)
         throw extractionError instanceof Error
@@ -818,7 +819,7 @@ export class Queue {
       if (!token.stop)
         this.fail(
           job,
-          expired ? new Error("CURRENT_TIMEOUT") : err,
+          expired ? new Error("DRIFTFETCH_TIMEOUT") : err,
           "extraction",
         );
     } finally {
@@ -862,7 +863,7 @@ export class Queue {
         .filter((r) => r.disk === directory.dev)
         .reduce((sum, r) => sum + r.bytes, 0);
       if (disk.bavail * disk.bsize - reserved < needed)
-        throw new Error("CURRENT_LOW_SPACE");
+        throw new Error("DRIFTFETCH_LOW_SPACE");
       this.reservations.set(job.id, { disk: directory.dev, bytes: needed });
       const sourceUrl = job.resolvedUrl || job.originalUrl;
       if (
@@ -871,7 +872,7 @@ export class Queue {
           ?.list()
           .some((e) => e.id === job.extensionId && e.enabled)
       )
-        throw new Error("CURRENT_EXTENSION_REQUIRED");
+        throw new Error("DRIFTFETCH_EXTENSION_REQUIRED");
       auth = await this.sessions.argumentsFor(sourceUrl);
       if (job.imageSearch && this.extensions) {
         const hidden = await hideSecretOptions(
@@ -917,8 +918,8 @@ export class Queue {
       token.process = this.engine.download(job, auth.args, (line) => {
         if (token.stop) return;
         try {
-          if (line.startsWith("CURRENT_PROGRESS:")) {
-            const p = JSON.parse(line.slice(17));
+          if (line.startsWith("DRIFTFETCH_PROGRESS:")) {
+            const p = JSON.parse(line.slice("DRIFTFETCH_PROGRESS:".length));
             const downloaded = Number(p.downloaded_bytes) || 0;
             const total = Number(p.total_bytes || p.total_bytes_estimate) || 0;
             const status =
@@ -941,9 +942,9 @@ export class Queue {
               },
               persist,
             );
-          } else if (line.startsWith("CURRENT_FILE:")) {
+          } else if (line.startsWith("DRIFTFETCH_FILE:")) {
             const reported = reportedDownloadFile(
-              JSON.parse(line.slice(13)),
+              JSON.parse(line.slice("DRIFTFETCH_FILE:".length)),
               job.targetDir!,
             );
             if (reported) {
@@ -953,12 +954,14 @@ export class Queue {
                 filesSaved: savedPaths.size,
               });
             }
-          } else if (line.startsWith("CURRENT_FORMAT_ID:")) {
-            const formatId = JSON.parse(line.slice(18));
+          } else if (line.startsWith("DRIFTFETCH_FORMAT_ID:")) {
+            const formatId = JSON.parse(
+              line.slice("DRIFTFETCH_FORMAT_ID:".length),
+            );
             if (typeof formatId === "string")
               this.save(job, { actualFormatId: formatId.slice(0, 160) });
-          } else if (line.startsWith("CURRENT_FORMAT:")) {
-            const height = JSON.parse(line.slice(15));
+          } else if (line.startsWith("DRIFTFETCH_FORMAT:")) {
+            const height = JSON.parse(line.slice("DRIFTFETCH_FORMAT:".length));
             if (height) this.save(job, { quality: `${height}p` });
           }
         } catch {
@@ -967,7 +970,7 @@ export class Queue {
       });
       const result = await token.process.done;
       if (token.stop) return;
-      if (result.timedOut) throw new Error("CURRENT_TIMEOUT");
+      if (result.timedOut) throw new Error("DRIFTFETCH_TIMEOUT");
       if (job.collectionKind === "images" || expectedFiles !== undefined) {
         this.save(job, { status: "processing" });
         let verifiedFiles = 0;
@@ -984,15 +987,15 @@ export class Queue {
           ),
         });
         if (result.code === 0 && (job.missingFiles || 0) > 0)
-          throw new Error("CURRENT_INCOMPLETE_FILES");
+          throw new Error("DRIFTFETCH_INCOMPLETE_FILES");
         if (result.code === 0 && incompleteCollection(job))
-          throw new Error("CURRENT_INCOMPLETE_DISCOVERY");
+          throw new Error("DRIFTFETCH_INCOMPLETE_DISCOVERY");
       }
       const profile = job.linkType === "profile";
       // An archive can mean no new files, but any engine error is still a failure.
       if (result.code !== 0) throw new Error(result.stderr);
       if (job.imageSearch && !job.filePath)
-        throw new Error("CURRENT_NO_IMAGES");
+        throw new Error("DRIFTFETCH_NO_IMAGES");
       if (profile && !job.filePath) {
         this.save(job, {
           status: "completed",
@@ -1129,7 +1132,9 @@ export class Queue {
         ["review", "paused", "failed", "cancelled"].includes(job.status)
       ) {
         // Retry is the user's "keep going": lift the pause for this source.
-        this.cooldowns.delete(this.siteOf(job.source || domainOf(job.originalUrl)));
+        this.cooldowns.delete(
+          this.siteOf(job.source || domainOf(job.originalUrl)),
+        );
         this.save(job, {
           status: job.mediaKey ? "queued" : "resolving",
           startRequested: !job.mediaKey,

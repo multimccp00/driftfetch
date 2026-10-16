@@ -67,4 +67,4 @@ const api: DesktopAPI = {
     return () => ipcRenderer.removeListener("state", handler);
   },
 };
-contextBridge.exposeInMainWorld("current", api);
+contextBridge.exposeInMainWorld("driftfetch", api);

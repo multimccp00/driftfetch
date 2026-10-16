@@ -182,14 +182,14 @@ export function JobList({
     details,
     collection,
     act: (ids, action) => void act(ids, action),
-    openFolder: (id) => void execute(() => window.current.openFolder(id)),
-    openFile: (id) => void execute(() => window.current.openFile(id)),
-    openSource: (id) => void execute(() => window.current.openSource(id)),
+    openFolder: (id) => void execute(() => window.driftfetch.openFolder(id)),
+    openFile: (id) => void execute(() => window.driftfetch.openFile(id)),
+    openSource: (id) => void execute(() => window.driftfetch.openSource(id)),
     dragStart: (id) => setDragged(id),
     dragEnd: () => setDragged(undefined),
     drop: (targetId, after) => {
       if (dragged)
-        void execute(() => window.current.reorder(dragged, targetId, after));
+        void execute(() => window.driftfetch.reorder(dragged, targetId, after));
       setDragged(undefined);
     },
   };
@@ -313,7 +313,7 @@ export function JobList({
             <button
               className="btn sm"
               onClick={() =>
-                void execute(() => window.current.checkFiles(), "Files checked")
+                void execute(() => window.driftfetch.checkFiles(), "Files checked")
               }
             >
               <RefreshCw size={14} />
@@ -324,7 +324,7 @@ export function JobList({
               disabled={!derived.hasFinished}
               onClick={() =>
                 void execute(
-                  () => window.current.exportHistory(selected),
+                  () => window.driftfetch.exportHistory(selected),
                   selected.length
                     ? "Selected history exported."
                     : "History exported.",
@@ -544,8 +544,8 @@ export function JobList({
                     setClearing(true);
                     try {
                       await (confirm === "history"
-                        ? window.current.clearHistory()
-                        : window.current.clearDownloads());
+                        ? window.driftfetch.clearHistory()
+                        : window.driftfetch.clearDownloads());
                       setSelected([]);
                       setConfirm(undefined);
                     } finally {

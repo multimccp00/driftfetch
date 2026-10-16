@@ -21,7 +21,7 @@ const result = await build({
   write: false,
 });
 // One level up, so every built file sits together and the picker needs no subfolder.
-const output = path.join(path.dirname(directory), `${manifest.id}.current-extension`);
+const output = path.join(path.dirname(directory), `${manifest.id}.driftfetch-extension`);
 await fs.writeFile(
   output,
   JSON.stringify({ manifest, code: result.outputFiles[0].text }),

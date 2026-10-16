@@ -81,7 +81,7 @@ export function ReviewQueue({
           disabled={!ids.length}
           onClick={() =>
             execute(async () => {
-              await window.current.action(ids, "start");
+              await window.driftfetch.action(ids, "start");
               setSelected([]);
             })
           }
@@ -166,7 +166,7 @@ export function ReviewQueue({
                     value={job.selectedFormatId || ""}
                     onChange={(e) =>
                       execute(() =>
-                        window.current.setFormat(job.id, e.target.value),
+                        window.driftfetch.setFormat(job.id, e.target.value),
                       )
                     }
                   >
@@ -185,7 +185,7 @@ export function ReviewQueue({
                   className="btn sm"
                   disabled={job.refreshing}
                   onClick={() =>
-                    execute(() => window.current.refreshFormats(job.id))
+                    execute(() => window.driftfetch.refreshFormats(job.id))
                   }
                 >
                   {job.refreshing ? "Checking…" : "Recheck formats"}

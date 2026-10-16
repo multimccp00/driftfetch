@@ -8,7 +8,7 @@ import { reportedDownloadFile } from "../electron/download-files";
 import type { Job } from "../src/shared";
 
 const engineDirectory = path.resolve(
-  process.env.CURRENT_TEST_ENGINE_DIR || "resources/engines",
+  process.env.DRIFTFETCH_TEST_ENGINE_DIR || "resources/engines",
 );
 
 // Use the real bundled engine: mocked queue workers cannot catch filename
@@ -86,8 +86,8 @@ it
         `downloader.http.headers.Referer=${expectedReferer}`,
       ];
       worker = engine.download(job, auth, (line) => {
-        if (line.startsWith("CURRENT_FILE:"))
-          saved.push(JSON.parse(line.slice(13)));
+        if (line.startsWith("DRIFTFETCH_FILE:"))
+          saved.push(JSON.parse(line.slice("DRIFTFETCH_FILE:".length)));
       });
       const result = await worker.done;
       expect(result.code, result.stderr).toBe(0);
@@ -101,8 +101,8 @@ it
       }
       const retried: string[] = [];
       worker = engine.download(job, auth, (line) => {
-        if (line.startsWith("CURRENT_FILE:"))
-          retried.push(JSON.parse(line.slice(13)));
+        if (line.startsWith("DRIFTFETCH_FILE:"))
+          retried.push(JSON.parse(line.slice("DRIFTFETCH_FILE:".length)));
       });
       const retry = await worker.done;
       expect(retry.code, retry.stderr).toBe(0);
@@ -118,7 +118,7 @@ it
         },
         [],
         (line) => {
-          if (line.startsWith("CURRENT_FILE:")) denied.push(line);
+          if (line.startsWith("DRIFTFETCH_FILE:")) denied.push(line);
         },
       );
       const blocked = await worker.done;
@@ -127,7 +127,7 @@ it
       expect(denied).toEqual([]);
       expect(
         (await fs.readdir(destination)).some((file) =>
-          file.startsWith(".current-gallery-"),
+          file.startsWith(".driftfetch-gallery-"),
         ),
       ).toBe(false);
     } finally {

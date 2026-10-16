@@ -106,7 +106,7 @@ export class ClipboardTracker {
     // Clipboard capture accepts a URL or URL list, never URLs buried in private prose.
     if (!parts.length || parts.some((p) => !normalizeUrl(p))) return [];
     // Test builds serve fixtures from 127.0.0.1.
-    const allowPrivate = process.env.CURRENT_ALLOW_LOCAL_CLIPBOARD === "1";
+    const allowPrivate = process.env.DRIFTFETCH_ALLOW_LOCAL_CLIPBOARD === "1";
     return parseLinks(text).filter(
       (url) => !isSensitiveLink(url, allowPrivate),
     );
@@ -365,19 +365,19 @@ export function redditFeed(url: string): string | undefined {
   return `reddit_${/^r$/i.test(m[1]) ? "" : "u_"}${m[2]}`;
 }
 export function friendlyError(raw: string): string {
-  if (/CURRENT_EXTENSION_REQUIRED/.test(raw))
+  if (/DRIFTFETCH_EXTENSION_REQUIRED/.test(raw))
     return "The extension for this collection is disabled or missing. Enable it in Settings → Advanced → Extensions and retry.";
-  if (/CURRENT_INCOMPLETE_FILES/.test(raw))
+  if (/DRIFTFETCH_INCOMPLETE_FILES/.test(raw))
     return "The collection is incomplete: some selected files could not be verified on disk. Saved files are kept. Retry to check or download the missing files.";
-  if (/CURRENT_INCOMPLETE_DISCOVERY/.test(raw))
+  if (/DRIFTFETCH_INCOMPLETE_DISCOVERY/.test(raw))
     return "The collection could not be fully read. Check the source counts and pagination details. Saved files are kept. Use Download again for a fresh lookup.";
-  if (/CURRENT_REMOVED/.test(raw))
+  if (/DRIFTFETCH_REMOVED/.test(raw))
     return "This post or its media was removed or deleted at the source, so nothing is left to download.";
-  if (/CURRENT_NOTHING_READ/.test(raw))
+  if (/DRIFTFETCH_NOTHING_READ/.test(raw))
     return "Nothing could be read from this link. The content may be gone (stories expire after a day), the saved login may have lapsed, or the site may have changed and a tool needs updating. Check that the link still opens in your browser, refresh the login in Settings → Sites & sign-ins if it does, then retry.";
-  if (/CURRENT_NO_IMAGES/.test(raw))
+  if (/DRIFTFETCH_NO_IMAGES/.test(raw))
     return "No accessible original files were found for this image search. Check the tags and source access, then retry.";
-  if (/CURRENT_TIMEOUT/i.test(raw))
+  if (/DRIFTFETCH_TIMEOUT/i.test(raw))
     return "The source took too long to respond. Check your connection or source access, then retry.";
   if (
     /session unavailable|decrypt|cookie database|cookies database|could not copy|DPAPI|CryptUnprotectData/i.test(

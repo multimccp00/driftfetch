@@ -13,7 +13,7 @@ import {
 } from "electron";
 import path from "node:path";
 import fs from "node:fs/promises";
-import { existsSync, renameSync, rmSync, watch, type FSWatcher } from "node:fs";
+import { existsSync, watch, type FSWatcher } from "node:fs";
 import { pathToFileURL } from "node:url";
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
@@ -46,7 +46,7 @@ import {
 import type { Job, Settings, Snapshot, VideoFormat } from "../src/shared";
 
 // Explicit troubleshooting option; normal launches use Electron's graphics defaults.
-if (process.env.CURRENT_SOFTWARE_RENDERING === "1")
+if (process.env.DRIFTFETCH_SOFTWARE_RENDERING === "1")
   app.disableHardwareAcceleration();
 app.setName("DriftFetch");
 // The portable build unpacks itself to a temporary folder on every start.
@@ -54,39 +54,11 @@ app.setName("DriftFetch");
 // (nothing in %APPDATA%), and point autostart and shortcuts at the real file.
 const portableDir = process.env.PORTABLE_EXECUTABLE_DIR;
 const launcher = process.env.PORTABLE_EXECUTABLE_FILE || process.execPath;
-if (process.env.CURRENT_USER_DATA)
-  app.setPath("userData", path.resolve(process.env.CURRENT_USER_DATA));
+if (process.env.DRIFTFETCH_USER_DATA)
+  app.setPath("userData", path.resolve(process.env.DRIFTFETCH_USER_DATA));
 else if (portableDir)
   app.setPath("userData", path.join(portableDir, "DriftFetch data"));
-else {
-  // Builds before the rename were called Current and kept everything in
-  // %APPDATA%\Current. Move it once so sign-ins, history and settings carry
-  // over; if the old app still holds it, keep using it for this run.
-  const appData = app.getPath("appData");
-  const legacy = path.join(appData, "Current");
-  const renamed = path.join(appData, "DriftFetch");
-  const legacyData = existsSync(path.join(legacy, "current.sqlite"));
-  if (!existsSync(renamed) && legacyData)
-    try {
-      renameSync(legacy, renamed);
-    } catch {
-      app.setPath("userData", legacy);
-    }
-  else if (legacyData)
-    // Both folders exist, so the old one is a stale copy this app never reads.
-    // Drop its sign-ins (cookie stores and temporary cookie files); history stays.
-    for (const part of [
-      "Partitions",
-      "temporary-sessions",
-      path.join("Network", "Cookies"),
-      path.join("Network", "Cookies-journal"),
-    ])
-      try {
-        rmSync(path.join(legacy, part), { recursive: true, force: true });
-      } catch {
-        // Locked by a still-running old build; try again next start.
-      }
-}
+
 let window: BrowserWindow | undefined,
   tray: Tray | undefined,
   queue: Queue | undefined,
@@ -105,7 +77,7 @@ let backupBusy = false;
 const completionTracker = new CompletionTracker();
 const collectionPreviews = new CollectionPreviews();
 let folderWatcher: FSWatcher | undefined;
-const devUrl = !app.isPackaged ? process.env.CURRENT_DEV_URL : undefined;
+const devUrl = !app.isPackaged ? process.env.DRIFTFETCH_DEV_URL : undefined;
 // History only grows, so finished jobs go to the renderer without their bulky
 // format and entry lists; the details dialog fetches the full job on demand.
 // qualityWarning still reads each format's id and height, so keep those.
@@ -174,7 +146,7 @@ function changed() {
 }
 function showWindow() {
   // Automated runs keep the window off-screen and never take focus.
-  if (window && process.env.CURRENT_BACKGROUND === "1") {
+  if (window && process.env.DRIFTFETCH_BACKGROUND === "1") {
     window.showInactive();
     return;
   }
@@ -281,7 +253,7 @@ function handle(channel: string, handler: (...args: any[]) => any) {
 async function init() {
   const userData = app.getPath("userData");
   await fs.mkdir(userData, { recursive: true });
-  store = new Store(path.join(userData, "current.sqlite"));
+  store = new Store(path.join(userData, "driftfetch.sqlite"));
   sessions = new Sessions(store, path.join(userData, "temporary-sessions"));
   extensions = new Extensions(
     path.join(userData, "extensions"),
@@ -321,7 +293,7 @@ async function init() {
   // queue's first pump is a tick away and waits while the engine is busy.
   if (
     queue.settings.autoUpdateEngines &&
-    process.env.CURRENT_NO_ENGINE_UPDATE !== "1"
+    process.env.DRIFTFETCH_NO_ENGINE_UPDATE !== "1"
   )
     void engine
       .update()
@@ -352,7 +324,9 @@ async function init() {
     height: 880,
     minWidth: 1020,
     minHeight: 680,
-    ...(process.env.CURRENT_BACKGROUND === "1" ? { x: -32000, y: -32000 } : {}),
+    ...(process.env.DRIFTFETCH_BACKGROUND === "1"
+      ? { x: -32000, y: -32000 }
+      : {}),
     frame: false,
     backgroundColor: "#0b0e17",
     title: "DriftFetch",
@@ -425,9 +399,9 @@ async function init() {
       if (action === "export") {
         const result = await dialog.showSaveDialog(window!, {
           title: "Save encrypted DriftFetch backup",
-          defaultPath: `DriftFetch-${new Date().toISOString().slice(0, 10)}.currentbackup`,
+          defaultPath: `DriftFetch-${new Date().toISOString().slice(0, 10)}.driftfetch-backup`,
           filters: [
-            { name: "DriftFetch backup", extensions: ["currentbackup"] },
+            { name: "DriftFetch backup", extensions: ["driftfetch-backup"] },
           ],
         });
         if (result.canceled || !result.filePath) return "Backup cancelled";
@@ -448,7 +422,9 @@ async function init() {
       const result = await dialog.showOpenDialog(window!, {
         title: "Restore DriftFetch backup",
         properties: ["openFile"],
-        filters: [{ name: "DriftFetch backup", extensions: ["currentbackup"] }],
+        filters: [
+          { name: "DriftFetch backup", extensions: ["driftfetch-backup"] },
+        ],
       });
       if (result.canceled || !result.filePaths[0]) return "Restore cancelled";
       const file = result.filePaths[0];
@@ -817,7 +793,7 @@ async function init() {
       defaultPath,
       properties: ["openFile"],
       filters: [
-        { name: "DriftFetch extension", extensions: ["current-extension"] },
+        { name: "DriftFetch extension", extensions: ["driftfetch-extension"] },
       ],
     });
     if (chosen.canceled || !chosen.filePaths[0]) return false;
@@ -952,7 +928,7 @@ async function init() {
     path.join(userData, "running-version.json"),
     JSON.stringify({ version: app.getVersion() }),
   );
-  if (app.isPackaged && !process.env.CURRENT_USER_DATA) {
+  if (app.isPackaged && !process.env.DRIFTFETCH_USER_DATA) {
     try {
       createShortcut();
     } catch {

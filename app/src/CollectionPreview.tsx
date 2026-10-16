@@ -71,7 +71,7 @@ export function CollectionPreview({
         if (requested.current.has(entry.id)) continue;
         requested.current.add(entry.id);
         mine.add(entry.id);
-        const data = await window.current
+        const data = await window.driftfetch
           .previewCollectionEntry(job.id, entry.id)
           .catch(() => null);
         if (stopped) return;
@@ -83,7 +83,7 @@ export function CollectionPreview({
     return () => {
       stopped = true;
       for (const id of mine) requested.current.delete(id);
-      void window.current.cancelCollectionPreviews(job.id).catch(() => {});
+      void window.driftfetch.cancelCollectionPreviews(job.id).catch(() => {});
     };
   }, [job.id, visible]);
   // Escape leaves the enlarged image, not the whole dialog.

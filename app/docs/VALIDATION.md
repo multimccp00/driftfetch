@@ -1,4 +1,4 @@
-# Current 0.1.0 validation
+# DriftFetch 0.1.0 validation
 
 The Windows x64 NSIS installer completed successfully with exit code 0. Its installed executable passed the full smoke suite with PATH restricted to Windows system directories, using isolated application data and generated non-explicit media.
 
@@ -8,7 +8,7 @@ The Windows x64 NSIS installer completed successfully with exit code 0. Its inst
 - Automated behavioral tests: 32 passed across core behavior, queue scheduling, cookie isolation, and engine update/rollback.
 - Installed-app end-to-end checks: 12 passed; no renderer exceptions.
 - Dependency audit: zero known vulnerabilities at build time.
-- Installer: `release/Current-Setup-0.1.0-x64.exe`, 185,951,256 bytes.
+- Installer: `release/DriftFetch-Setup-0.1.0-x64.exe`, 185,951,256 bytes.
 - Installer SHA-256: `f156ba1bc81e3ae2d05371de1fe5a4a9505ff3ab6bde3e26c0bb261f22a9f435`.
 - Signing: unsigned personal build.
 
@@ -27,7 +27,7 @@ The Windows x64 NSIS installer completed successfully with exit code 0. Its inst
 11. Restart recovery of interrupted transfers while preserving manual pauses.
 12. Close-to-tray behavior, explicit quit, and persisted settings/history.
 
-See `installed-smoke-report.json` for the machine-readable record and `current-preview.png` for the installed application's appearance. The temporary validation installation was removed after testing; the distributable installer and unpacked build remain in `release`.
+See `installed-smoke-report.json` for the machine-readable record and `driftfetch-preview.png` for the installed application's appearance. The temporary validation installation was removed after testing; the distributable installer and unpacked build remain in `release`.
 
 ## Limits of this verification
 

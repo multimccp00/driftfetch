@@ -124,8 +124,8 @@ it("rejects malformed authenticated backup entries before they reach the databas
   ).rejects.toThrow("Invalid download");
 });
 it("preserves a corrupt database and starts with a clean local store", () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "current-corrupt-"));
-  const file = path.join(dir, "current.sqlite");
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "driftfetch-corrupt-"));
+  const file = path.join(dir, "driftfetch.sqlite");
   fs.writeFileSync(file, "not a sqlite database");
   const store = new Store(file);
   expect(store.recoveredDatabase).toBeTruthy();
@@ -188,7 +188,7 @@ it("keeps backups small by dropping fields restore never reads", async () => {
   expect(big.length).toBe(plain.length);
 });
 it("runs schema migrations once and records the version", () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "current-migrate-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "driftfetch-migrate-"));
   const file = path.join(dir, "old.sqlite");
   const old = new DatabaseSync(file);
   old.exec(

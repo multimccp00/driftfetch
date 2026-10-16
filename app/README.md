@@ -73,7 +73,7 @@ Refresh expired sessions and retry affected downloads. DRM decryption and access
 
 Settings → Advanced → Download engine downloads yt-dlp from its official GitHub release, checks that the release's checksum list is signed by the yt-dlp maintainers' PGP key built into DriftFetch (fingerprint `AC0C BBE6 848D 6A87 3464 AF4E 57CF 6593 3B5A 7581`), checks the executable against that list, validates the executable, and retains the previous version for rollback. Active extraction and downloads must finish or be paused before an update. FFmpeg, FFprobe, Deno and gallery-dl run from the install folder and are updated by installing a newer DriftFetch build. The bundled yt-dlp replaces an older installed copy when a new build is first launched.
 
-Data lives under Electron's per-user `DriftFetch` application-data directory: `current.sqlite`, `engines`, and `temporary-sessions`. There is no cloud service or telemetry. `CURRENT_USER_DATA` is available for isolated testing; normal runs use the default per-user location.
+Data lives under Electron's per-user `DriftFetch` application-data directory: `driftfetch.sqlite`, `engines`, and `temporary-sessions`. There is no cloud service or telemetry. `DRIFTFETCH_USER_DATA` is available for isolated testing; normal runs use the default per-user location.
 
 ## Development
 
@@ -95,9 +95,9 @@ npm run package    # Windows x64 NSIS installer and unpacked application
 npm run release:check # verify bundled binaries and required notices
 ```
 
-To test the installed or packaged app, set `CURRENT_PACKAGED_EXE` to its absolute executable path and run `npm run test:smoke`. The harness isolates application data and restricts the app's PATH to Windows system directories so downloads cannot rely on development tools. It restores the clipboard text after testing. Reports and screenshots are written to `test-results/smoke-*/`.
+To test the installed or packaged app, set `DRIFTFETCH_PACKAGED_EXE` to its absolute executable path and run `npm run test:smoke`. The harness isolates application data and restricts the app's PATH to Windows system directories so downloads cannot rely on development tools. It restores the clipboard text after testing. Reports and screenshots are written to `test-results/smoke-*/`.
 
-If another copy of DriftFetch is watching your clipboard, set `CURRENT_SMOKE_NO_CLIPBOARD=1`. The harness then uses manual intake, disables clipboard watching only in its isolated test instance, and never changes your clipboard.
+If another copy of DriftFetch is watching your clipboard, set `DRIFTFETCH_SMOKE_NO_CLIPBOARD=1`. The harness then uses manual intake, disables clipboard watching only in its isolated test instance, and never changes your clipboard.
 
 The real-engine smoke test covers redirects, HTML video extraction, ambiguous quality labels and measured 1080p output, duplicate identity, manual queueing, collection selection, unsupported pages, quality-capped DASH merging, range-based pause/resume, authenticated cookie import/encryption/cleanup, settings persistence, and tray behavior. No explicit media or real account credentials are used. Disk-full/network/permission diagnostics are tested through controlled errors rather than filling the user's disk or interrupting their network.
 

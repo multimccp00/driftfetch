@@ -11,7 +11,7 @@ for (let i = 0; i < 100; i++) {
   } catch {}
   await new Promise((r) => setTimeout(r, 100));
 }
-const env = { ...process.env, CURRENT_DEV_URL: "http://127.0.0.1:5173" };
+const env = { ...process.env, DRIFTFETCH_DEV_URL: "http://127.0.0.1:5173" };
 delete env.ELECTRON_RUN_AS_NODE;
 const app = spawn(require("electron"), ["."], { stdio: "inherit", env });
 app.on("exit", () => {

@@ -148,7 +148,7 @@ try {
     window.previewCancellations = [];
     window.downloadSelection = undefined;
     window.savedFixture = undefined;
-    window.current = {
+    window.driftfetch = {
       snapshot: async () => structuredClone(state),
       previewCollectionEntry: async (id, entryId) => {
         window.previewRequests.push(entryId);

@@ -227,11 +227,11 @@ if (!(await valid("deno.exe"))) {
       "-NoProfile",
       "-NonInteractive",
       "-Command",
-      "Expand-Archive -LiteralPath $env:CURRENT_ZIP -DestinationPath $env:CURRENT_EXTRACT -Force",
+      "Expand-Archive -LiteralPath $env:DRIFTFETCH_ZIP -DestinationPath $env:DRIFTFETCH_EXTRACT -Force",
     ],
     {
       windowsHide: true,
-      env: { ...process.env, CURRENT_ZIP: zip, CURRENT_EXTRACT: extracted },
+      env: { ...process.env, DRIFTFETCH_ZIP: zip, DRIFTFETCH_EXTRACT: extracted },
       timeout: 180000,
     },
   );

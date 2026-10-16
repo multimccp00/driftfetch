@@ -24,7 +24,7 @@ afterEach(async () => {
 });
 async function registry() {
   const dir = await fs.mkdtemp(
-    path.join(os.tmpdir(), "current-extension-test-"),
+    path.join(os.tmpdir(), "driftfetch-extension-test-"),
   );
   directories.push(dir);
   const extensions = new Extensions(dir);

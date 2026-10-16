@@ -323,7 +323,7 @@ describe("metadata and recovery", () => {
       "Session expired",
     ],
     ["No space left on device", "disk is full"],
-    ["CURRENT_NOTHING_READ", "Nothing could be read from this link"],
+    ["DRIFTFETCH_NOTHING_READ", "Nothing could be read from this link"],
     [
       "Error: spawn C:\\app\\resources\\ffprobe.exe ENOENT",
       "download tool is missing or blocked",
@@ -337,7 +337,7 @@ describe("metadata and recovery", () => {
     ["Connection timed out", "Connection failed"],
     ["HTTP Error 403 Forbidden", "source refused access"],
     ["HTTP Error 429 Too Many Requests", "source is limiting requests"],
-    ["CURRENT_TIMEOUT", "took too long"],
+    ["DRIFTFETCH_TIMEOUT", "took too long"],
     ["This video has DRM", "DRM-protected"],
   ])("turns %s into an actionable message", (input, expected) =>
     expect(friendlyError(input)).toContain(expected),

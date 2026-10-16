@@ -7,9 +7,9 @@ const url = "https://www.youtube.com/watch?v=aqz-KE-bpKQ";
 const runDir = path.resolve("test-results", `youtube-package-${Date.now()}`);
 const env = {
   ...process.env,
-  CURRENT_USER_DATA: path.join(runDir, "userdata"),
+  DRIFTFETCH_USER_DATA: path.join(runDir, "userdata"),
   // Runs against the bundled engines, not whatever is newest today.
-  CURRENT_NO_ENGINE_UPDATE: "1",
+  DRIFTFETCH_NO_ENGINE_UPDATE: "1",
   PATH: `${process.env.SystemRoot}\\System32;${process.env.SystemRoot}`,
 };
 delete env.ELECTRON_RUN_AS_NODE;
@@ -17,24 +17,24 @@ await fs.mkdir(runDir, { recursive: true });
 async function waitForState(page, predicate, timeout = 180000) {
   const until = Date.now() + timeout;
   while (Date.now() < until) {
-    const state = await page.evaluate(() => window.current.snapshot());
+    const state = await page.evaluate(() => window.driftfetch.snapshot());
     if (predicate(state)) return state;
     await new Promise((resolve) => setTimeout(resolve, 500));
   }
-  throw new Error("Timed out waiting for Current state.");
+  throw new Error("Timed out waiting for DriftFetch state.");
 }
 let app;
 try {
   app = await electron.launch({
-    executablePath: path.resolve("release/0.5.0/win-unpacked/Current.exe"),
+    executablePath: path.resolve("release/0.5.0/win-unpacked/DriftFetch.exe"),
     env,
     timeout: 60000,
   });
   const page = await app.firstWindow();
-  await page.waitForFunction(() => !!window.current, { timeout: 30000 });
+  await page.waitForFunction(() => !!window.driftfetch, { timeout: 30000 });
   await page.evaluate(
     (downloadDir) =>
-      window.current.settings({
+      window.driftfetch.settings({
         clipboardWatch: false,
         autoDownload: false,
         downloadDir,
@@ -42,7 +42,7 @@ try {
       }),
     path.join(runDir, "downloads"),
   );
-  await page.evaluate((link) => window.current.addLinks(link), url);
+  await page.evaluate((link) => window.driftfetch.addLinks(link), url);
   const ready = await waitForState(
     page,
     (state) => state.jobs[0]?.status === "review" && !state.jobs[0]?.refreshing,
@@ -54,10 +54,10 @@ try {
     .sort((a, b) => (b.height || 0) - (a.height || 0))[0];
   assert(format, "Expected a separate-audio HD format at or below 720p");
   await page.evaluate(
-    ({ id, formatId }) => window.current.setFormat(id, formatId),
+    ({ id, formatId }) => window.driftfetch.setFormat(id, formatId),
     { id: job.id, formatId: format.id },
   );
-  await page.evaluate((id) => window.current.action([id], "start"), job.id);
+  await page.evaluate((id) => window.driftfetch.action([id], "start"), job.id);
   const done = await waitForState(
     page,
     (state) =>

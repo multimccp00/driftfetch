@@ -6,7 +6,7 @@ index 51c8012..1b0ce75 100644
  
              if (avctx->profile == AV_PROFILE_UNKNOWN)
                  avctx->profile = hdr.object_type - 1;
-+            /* Current: this build has no AAC decoder to learn the sample rate and
++            /* DriftFetch: this build has no AAC decoder to learn the sample rate and
 +             * channel count from, so trust the ADTS header (HE-AAC streams then
 +             * report their core rate, which is also what aac_adtstoasc writes). */
 +            if (!avctx->sample_rate)
@@ -31,7 +31,7 @@ index 0e1a1ba..b0f284b 100644
           * on us if they want to.
           */
 -        if (pls->is_id3_timestamped || (pls->n_renditions > 0 && pls->renditions[0]->type == AVMEDIA_TYPE_AUDIO)) {
-+        /* Current: without decoders nothing downstream can fill in missing stream
++        /* DriftFetch: without decoders nothing downstream can fill in missing stream
 +         * parameters, so always let the parsers probe the sub-demuxer. */
 +        if (1) {
              seg = current_segment(pls);

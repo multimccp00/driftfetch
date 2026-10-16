@@ -122,7 +122,7 @@ export class CapturePopup {
           this.refresh();
         }
       });
-      const dev = !app.isPackaged ? process.env.CURRENT_DEV_URL : undefined;
+      const dev = !app.isPackaged ? process.env.DRIFTFETCH_DEV_URL : undefined;
       void (dev
         ? this.window.loadURL(new URL("popup.html", dev).href)
         : this.window.loadFile(

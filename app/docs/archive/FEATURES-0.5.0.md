@@ -1,8 +1,8 @@
-# Current 0.5.0
+# DriftFetch 0.5.0
 
 - Bundles Deno 2.9.6 as yt-dlp's external JavaScript runtime, with a release-asset SHA-256 check, manifest entry and bundled license. It is copied into the user engine folder with yt-dlp, FFmpeg and FFprobe. Settings → Engine displays its status and version.
 - yt-dlp receives the Deno path only when that runtime starts successfully. This supports current YouTube JavaScript challenges without relying on Node.js or Deno installed elsewhere on the PC. The official yt-dlp executable includes its EJS scripts.
-- Corrected individual link analysis: Current no longer uses yt-dlp's `--flat-playlist` shortcut on every page. Individual video pages can now return their real formats, including YouTube's separate audio/video streams; collections are still limited to 101 entries.
+- Corrected individual link analysis: DriftFetch no longer uses yt-dlp's `--flat-playlist` shortcut on every page. Individual video pages can now return their real formats, including YouTube's separate audio/video streams; collections are still limited to 101 entries.
 - Added `scripts/verify-sources.mjs` for a metadata-only check of up to 100 user-provided links. It never downloads media, records the source, result, resolution and merge requirement, and removes URL query strings from its report. Run `node scripts/verify-sources.mjs links.txt`, or one URL with `--url`.
 - Added `npm run release:check`, which verifies all four bundled binaries against the manifest and requires their notices/licenses before packaging. The production CSP no longer permits the Vite development WebSocket endpoint.
 

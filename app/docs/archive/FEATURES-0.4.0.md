@@ -1,4 +1,4 @@
-# Current 0.4.0
+# DriftFetch 0.4.0
 
 ## Changes
 

@@ -23,7 +23,7 @@ let dir: string, store: Store, sessions: Sessions;
 beforeEach(() => {
   vi.clearAllMocks();
   storage.isEncryptionAvailable.mockReturnValue(true);
-  dir = fs.mkdtempSync(path.join(os.tmpdir(), "current-account-test-"));
+  dir = fs.mkdtempSync(path.join(os.tmpdir(), "driftfetch-account-test-"));
   store = new Store(path.join(dir, "accounts.sqlite"));
   sessions = new Sessions(store, path.join(dir, "temp"));
 });

@@ -3,7 +3,7 @@
   "version": "0.1.2",
   "nativeNotificationRequested": {
     "title": "1 link captured",
-    "content": "Checking video details. Open Current to see progress.",
+    "content": "Checking video details. Open DriftFetch to see progress.",
     "iconType": "info",
     "noSound": true,
     "respectQuietTime": true

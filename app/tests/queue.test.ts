@@ -32,7 +32,7 @@ const waitUntil = async (fn: () => boolean, timeout = 2_000) => {
 };
 // Existing transfer tests explicitly exercise the opt-out automatic mode.
 function create(auto = true, previewCollections = false) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "current-test-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "driftfetch-test-"));
   const store = new Store(path.join(dir, "test.sqlite"));
   const defaults = {
     ...defaultSettings(dir),
@@ -80,7 +80,7 @@ function create(auto = true, previewCollections = false) {
         for (let i = 0; i < (job.imageUrls?.length || 1); i++) {
           const file = path.join(job.targetDir, job.id + `-${i}.mp4`);
           fs.writeFileSync(file, "fixture");
-          line("CURRENT_FILE:" + JSON.stringify(file));
+          line("DRIFTFETCH_FILE:" + JSON.stringify(file));
         }
         active--;
         finish({ code: 0, stdout: "", stderr: "" });
@@ -537,9 +537,9 @@ describe("persistent scheduler", () => {
           representation === "case"
             ? file.toUpperCase()
             : path.toNamespacedPath(file);
-        line("CURRENT_FILE:" + JSON.stringify(reported));
+        line("DRIFTFETCH_FILE:" + JSON.stringify(reported));
         // Duplicate event with an equivalent spelling still counts once.
-        line("CURRENT_FILE:" + JSON.stringify(reported.toLowerCase()));
+        line("DRIFTFETCH_FILE:" + JSON.stringify(reported.toLowerCase()));
         return {
           done: Promise.resolve({ code: 0, stdout: "", stderr: "" }),
           stop: async () => {},
@@ -579,8 +579,8 @@ describe("persistent scheduler", () => {
           scenario === "collision" ? a : path.join(job.targetDir!, "b.png");
         fs.writeFileSync(a, "fixture-a");
         fs.writeFileSync(b, "fixture-b");
-        line("CURRENT_FILE:" + JSON.stringify(a));
-        line("CURRENT_FILE:" + JSON.stringify(b));
+        line("DRIFTFETCH_FILE:" + JSON.stringify(a));
+        line("DRIFTFETCH_FILE:" + JSON.stringify(b));
         if (scenario === "deleted") fs.unlinkSync(a);
         return {
           done: Promise.resolve({ code: 0, stdout: "", stderr: "" }),
