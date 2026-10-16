@@ -3,5 +3,5 @@
 export type Release = { version: string; date?: string; notes: string[] };
 
 export const releases: Release[] = [
-  { version: "0.2.1", notes: ["Latest version."] },
+  { version: "0.9.0", notes: ["First public pre-release. Please report problems on GitHub."] },
 ];

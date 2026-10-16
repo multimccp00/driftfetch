@@ -34,7 +34,7 @@ Support comes from the yt-dlp and gallery-dl extractors, so it is not a universa
 
 ## Status
 
-Version 0.2.1, Windows 10/11 x64 only. Download the installer or the portable build from the [download page](https://multimccp00.github.io/driftfetch/download) or [GitHub Releases](https://github.com/multimccp00/driftfetch/releases). Each release lists SHA-256 checksums and includes the source code of the bundled GPL and LGPL programs.
+Version 0.9.0, a pre-release: Windows 10/11 x64 only. Download the installer or the portable build from the [download page](https://multimccp00.github.io/driftfetch/download) or [GitHub Releases](https://github.com/multimccp00/driftfetch/releases). Each release lists SHA-256 checksums and includes the source code of the bundled GPL and LGPL programs.
 
 The builds are **unsigned**, so Windows SmartScreen may warn that the publisher is unknown: choose **More info**, then **Run anyway**.
 

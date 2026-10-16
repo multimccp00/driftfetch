@@ -1,7 +1,8 @@
 // Single source for values the design hard-codes on several pages.
 export const site = {
   name: "DriftFetch",
-  version: "0.2.1", // keep in step with ../package.json
+  version: "0.9.0", // keep in step with ../package.json
+  stage: "pre-release", // shown beside the version; set to "" for a full release
   owner: "DriftFetch contributors", // footer copyright line
   email: "driftfetch@proton.me",
   url: (import.meta.env.SITE ?? "https://driftfetch.app").replace(/\/$/, ""),

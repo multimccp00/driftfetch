@@ -48,7 +48,7 @@ const wave = Array.from({ length: 121 }, (_, i) => {
             <a href="#download" style="display:flex;align-items:center;gap:10px;height:52px;padding:0 22px 0 18px;border-radius:8px;background:#0b67fe;color:#fff;font-size:16px;font-weight:600" class="h1ifpqlp"><span class="ic"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 17V3" />
   <path d="m6 11 6 6 6-6" />
   <path d="M19 21H5" /></svg></span>Download for Windows</a>
-            <span style="font-size:14px;color:#8a96bd">Free and open source · Windows 10 and 11 · Version {site.version}</span>
+            <span style="font-size:14px;color:#8a96bd">Free and open source · Windows 10 and 11 · Version {site.version}{site.stage && ` (${site.stage})`}</span>
           </div>
         </div>
       </section>
@@ -141,7 +141,7 @@ const wave = Array.from({ length: 121 }, (_, i) => {
   <path d="m6 11 6 6 6-6" />
   <path d="M19 21H5" /></svg></span>Download for Windows</a>
         <ul style="list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;justify-content:center;gap:6px 26px;font-size:14.5px;color:#8a96bd">
-          <li>Windows 10 or 11, 64-bit</li><li>Version {site.version}{!released && " (not released yet)"}</li><li>MIT licence</li><li><a href={u("/versions")} style="color:#c7cfea" class="hxpj8jr">Release notes and earlier versions</a></li>
+          <li>Windows 10 or 11, 64-bit</li><li>Version {site.version}{site.stage && ` (${site.stage})`}{!released && " (not released yet)"}</li><li>MIT licence</li><li><a href={u("/versions")} style="color:#c7cfea" class="hxpj8jr">Release notes and earlier versions</a></li>
         </ul>
       </div>
 

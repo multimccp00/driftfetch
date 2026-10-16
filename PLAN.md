@@ -1,6 +1,6 @@
 # Plan
 
-Status on 2026-10-16: the app's 256 tests pass, the type-check is clean and `npm run release:check` passes. The website builds and is live on GitHub Pages. No release has been published yet: there is no tag and no GitHub release, so the download buttons on the live site return 404.
+Status on 2026-10-16: the plan is a public pre-release, 0.9.0 (the site shows "pre-release" beside the version; set `stage` in `website/src/data/site.ts` to an empty string for a full release). The app's 256 tests pass, the type-check is clean and `npm run release:check` passes. The website builds and is live on GitHub Pages. Nothing is published yet: there is no tag and no GitHub release, so the download buttons on the live site open the releases page until the pre-release exists.
 
 ## App
 
@@ -35,17 +35,18 @@ Checked by reading the code. In place: sandbox, context isolation and no Node in
 - [x] **Smoke suite flake.** Source runs now pass `--disable-backgrounding-occluded-windows` and `--disable-features=CalculateNativeWinOcclusion` too, as packaged runs already did (2026-10-16).
 - [x] **Smoke suite against a packaged build.** The `enableNodeCliInspectArguments: false` fuse blocks Playwright's Electron launcher, so with `DRIFTFETCH_PACKAGED_EXE` set `scripts/smoke.mjs` now spawns the exe with `--remote-debugging-port` and drives its window through `chromium.connectOverCDP`. Packaged runs use manual intake instead of the clipboard and skip what needs the main process: cookie import, Locate file and backup export/restore (stubbed dialogs), the floating capture panel (stubbed clipboard) and the hidden-window check. Skips are printed and listed under `skipped` in `report.json`. Passed 2026-10-15 against an install of `DriftFetch-Setup-0.2.1-x64.exe`; source runs still pass 18/18.
 - [x] **Dev dependency audit.** `npm audit fix` cleared the two high findings (`http-cache-semantics`, `source-map-js`). Eight moderate ones remain, all `sprintf-js` inside electron-builder's own dependencies; fixing them needs `npm audit fix --force` (an electron-builder major upgrade). Build tooling only: `npm audit --omit=dev` reports 0 for the shipped app.
-- [x] **Disk space.** Cleared on 2026-10-16: `app/test-results/` and the old build folders in `app/release/` are gone; only `release/0.2.1` is kept.
+- [x] **Disk space.** Cleared on 2026-10-16: `app/test-results/` and the old build folders in `app/release/` are gone; the pre-release build is in `release/0.9.0` (the old `release/0.2.1` was never published).
 - [x] **Queue tests off the network.** `tests/queue.test.ts` now stubs `fetch` for every test (the queue sends a HEAD request to follow redirects); the suite takes 8 s instead of 16 s and no longer depends on DNS.
 
 ### Before a release
 - [x] **Git history.** Two local extensions' site names in earlier commits of this file were rewritten out of the whole history with `git filter-repo --replace-text` and force-pushed on 2026-10-16 (new tip `c2838ea`; every commit hash changed, the final tree did not). Old commits stay reachable on GitHub by SHA until GitHub Support removes cached views; other clones must re-clone.
 - [x] **Code signing.** Decided on 2026-10-16: ship unsigned for now, as there is no budget for a certificate. Windows SmartScreen warns on download and first run until the file builds reputation; the site FAQ explains the "More info" > "Run anyway" step. Revisit when money allows, or apply to a free code-signing programme for open-source projects.
 - [ ] **Source zip.** Attach `corresponding-source-<version>.zip` (`npm run sources`) to every release. The download page credits FFmpeg and links the zip, and the earlier-versions page has a source button per version. Since 2026-10-16 the zip is written with Windows' `tar.exe`, so its paths use forward slashes; `release/0.2.1/corresponding-source-0.2.1.zip` was rebuilt that way.
-- [ ] **Version sync.** Keep `app/package.json` and `website/src/data/site.ts` on the same version (both 0.2.1 now).
+- [ ] **Version sync.** Keep `app/package.json` and `website/src/data/site.ts` on the same version (both 0.9.0 now).
 - [ ] **Legal review.** See `app/docs/LEGAL-RESEARCH.md`. Open questions: codec patents for stream-header parsing, how the GPL applies to yt-dlp and gallery-dl as separate programs (in particular whether pointing to upstream for the Python parts inside yt-dlp's `.exe` is enough), and site terms and anti-circumvention law. None blocks a free release; keep DRM and paywall bypass out and attach the source zip to every release.
 - [x] **Product name search (2026-10-16).** No mark named DriftFetch, or combining "drift" and "fetch", at USPTO (live and dead), EUIPO, or WIPO's Global Brand Database (word search; its fuzzy and phonetic searches did not load). The web and GitHub show no other DriftFetch. Nearest marks in software classes 9/42: FETCH (Fetch Softworks, US, file-transfer software), FETCH (Amazon Technologies, EU), FETCH UP (TuneIn, EU), and DRIFT (Salesloft, US and EU, sales chat software). None names a download manager, and the combined name differs from each, so the risk looks low. This is a self-search, not a clearance opinion; national registers outside these databases were not checked one by one.
-- [ ] **First release.** Publish `v<version>` on GitHub with the installer and portable files and their `.sha256` files, then check the website download buttons resolve.
+- [ ] **Clean-install test.** Run `app/tmp/sandbox/clean-install.wsb` in Windows Sandbox (needs the feature enabled and a restart; keep hands off for about 10 minutes) and read `app/tmp/sandbox/out/results.json`. It installs through the wizard, runs the engines on a clean Windows, downloads through the app, uninstalls and tries the portable build. Not run yet. SmartScreen is not covered, because files shared into the sandbox carry no download mark.
+- [ ] **Publish the pre-release.** After the test passes: push, then `gh release create v0.9.0 --prerelease` with the installer, the portable build, the source zip, their `.sha256` files and `release/0.9.0/RELEASE-NOTES.md`; check the website download buttons switch to direct downloads and that the README's Status section reads right. Full 1.0.0 later: bump both versions, empty `stage`, rebuild.
 
 ## Website
 
@@ -69,5 +70,6 @@ Checked by reading the code. In place: sandbox, context isolation and no Node in
 - [x] **Tax on donations.** The owner handles this outside the project (2026-10-16).
 
 ## Suggested order
-1. Release prep: legal review if wanted (not blocking).
-2. First release (with the source zip), then confirm the download buttons.
+1. Run the clean-install test in Windows Sandbox and fix anything it finds.
+2. Publish v0.9.0 as a pre-release (with the source zip), then confirm the download buttons.
+3. After real use, call it 1.0.0. Legal review stays optional.
