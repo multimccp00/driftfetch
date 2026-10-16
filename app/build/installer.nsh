@@ -27,6 +27,11 @@
 !macroend
 
 !macro customInit
+  ; Remember whether the folder already existed, so the check leaves no empty folder
+  ; behind when the wizard is cancelled or another folder is chosen.
+  StrCpy $R1 "existed"
+  IfFileExists "$INSTDIR\*.*" +2 0
+    StrCpy $R1 ""
   ClearErrors
   CreateDirectory "$INSTDIR"
   FileOpen $R0 "$INSTDIR\.current-install-check" w
@@ -37,6 +42,9 @@
   ${EndIf}
   FileClose $R0
   Delete "$INSTDIR\.current-install-check"
+  ${If} $R1 == ""
+    RMDir "$INSTDIR"
+  ${EndIf}
 !macroend
 
 !macro requireInstalledFile relativeFile
