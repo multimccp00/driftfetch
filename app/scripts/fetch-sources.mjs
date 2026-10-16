@@ -78,18 +78,11 @@ await fs.copyFile(
 );
 const zip = path.join(out, `corresponding-source-${pkg.version}.zip`);
 await fs.rm(zip, { force: true });
+// Windows' own bsdtar writes zip entries with forward slashes; Compress-Archive in
+// Windows PowerShell writes backslashes, which unpack as flat names elsewhere.
 await promisify(execFile)(
-  "powershell.exe",
-  [
-    "-NoProfile",
-    "-NonInteractive",
-    "-Command",
-    "Compress-Archive -Path (Join-Path $env:CURRENT_SOURCE '*') -DestinationPath $env:CURRENT_ZIP -Force",
-  ],
-  {
-    windowsHide: true,
-    env: { ...process.env, CURRENT_SOURCE: folder, CURRENT_ZIP: zip },
-    timeout: 300000,
-  },
+  path.join(process.env.SystemRoot || "C:\\Windows", "System32", "tar.exe"),
+  ["-a", "-c", "-f", zip, "-C", folder, ...(await fs.readdir(folder))],
+  { windowsHide: true, timeout: 300000 },
 );
 console.log(`Wrote ${zip}`);
