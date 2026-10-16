@@ -34,7 +34,9 @@ Support comes from the yt-dlp and gallery-dl extractors, so it is not a universa
 
 ## Status
 
-Version 0.2.1, Windows 10/11 x64 only, **unsigned**, so Windows may show an "unknown publisher" prompt. There are no published releases yet; for now, build it yourself.
+Version 0.2.1, Windows 10/11 x64 only. Download the installer or the portable build from the [download page](https://multimccp00.github.io/driftfetch/download) or [GitHub Releases](https://github.com/multimccp00/driftfetch/releases). Each release lists SHA-256 checksums and includes the source code of the bundled GPL and LGPL programs.
+
+The builds are **unsigned**, so Windows SmartScreen may warn that the publisher is unknown: choose **More info**, then **Run anyway**.
 
 ## Build and run
 
