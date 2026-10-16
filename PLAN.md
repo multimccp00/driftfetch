@@ -29,10 +29,11 @@ Status on 2026-10-15: the app's 254 tests pass, the type-check is clean and `npm
 
 ### Before a release
 - [x] **Git history.** Two local extensions' site names in earlier commits of this file were rewritten out of the whole history with `git filter-repo --replace-text` and force-pushed on 2026-10-16 (new tip `c2838ea`; every commit hash changed, the final tree did not). Old commits stay reachable on GitHub by SHA until GitHub Support removes cached views; other clones must re-clone.
-- [ ] **Code signing.** Off for now, so Windows SmartScreen warns users. A certificate has to be bought. The site FAQ already explains the "Run anyway" step.
+- [x] **Code signing.** Decided on 2026-10-16: ship unsigned for now, as there is no budget for a certificate. Windows SmartScreen warns on download and first run until the file builds reputation; the site FAQ explains the "More info" > "Run anyway" step. Revisit when money allows, or apply to a free code-signing programme for open-source projects.
 - [ ] **Source zip.** Attach `corresponding-source-<version>.zip` (`npm run sources`) to every release. The download page credits FFmpeg and links the zip, and the earlier-versions page has a source button per version. Since 2026-10-16 the zip is written with Windows' `tar.exe`, so its paths use forward slashes; `release/0.2.1/corresponding-source-0.2.1.zip` was rebuilt that way.
 - [ ] **Version sync.** Keep `app/package.json` and `website/src/data/site.ts` on the same version (both 0.2.1 now).
-- [ ] **Legal review.** See `app/docs/LEGAL-RESEARCH.md`. Open questions: codec patents for stream-header parsing, how the GPL applies to yt-dlp and gallery-dl as separate programs, site terms and anti-circumvention law, the product name.
+- [ ] **Legal review.** See `app/docs/LEGAL-RESEARCH.md`. Open questions: codec patents for stream-header parsing, how the GPL applies to yt-dlp and gallery-dl as separate programs (in particular whether pointing to upstream for the Python parts inside yt-dlp's `.exe` is enough), and site terms and anti-circumvention law. None blocks a free release; keep DRM and paywall bypass out and attach the source zip to every release.
+- [x] **Product name search (2026-10-16).** No mark named DriftFetch, or combining "drift" and "fetch", at USPTO (live and dead), EUIPO, or WIPO's Global Brand Database (word search; its fuzzy and phonetic searches did not load). The web and GitHub show no other DriftFetch. Nearest marks in software classes 9/42: FETCH (Fetch Softworks, US, file-transfer software), FETCH (Amazon Technologies, EU), FETCH UP (TuneIn, EU), and DRIFT (Salesloft, US and EU, sales chat software). None names a download manager, and the combined name differs from each, so the risk looks low. This is a self-search, not a clearance opinion; national registers outside these databases were not checked one by one.
 - [ ] **First release.** Publish `v<version>` on GitHub with the installer and portable files and their `.sha256` files, then check the website download buttons resolve.
 
 ## Website
@@ -57,5 +58,5 @@ Status on 2026-10-15: the app's 254 tests pass, the type-check is clean and `npm
 - [ ] **Legal and tax review.** Have an accountant or the tax office check the legal page and how donations are treated.
 
 ## Suggested order
-1. Release prep: signing, legal review.
+1. Release prep: legal review if wanted (not blocking).
 2. First release (with the source zip), then confirm the download buttons.
