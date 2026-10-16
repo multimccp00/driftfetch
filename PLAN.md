@@ -18,7 +18,7 @@ Status on 2026-10-15: the app's 254 tests pass, the type-check is clean and `npm
 - [x] **Support matrix.** `app/docs/SUPPORT-MATRIX.md` uses the DriftFetch name, the 15 October 2026 source check and the 0.2.1 packaged smoke run, and has a Reddit row marked not checked yet. Settings says the sites were checked in October 2026.
 
 ### Still open
-- [ ] **Installer, by hand.** Walked through on 2026-10-15: the privacy page, installing and the finish page work, and the app installed into `%LOCALAPPDATA%\Programs\DriftFetch`. Fixed on 2026-10-16: the welcome and finish pages use `build/installerSidebar.bmp` (DriftFetch icon and name on navy), and `customInit` removes the default folder again when its writability check created it, so cancelling leaves nothing behind. Silent install, engine check and uninstall pass with the rebuilt installer. Left to check by eye: the folder-choice page. It is configured (`allowToChangeInstallationDirectory`), but electron-builder skips it when updating an existing install, so check it on a machine without DriftFetch installed, and look at the new sidebar while there.
+- [x] **Installer, by hand.** Checked on 2026-10-16 with no DriftFetch installed: the privacy page, "Choose Installation Options" ("Only for me" preselected), the folder-choice page (default `%LOCALAPPDATA%\Programs\DriftFetch`, Browse, space required 551.4 MB), installing and the finish page. The finish page shows `build/installerSidebar.bmp` (DriftFetch icon and name on navy); the privacy page replaces the welcome page, so the finish page is where the sidebar appears. Cancelling on the folder page leaves no folder and no uninstall entry. When testing by hand, keep the keyboard and mouse idle: the installer takes focus when it opens, and stray key presses go to its Next button and skip pages.
 - [x] **Build-time gallery-dl signature.** `scripts/prepare-engines.mjs` now verifies gallery-dl's `SHA256SUMS.sig` with the pinned key, as it does for yt-dlp (checked 2026-10-16 by re-downloading both engines).
 - [ ] **Old name "Current".** The `.current-extension` and `.currentbackup` file types, `CURRENT_*` settings and internal error codes keep the old name. Nothing visible leaks into the UI. Decide whether to rename, and keep reading the old names so existing extensions and backups still load.
 - [ ] **Local extensions.** Two extensions are built as `.current-extension` files in `app/local-extensions/` but not added in the app yet (Settings > Extensions > Add extension file). These files stay local and are never committed.
@@ -57,6 +57,5 @@ Status on 2026-10-15: the app's 254 tests pass, the type-check is clean and `npm
 - [ ] **Legal and tax review.** Have an accountant or the tax office check the legal page and how donations are treated.
 
 ## Suggested order
-1. App: check the installer's folder page and sidebar by eye on a machine without DriftFetch.
-2. Release prep: signing, legal review.
-3. First release (with the source zip), then confirm the download buttons.
+1. Release prep: signing, legal review.
+2. First release (with the source zip), then confirm the download buttons.
