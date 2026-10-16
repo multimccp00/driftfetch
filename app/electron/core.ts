@@ -44,6 +44,42 @@ export function normalizeUrl(input: string): string | null {
     return null;
   }
 }
+/**
+ * HEAD a link and follow its redirects one hop at a time. A link that starts on a public
+ * host is never followed to a loopback, LAN or intranet address, so a copied link cannot make
+ * the app (or the extractors it starts) contact a device on the local network.
+ * Reports ok=false when the chain ends on a refused or non-http destination.
+ */
+export async function headFollowingRedirects(
+  start: string,
+  signal: AbortSignal,
+  maxHops = 8,
+): Promise<{ url: string; ok: boolean }> {
+  const allowPrivate = process.env.DRIFTFETCH_ALLOW_LOCAL_CLIPBOARD === "1";
+  const startedPublic = !isPrivateHost(new URL(start).hostname);
+  let current = start;
+  for (let hop = 0; hop <= maxHops; hop++) {
+    const response = await fetch(current, {
+      method: "HEAD",
+      redirect: "manual",
+      signal,
+    });
+    await response.body?.cancel();
+    const location =
+      response.status >= 300 && response.status < 400
+        ? response.headers.get("location")
+        : null;
+    if (!location) return { url: current, ok: response.ok };
+    const next = normalizeUrl(new URL(location, current).href);
+    if (
+      !next ||
+      (startedPublic && !allowPrivate && isPrivateHost(new URL(next).hostname))
+    )
+      return { url: current, ok: false };
+    current = next;
+  }
+  return { url: current, ok: false };
+}
 /** Links accepted per paste; the rest are reported back as truncated. */
 export const maxLinksPerBatch = 200;
 export function parseLinks(text: string): string[] {

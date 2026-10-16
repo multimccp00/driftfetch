@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import asyncFs from "node:fs/promises";
 import fs from "node:fs";
 import os from "node:os";
@@ -14,6 +14,13 @@ import type { Sessions } from "../electron/sessions";
 import { Extensions } from "../electron/extensions";
 import { fixturePackage } from "./fixtures/extension";
 const resources: { store: Store; dir: string; queue: Queue }[] = [];
+// The queue sends a HEAD request to follow redirects. Keep the suite off the network
+// (slow DNS made tests time out); tests that need a response mock it themselves.
+beforeEach(() => {
+  vi.spyOn(globalThis, "fetch").mockRejectedValue(
+    new TypeError("fetch failed"),
+  );
+});
 afterEach(async () => {
   vi.restoreAllMocks();
   for (const r of resources.splice(0)) {
@@ -132,11 +139,14 @@ describe("persistent scheduler", () => {
     r.sessions.credentialsFor = vi
       .fn()
       .mockResolvedValue({ apiKey: "SYNTHETIC", userId: "0" });
-    const response = new Response(null, { status: 200 });
-    Object.defineProperty(response, "url", {
-      value: "https://www.example.invalid/landscapes",
-    });
-    vi.spyOn(globalThis, "fetch").mockResolvedValue(response);
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input) =>
+      String(input).startsWith("https://redirect.invalid/")
+        ? new Response(null, {
+            status: 302,
+            headers: { location: "https://www.example.invalid/landscapes" },
+          })
+        : new Response(null, { status: 200 }),
+    );
     r.queue.addLinks("https://redirect.invalid/go/1");
     await waitUntil(() => r.queue.jobs[0].status === "collection");
     expect(r.store.jobs()[0]).toMatchObject({
@@ -149,6 +159,21 @@ describe("persistent scheduler", () => {
       ],
     });
     expect(r.probes).toBe(0);
+  });
+  it("never follows a public link to a private address", async () => {
+    const r = create(false);
+    const asked: string[] = [];
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
+      asked.push(String(input));
+      return new Response(null, {
+        status: 302,
+        headers: { location: "http://192.168.1.1/admin/reboot" },
+      });
+    });
+    r.queue.addLinks("https://redirect.invalid/go/2");
+    await waitUntil(() => r.queue.jobs[0].status !== "resolving");
+    expect(asked).toEqual(["https://redirect.invalid/go/2"]);
+    expect(r.queue.jobs[0].resolvedUrl ?? "").not.toContain("192.168");
   });
   it("retains disabled-extension evidence when the regular engines cannot read the link", async () => {
     const r = create(false);

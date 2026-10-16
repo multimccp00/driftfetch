@@ -33,7 +33,7 @@ import {
   friendlyError,
   instagramProfile,
   redditFeed,
-  normalizeUrl,
+  headFollowingRedirects,
   outputLocation,
   maxLinksPerBatch,
   parseLinks,
@@ -598,25 +598,18 @@ export class Queue {
       // Follow ordinary redirects before selecting a source-specific account session.
       let url = job.originalUrl;
       try {
-        const response = await fetch(url, {
-          method: "HEAD",
-          redirect: "follow",
-          signal: AbortSignal.any([
-            controller.signal,
-            AbortSignal.timeout(12000),
-          ]),
-        });
-        const destination = normalizeUrl(response.url);
+        const { url: destination, ok } = await headFollowingRedirects(
+          url,
+          AbortSignal.any([controller.signal, AbortSignal.timeout(12000)]),
+        );
         // Do not mistake an unauthenticated redirect to a login page for the video host.
         if (
-          destination &&
-          response.ok &&
+          ok &&
           !/\/(?:login|signin|sign-in|auth)(?:\/|$)/i.test(
             new URL(destination).pathname,
           )
         )
           url = destination;
-        await response.body?.cancel();
       } catch {
         /* The extractor can handle hosts rejecting HEAD. */
       }
