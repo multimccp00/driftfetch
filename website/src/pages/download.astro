@@ -1,6 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { u, site, links } from "../data/site";
+import { u, site, links, released } from "../data/site";
 ---
 <Layout
   title="Download DriftFetch for Windows – free and open source"
@@ -23,6 +23,7 @@ import { u, site, links } from "../data/site";
   <path d="M15 11v-1" />
   <path d="M15 17v-2" /></svg></span>Portable (.exe)</a>
         </div>
+        {!released && <p style="margin:20px 0 0;max-width:36em;font-size:15px;color:#c7cfea">Not released yet. The buttons open the releases page on GitHub, where version {site.version} will appear.</p>}
         <p style="margin:16px 0 0;font-size:14px;color:#8a96bd">Version {site.version} · Windows 10 and 11, 64-bit · MIT licence · <a href={u("/versions")} style="color:#c7cfea;border-bottom:1px solid rgba(199,207,234,0.4)">Earlier versions</a></p>
       </div>
     </section>

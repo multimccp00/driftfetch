@@ -13,20 +13,32 @@ export const site = {
 const gh = (p: string) => (site.repo ? `https://github.com/${site.repo}${p}` : "#");
 const dl = (file: string, v = site.version) => gh(`/releases/download/v${v}/${file}`);
 
+// Checked at build time: until the current version's release exists, its download links
+// open the releases page instead of a 404. The site rebuilds when a release is published.
+export const released = await fetch(dl(`DriftFetch-Setup-${site.version}-x64.exe`), {
+  method: "HEAD",
+  redirect: "manual",
+  signal: AbortSignal.timeout(15000),
+})
+  .then((r) => r.status >= 200 && r.status < 400)
+  .catch(() => false);
+const file = (name: string, v = site.version) =>
+  v === site.version && !released ? gh("/releases") : dl(name, v);
+
 /** Direct file links for any released version (used by the earlier-versions page). */
 export const versionLinks = (v: string) => ({
-  installer: dl(`DriftFetch-Setup-${v}-x64.exe`, v),
-  portable: dl(`DriftFetch-Portable-${v}-x64.exe`, v),
-  source: dl(`corresponding-source-${v}.zip`, v),
+  installer: file(`DriftFetch-Setup-${v}-x64.exe`, v),
+  portable: file(`DriftFetch-Portable-${v}-x64.exe`, v),
+  source: file(`corresponding-source-${v}.zip`, v),
 });
 
 export const links = {
   source: gh(""),
   issues: gh("/issues"),
-  installer: dl(`DriftFetch-Setup-${site.version}-x64.exe`),
-  portable: dl(`DriftFetch-Portable-${site.version}-x64.exe`),
+  installer: file(`DriftFetch-Setup-${site.version}-x64.exe`),
+  portable: file(`DriftFetch-Portable-${site.version}-x64.exe`),
   // Source of the bundled GPL/LGPL programs (npm run sources), attached to every release.
-  sourceZip: dl(`corresponding-source-${site.version}.zip`),
+  sourceZip: file(`corresponding-source-${site.version}.zip`),
   donate: site.bmc || "#",
 };
 

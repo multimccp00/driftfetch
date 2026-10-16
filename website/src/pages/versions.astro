@@ -1,6 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { u, site, versionLinks } from "../data/site";
+import { u, site, versionLinks, released } from "../data/site";
 import { releases } from "../data/versions";
 const btn = "display:inline-flex;align-items:center;height:44px;padding:0 16px;border-radius:8px;font-weight:600;font-size:15px";
 ---
@@ -25,7 +25,7 @@ const btn = "display:inline-flex;align-items:center;height:44px;padding:0 16px;b
         return (
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:20px 48px;padding:28px 0;border-top:1px solid rgba(1,9,48,0.14)">
             <div>
-              <h2 style="margin:0;font-size:clamp(26px,3vw,34px);font-weight:800;letter-spacing:-0.03em">Version {r.version}{r.version === site.version && <span style="margin-left:10px;font-size:14px;font-weight:600;color:#0a55d6;letter-spacing:0">Latest</span>}</h2>
+              <h2 style="margin:0;font-size:clamp(26px,3vw,34px);font-weight:800;letter-spacing:-0.03em">Version {r.version}{r.version === site.version && <span style="margin-left:10px;font-size:14px;font-weight:600;color:#0a55d6;letter-spacing:0">{released ? "Latest" : "Not released yet"}</span>}</h2>
               {r.date && <p style="margin:4px 0 0;color:#596180">{r.date}</p>}
               <ul style="margin:12px 0 0;padding-left:20px;color:#353d5c">{r.notes.map((n) => <li>{n}</li>)}</ul>
             </div>

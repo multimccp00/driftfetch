@@ -3,6 +3,9 @@ on:
   push:
     branches: [main, master]
     paths: ["website/**", ".github/workflows/website.yml"]
+  # The download links check at build time whether the release exists.
+  release:
+    types: [published]
   workflow_dispatch:
 
 permissions:
