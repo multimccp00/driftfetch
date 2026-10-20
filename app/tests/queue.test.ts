@@ -1176,9 +1176,13 @@ describe("persistent scheduler", () => {
       const asked: (string[] | undefined)[] = [];
       vi.spyOn(r.engine, "download").mockImplementation((job, _auth, line) => {
         asked.push(job.partialFailure?.parts);
-        const file = path.join(targetDir, `post-${asked.length}.jpg`);
-        fs.writeFileSync(file, "fixture");
-        line("DRIFTFETCH_FILE:" + JSON.stringify(file));
+        const image = path.join(targetDir, `post-${asked.length}.jpg`);
+        fs.writeFileSync(image, "fixture");
+        line("DRIFTFETCH_FILE:" + JSON.stringify(image));
+        // gallery-dl names a DASH video .mp4; yt-dlp merges it into .mkv.
+        const video = path.join(targetDir, `reel-${asked.length}.mp4`);
+        fs.writeFileSync(video.replace(/\.mp4$/, ".mkv"), "video");
+        line("DRIFTFETCH_FILE:" + JSON.stringify(video));
         const failed = asked.length === 1;
         return {
           done: Promise.resolve({
@@ -1200,6 +1204,11 @@ describe("persistent scheduler", () => {
       expect(job().partialFailure).toEqual({
         parts: ["reels"],
         error: expect.stringContaining("home page instead of answering"),
+      });
+      // The size is the whole folder this run touched, not the last file.
+      expect(job()).toMatchObject({
+        totalBytes: "fixture".length + "video".length,
+        filePath: path.join(targetDir, "reel-1.mkv"),
       });
       // Retry asks for only the failed part, and a clean run clears the gap.
       await r.queue.action([job().id], "start");

@@ -6,7 +6,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { createInterface } from "node:readline";
 import type { EngineInfo, Job, Entry } from "../src/shared";
-import { domainOf, normalizeUrl, rateLimited } from "./core";
+import { domainOf, normalizeUrl } from "./core";
 import { preferredLabelFormat } from "../shared/quality";
 import { verifyDetached, type SigningKey } from "./signature";
 import { ytDlpKeyFingerprint, ytDlpPublicKey } from "./yt-dlp-public-key";
@@ -723,18 +723,26 @@ export class Engine {
           else {
             const log = await fs.readFile(cursorLog, "utf8").catch(() => "");
             // Only this run's lines: the log is appended to across runs.
-            const errors = partErrors(
-              log.startsWith(previousLog) ? log.slice(previousLog.length) : log,
+            const runLog = log.startsWith(previousLog)
+              ? log.slice(previousLog.length)
+              : log;
+            result.partErrors = partErrors(runLog);
+            // A part that lost a file before its last cursor reads again from the
+            // top. A part that was cut off (a redirect, a rate limit) keeps its place,
+            // so each retry gets further.
+            const skippedFile = new Set(
+              Array.from(
+                runLog.matchAll(/^(\w+)\tERROR Failed to download/gm),
+                (m) => m[1],
+              ),
             );
-            result.partErrors = errors;
-            // A part that failed may have skipped files before its last cursor, so
-            // a retry reads it from the top. A rate limit cut it off instead: keep the place.
-            const failed = Object.keys(errors);
-            if (failed.length && !rateLimited(Object.values(errors).join("\n")))
+            if (skippedFile.size)
               await fs
                 .appendFile(
                   cursorLog,
-                  failed.map((part) => `${part}\tCursor: \n`).join(""),
+                  [...skippedFile]
+                    .map((part) => `${part}\tCursor: \n`)
+                    .join(""),
                 )
                 .catch(() => {});
           }

@@ -1029,12 +1029,32 @@ export class Queue {
       if (result.code !== 0 && !partialFailure) throw new Error(result.stderr);
       if (job.imageSearch && !job.filePath)
         throw new Error("DRIFTFETCH_NO_IMAGES");
-      if (profile && !job.filePath) {
+      if (profile) {
+        // A profile is a folder: its size is every file this run saved or found,
+        // and no single file stands for it. gallery-dl reports a DASH video by its
+        // .mp4 name, but yt-dlp merges it into .mkv.
+        let total = 0,
+          last: string | undefined;
+        for (const reported of savedPaths.values()) {
+          for (const file of [reported, reported.replace(/\.mp4$/i, ".mkv")]) {
+            const stat = await fs.stat(file).catch(() => null);
+            if (!stat?.isFile()) continue;
+            total += stat.size;
+            last = file;
+            break;
+          }
+        }
+        if (token.stop) return;
         this.save(job, {
           status: "completed",
           finishedAt: Date.now(),
           progress: 100,
-          partialFailure: undefined,
+          partialFailure,
+          filePath: last,
+          quality: undefined,
+          totalBytes: total || undefined,
+          downloadedBytes: total || undefined,
+          fileMissing: false,
           retryCount: 0,
           retryAt: undefined,
           speed: undefined,
