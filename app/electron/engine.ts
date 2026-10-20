@@ -6,7 +6,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { createInterface } from "node:readline";
 import type { EngineInfo, Job, Entry } from "../src/shared";
-import { domainOf, normalizeUrl } from "./core";
+import { domainOf, normalizeUrl, rateLimited } from "./core";
 import { preferredLabelFormat } from "../shared/quality";
 import { verifyDetached, type SigningKey } from "./signature";
 import { ytDlpKeyFingerprint, ytDlpPublicKey } from "./yt-dlp-public-key";
@@ -20,6 +20,8 @@ interface ProcessResult {
   stdout: string;
   stderr: string;
   timedOut?: boolean;
+  /** Instagram profile parts (posts, reels, ...) that failed in this run, with gallery-dl's reason. */
+  partErrors?: Record<string, string>;
 }
 export interface Running {
   child: ChildProcess;
@@ -38,12 +40,20 @@ const galleryOutputArgs = [
   "--option",
   "output.mode=pipe",
 ];
-/** The last pagination cursor gallery-dl logged for each part of a profile (posts, reels, ...). */
+/** The last pagination cursor gallery-dl logged for each part of a profile (posts, reels, ...); an empty one starts that part over. */
 export function savedCursors(log: string): Record<string, string> {
   const cursors: Record<string, string> = {};
-  for (const [, part, cursor] of log.matchAll(/^(\w+)\tCursor: (\S+)$/gm))
-    cursors[part] = cursor;
+  for (const [, part, cursor] of log.matchAll(/^(\w+)\tCursor: ?(\S*)$/gm))
+    if (cursor) cursors[part] = cursor;
+    else delete cursors[part];
   return cursors;
+}
+/** The first error gallery-dl logged for each part of a profile. */
+export function partErrors(log: string): Record<string, string> {
+  const errors: Record<string, string> = {};
+  for (const [, part, message] of log.matchAll(/^(\w+)\tERROR (.+)$/gm))
+    errors[part] ??= message.trim();
+  return errors;
 }
 export function runProcess(
   exe: string,
@@ -625,10 +635,11 @@ export class Engine {
       const cursorLog = instagramProfile
         ? path.join(this.directory, "..", `gallery-dl-cursor-${job.id}.log`)
         : undefined;
-      const cursors =
+      const previousLog =
         cursorLog && existsSync(cursorLog)
-          ? savedCursors(readFileSync(cursorLog, "utf8"))
-          : {};
+          ? readFileSync(cursorLog, "utf8")
+          : "";
+      const cursors = savedCursors(previousLog);
       const running = runProcess(
         this.galleryExecutable,
         [
@@ -645,10 +656,15 @@ export class Engine {
               ? ["--range", `${job.filesSaved + 1}-`]
               : []),
           // Reels are not part of gallery-dl's default "posts"; the archive drops repeats.
+          // A retry after a partial run asks only for the parts that failed.
           ...(instagramProfile
             ? [
                 "--option",
-                `extractor.instagram.include=posts,reels${job.includeStories ? ",stories,highlights" : ""}`,
+                `extractor.instagram.include=${
+                  job.partialFailure?.parts.length
+                    ? job.partialFailure.parts.join(",")
+                    : `posts,reels${job.includeStories ? ",stories,highlights" : ""}`
+                }`,
               ]
             : []),
           ...Object.entries(cursors).flatMap(([part, cursor]) => [
@@ -666,7 +682,7 @@ export class Engine {
                     debug: "{extractor.subcategory}\t{message}",
                     info: "",
                     warning: "",
-                    error: "",
+                    error: "{extractor.subcategory}\tERROR {message}",
                   },
                 })}`,
               ]
@@ -704,6 +720,24 @@ export class Engine {
         // A finished run starts over next time; a stopped or failed one keeps its place.
         done: running.done.then(async (result) => {
           if (result.code === 0) await fs.rm(cursorLog, { force: true });
+          else {
+            const log = await fs.readFile(cursorLog, "utf8").catch(() => "");
+            // Only this run's lines: the log is appended to across runs.
+            const errors = partErrors(
+              log.startsWith(previousLog) ? log.slice(previousLog.length) : log,
+            );
+            result.partErrors = errors;
+            // A part that failed may have skipped files before its last cursor, so
+            // a retry reads it from the top. A rate limit cut it off instead: keep the place.
+            const failed = Object.keys(errors);
+            if (failed.length && !rateLimited(Object.values(errors).join("\n")))
+              await fs
+                .appendFile(
+                  cursorLog,
+                  failed.map((part) => `${part}\tCursor: \n`).join(""),
+                )
+                .catch(() => {});
+          }
           return result;
         }),
       };

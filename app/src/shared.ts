@@ -62,6 +62,8 @@ export interface Job {
   requestDelaySec?: number;
   /** Profile download also fetches the account's stories and highlights. */
   includeStories?: boolean;
+  /** Profile saved its files but some parts (reels, stories, ...) could not be read; Retry asks for only those. */
+  partialFailure?: { parts: string[]; error: string };
   formats?: VideoFormat[];
   selectedFormatId?: string;
   actualFormatId?: string;

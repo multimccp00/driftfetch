@@ -120,6 +120,17 @@ export const failureSummary = (job: Job) => {
   return "Needs attention";
 };
 
+/** The parts a partly saved profile is missing, as in "Reels and stories". */
+export const missingParts = (job: Job) => {
+  const parts = job.partialFailure?.parts ?? [];
+  if (!parts.length) return "Some parts";
+  const list =
+    parts.length > 1
+      ? `${parts.slice(0, -1).join(", ")} and ${parts.at(-1)}`
+      : parts[0];
+  return list[0].toUpperCase() + list.slice(1);
+};
+
 /** A sign-in problem; the details panel then offers the fix. */
 export const needsSignIn = (job: Job) =>
   failureSummary(job) === "Sign-in needed";

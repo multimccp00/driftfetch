@@ -90,6 +90,24 @@ try {
             stopReason: "empty-page",
           },
         },
+        {
+          id: "partial-fixture",
+          originalUrl: "https://images.example.com/landscapes-profile/",
+          source: "images.example.com",
+          title: "Landscapes profile",
+          status: "completed",
+          linkType: "profile",
+          progress: 100,
+          createdAt: 3,
+          updatedAt: 3,
+          finishedAt: 3,
+          filesSaved: 120,
+          partialFailure: {
+            parts: ["reels"],
+            error:
+              "The site sent the request to its home page instead of answering.",
+          },
+        },
       ],
       captures: [],
       sessions: [],
@@ -151,6 +169,9 @@ try {
     window.savedFixture = undefined;
     window.driftfetch = {
       snapshot: async () => structuredClone(state),
+      action: async (ids, action) => {
+        window.lastAction = { ids, action };
+      },
       previewCollectionEntry: async (id, entryId) => {
         window.previewRequests.push(entryId);
         // Slow enough that fresh snapshots arrive while previews are still loading.
@@ -341,6 +362,28 @@ try {
   await page.screenshot({
     path: "test-results/accounts-ui/collection-discovery.png",
     fullPage: true,
+  });
+  await page.keyboard.press("Escape");
+  // A profile saved with gaps stays in Downloads and retries only the failed part.
+  await page.getByText("Reels couldn’t be read", { exact: true }).waitFor();
+  await page
+    .getByRole("button", { name: "Landscapes profile", exact: true })
+    .click();
+  await page
+    .getByRole("dialog")
+    .getByText("Saved with gaps", { exact: true })
+    .waitFor();
+  await page.screenshot({
+    path: "test-results/accounts-ui/partial-profile.png",
+    fullPage: true,
+  });
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Retry reels", exact: true })
+    .click();
+  assert.deepEqual(await page.evaluate(() => window.lastAction), {
+    ids: ["partial-fixture"],
+    action: "start",
   });
   await page.keyboard.press("Escape");
   await page

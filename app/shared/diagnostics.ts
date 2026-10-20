@@ -45,7 +45,8 @@ export function failureCode(error: unknown): string {
   if (/API credentials were rejected/i.test(raw))
     return "API_CREDENTIALS_REJECTED";
   if (/DRIFTFETCH_INCOMPLETE_FILES/.test(raw)) return "INCOMPLETE_FILES";
-  if (/DRIFTFETCH_INCOMPLETE_DISCOVERY/.test(raw)) return "INCOMPLETE_DISCOVERY";
+  if (/DRIFTFETCH_INCOMPLETE_DISCOVERY/.test(raw))
+    return "INCOMPLETE_DISCOVERY";
   if (/DRIFTFETCH_NOTHING_READ/.test(raw)) return "NOTHING_READ";
   if (/DRIFTFETCH_TIMEOUT/.test(raw)) return "READ_TIMEOUT";
   if (/rate limit/i.test(raw)) return "RATE_LIMIT";
@@ -84,6 +85,8 @@ export function readerFailureExplanation(code: string): string {
 export function explanation(job: Job): string {
   if (job.imageSearch && job.status === "review")
     return "This is an image search. Start it to download original files from every available results page into one folder. You can pause or cancel while it runs.";
+  if (job.partialFailure && job.status === "completed")
+    return `Everything else on this profile was saved, but ${job.partialFailure.parts.length ? job.partialFailure.parts.join(", ") : "some parts"} could not be read: ${job.partialFailure.error} Retry asks for only those parts; the site may let them through later.`;
   if (job.fileMissing && job.status === "completed")
     return "The saved file could not be found. If its drive is disconnected, reconnect it and use Check files. If you moved the video, use Locate file, or choose Download again for a new copy.";
   if (job.retryAt && job.failureCode === "RATE_LIMIT")
@@ -119,24 +122,24 @@ export function diagnosticReport(
   const reason = /Nothing could be read/i.test(error)
     ? "nothing-read"
     : /Session unavailable/i.test(error)
-    ? "session-unavailable"
-    : /login required|Session expired/i.test(error)
-      ? "session-required-or-expired"
-      : /extract|supported video/i.test(error)
-        ? "unsupported-extraction"
-        : /disk is full|free space/i.test(error)
-          ? "disk-full"
-          : /limiting requests|HTTP 429/i.test(error)
-            ? "source-rate-limited"
-            : /blocked|refused access/i.test(error)
-              ? "source-blocked"
-              : /Connection failed/i.test(error)
-                ? "network"
-                : /DRM/i.test(error)
-                  ? "drm"
-                  : error
-                    ? "engine-failure"
-                    : "none";
+      ? "session-unavailable"
+      : /login required|Session expired/i.test(error)
+        ? "session-required-or-expired"
+        : /extract|supported video/i.test(error)
+          ? "unsupported-extraction"
+          : /disk is full|free space/i.test(error)
+            ? "disk-full"
+            : /limiting requests|HTTP 429/i.test(error)
+              ? "source-rate-limited"
+              : /blocked|refused access/i.test(error)
+                ? "source-blocked"
+                : /Connection failed/i.test(error)
+                  ? "network"
+                  : /DRM/i.test(error)
+                    ? "drm"
+                    : error
+                      ? "engine-failure"
+                      : "none";
   // Deliberately omit URLs, paths, titles, cookies, raw stderr, and source identifiers.
   return JSON.stringify(
     {

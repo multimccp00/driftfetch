@@ -26,6 +26,7 @@ import {
   collectionNoun,
   countdown,
   failureSummary,
+  missingParts,
   time,
   when,
 } from "./format";
@@ -91,6 +92,16 @@ export function rowView(
   const left = job.retryAt
     ? Math.max(0, Math.ceil((job.retryAt - now) / 1000))
     : 0;
+  if (job.partialFailure && job.status === "completed")
+    return {
+      tone: "wait",
+      icon: <CircleAlert size={13} strokeWidth={2} />,
+      label: "Saved with gaps",
+      sub: `${missingParts(job)} couldn’t be read`,
+      subLink: () => actions.details(job.id),
+      size: bytes(job.totalBytes),
+      sizeBottom: "Folder",
+    };
   if (job.fileMissing && job.status === "completed")
     return {
       tone: "wait",
@@ -271,6 +282,18 @@ function rowButtons(job: Job, actions: RowActions): RowButton[] {
   const details = button(<Info size={16} />, "Download details", () =>
     actions.details(job.id),
   );
+  if (job.partialFailure && job.status === "completed")
+    return [
+      button(
+        <RotateCw size={16} />,
+        `Retry ${missingParts(job).toLowerCase()}`,
+        () => actions.act(id, "start"),
+      ),
+      button(<FolderOpen size={16} />, "Open folder", () =>
+        actions.openFolder(job.id),
+      ),
+      details,
+    ];
   if (job.fileMissing && job.status === "completed")
     return [
       details,

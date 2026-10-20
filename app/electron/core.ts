@@ -402,6 +402,10 @@ export function redditFeed(url: string): string | undefined {
   if (!m) return;
   return `reddit_${/^r$/i.test(m[1]) ? "" : "u_"}${m[2]}`;
 }
+/** Engine output that says the source is limiting requests. */
+export const rateLimited = (raw: string) =>
+  rateLimitWait(raw) !== undefined ||
+  /\b429\b|too many requests|rate limit/i.test(raw);
 export function friendlyError(raw: string): string {
   if (/DRIFTFETCH_EXTENSION_REQUIRED/.test(raw))
     return "The extension for this collection is disabled or missing. Enable it in Settings → Advanced → Extensions and retry.";
@@ -445,8 +449,10 @@ export function friendlyError(raw: string): string {
   const wait = rateLimitWait(raw);
   if (wait !== undefined)
     return `The source is limiting requests and asked for a wait of about ${Math.max(1, Math.round(wait / 60_000))} minute(s). DriftFetch retries automatically about a minute and a half after that when automatic retries are on; otherwise retry later.`;
-  if (/\b429\b|too many requests|rate limit/i.test(raw))
+  if (rateLimited(raw))
     return "The source is limiting requests (HTTP 429). Wait before retrying and reduce simultaneous downloads for this source.";
+  if (/redirect to (?:home|challenge) page/i.test(raw))
+    return "The site sent the request to its home page instead of answering. This is often temporary, or a change on the site that needs an engine update. Retry later.";
   if (/\b403\b|forbidden|captcha|cloudflare/i.test(raw))
     return "The source refused access to this request (HTTP 403 or a browser check). Open the page in Chrome to check access. If sign-in is required, refresh its session in Settings → Sites & sign-ins. Retrying cannot bypass the site's restrictions.";
   if (

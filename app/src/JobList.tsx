@@ -125,7 +125,13 @@ export function JobList({
   }, []);
 
   const pageJobs = useMemo(
-    () => jobs.filter((j) => terminal.includes(j.status) === history),
+    () =>
+      jobs.filter((j) =>
+        history
+          ? terminal.includes(j.status)
+          : // A profile saved with gaps also stays here until a retry fills them.
+            !terminal.includes(j.status) || !!j.partialFailure,
+      ),
     [jobs, history],
   );
   const counts = useMemo(() => {

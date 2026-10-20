@@ -1152,6 +1152,62 @@ describe("persistent scheduler", () => {
       });
     },
   );
+  it.each([
+    ["one part fails", "", "completed"],
+    ["the site limits requests", "HTTP Error 429: Too Many Requests", "failed"],
+  ] as const)(
+    "keeps a profile's saved files when %s",
+    async (_case, stderr, status) => {
+      const r = create(false);
+      const targetDir = fs.mkdtempSync(path.join(r.dir, "partial-"));
+      r.queue.jobs.push({
+        id: "eeeeeeee-5",
+        originalUrl: "https://example.invalid/someone/",
+        title: "someone profile",
+        source: "example.invalid",
+        mediaKey: "GalleryDL:https://example.invalid/someone/",
+        linkType: "profile",
+        status: "paused",
+        progress: 0,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        targetDir,
+      });
+      const asked: (string[] | undefined)[] = [];
+      vi.spyOn(r.engine, "download").mockImplementation((job, _auth, line) => {
+        asked.push(job.partialFailure?.parts);
+        const file = path.join(targetDir, `post-${asked.length}.jpg`);
+        fs.writeFileSync(file, "fixture");
+        line("DRIFTFETCH_FILE:" + JSON.stringify(file));
+        const failed = asked.length === 1;
+        return {
+          done: Promise.resolve({
+            code: failed ? 1 : 0,
+            stdout: "",
+            stderr: failed ? stderr : "",
+            partErrors: failed
+              ? { reels: "HTTP redirect to home page", user: "ignored" }
+              : undefined,
+          }),
+          stop: async () => {},
+        } as Running;
+      });
+      const job = () => r.queue.jobs[0];
+      await r.queue.action([job().id], "start");
+      await waitUntil(() => ["completed", "failed"].includes(job().status));
+      expect(job().status).toBe(status);
+      if (status === "failed") return;
+      expect(job().partialFailure).toEqual({
+        parts: ["reels"],
+        error: expect.stringContaining("home page instead of answering"),
+      });
+      // Retry asks for only the failed part, and a clean run clears the gap.
+      await r.queue.action([job().id], "start");
+      await waitUntil(() => asked.length === 2 && job().status === "completed");
+      expect(asked).toEqual([undefined, ["reels"]]);
+      expect(job().partialFailure).toBeUndefined();
+    },
+  );
   it("restores removed entries until something newer is removed", async () => {
     const r = create(false);
     const make = (id: string): Job => ({

@@ -32,6 +32,7 @@ import {
   domainOf,
   friendlyError,
   instagramProfile,
+  rateLimited,
   redditFeed,
   headFollowingRedirects,
   outputLocation,
@@ -54,6 +55,21 @@ function stopOnRateLimit(running: Running | undefined) {
     seen = (seen + chunk).slice(-4000);
     if (rateLimitWait(seen) !== undefined) void running.stop();
   });
+}
+// Profile parts gallery-dl can be asked for again on their own.
+const profileParts = ["posts", "reels", "stories", "highlights", "tagged"];
+function partialProfileFailure(result: {
+  stderr: string;
+  partErrors?: Record<string, string>;
+}): NonNullable<Job["partialFailure"]> {
+  const failed = Object.entries(result.partErrors ?? {}).filter(([part]) =>
+    profileParts.includes(part),
+  );
+  return {
+    parts: failed.map(([part]) => part),
+    // Raw engine output can hold signed URLs; the renderer gets the plain reason.
+    error: friendlyError(failed[0]?.[1] || result.stderr),
+  };
 }
 export class Queue {
   jobs: Job[];
@@ -996,8 +1012,21 @@ export class Queue {
           throw new Error("DRIFTFETCH_INCOMPLETE_DISCOVERY");
       }
       const profile = job.linkType === "profile";
-      // An archive can mean no new files, but any engine error is still a failure.
-      if (result.code !== 0) throw new Error(result.stderr);
+      // gallery-dl moves on when one part of a profile (say, reels) cannot be
+      // read; what the other parts saved still counts, and Retry asks again
+      // for only the failed parts. A rate limit still fails, so it waits and
+      // retries on its own.
+      const partialFailure =
+        result.code !== 0 &&
+        profile &&
+        savedPaths.size &&
+        !rateLimited(
+          [result.stderr, ...Object.values(result.partErrors ?? {})].join("\n"),
+        )
+          ? partialProfileFailure(result)
+          : undefined;
+      // An archive can mean no new files, but any other engine error is still a failure.
+      if (result.code !== 0 && !partialFailure) throw new Error(result.stderr);
       if (job.imageSearch && !job.filePath)
         throw new Error("DRIFTFETCH_NO_IMAGES");
       if (profile && !job.filePath) {
@@ -1005,6 +1034,7 @@ export class Queue {
           status: "completed",
           finishedAt: Date.now(),
           progress: 100,
+          partialFailure: undefined,
           retryCount: 0,
           retryAt: undefined,
           speed: undefined,
@@ -1034,6 +1064,7 @@ export class Queue {
         retryCount: 0,
         retryAt: undefined,
         fileMissing: false,
+        partialFailure,
         quality,
         totalBytes: file.size,
         downloadedBytes: file.size,
@@ -1133,7 +1164,8 @@ export class Queue {
         });
       } else if (
         !this.running.has(id) &&
-        ["review", "paused", "failed", "cancelled"].includes(job.status)
+        (["review", "paused", "failed", "cancelled"].includes(job.status) ||
+          (job.status === "completed" && job.partialFailure))
       ) {
         // Retry is the user's "keep going": lift the pause for this source.
         this.cooldowns.delete(
