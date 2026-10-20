@@ -87,8 +87,11 @@ def request(url, method="GET", headers=None, data=None, **kw):
         pk = json.loads(data["variables"])["media_id"]
         calls.append(("graphql", pk))
         if pk == "101":
+            # As the website sends it: tagged users by "id", without "pk".
+            tagged = {"usertags": {"in": [
+                {"user": {"id": "5", "username": "tagged"}}]}}
             return Response(json.dumps({"data": {"xig_polaris_media": {
-                "if_not_gated_logged_out": video("101")}}}))
+                "if_not_gated_logged_out": {**video("101"), **tagged}}}}))
         raise RuntimeError("HTTP redirect to home page")
     code = url.rstrip("/").rpartition("/")[2]
     calls.append(("page", code))

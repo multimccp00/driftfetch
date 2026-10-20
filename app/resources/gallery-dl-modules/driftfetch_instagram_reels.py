@@ -18,6 +18,7 @@ extractors of its own: a profile download builds its reels part from
 InstagramReelsExtractor directly, so the class is patched in place.
 """
 
+import copy
 import json
 import sqlite3
 
@@ -55,6 +56,34 @@ def complete(media):
         return _media_ok(media)
     except (KeyError, IndexError, TypeError, AttributeError):
         return False
+
+
+def _fill_users(media):
+    """The website's answers name users by "id"; gallery-dl reads "pk" and names."""
+    def fill(user):
+        if isinstance(user, dict):
+            user.setdefault("pk", user.get("id"))
+            user.setdefault("username", None)
+            user.setdefault("full_name", None)
+
+    for item in (media, *(media.get("carousel_media") or ())):
+        for tag in (item.get("usertags") or {}).get("in") or ():
+            fill(tag.get("user"))
+        for mention in item.get("reel_mentions") or ():
+            fill(mention.get("user"))
+    for user in media.get("coauthor_producers") or ():
+        fill(user)
+    media.setdefault("caption", None)
+    return media
+
+
+def _parses(self, media):
+    """Whether gallery-dl's own parser reads the reel, tried on a copy."""
+    try:
+        self._parse_post(copy.deepcopy(media))
+        return True, ""
+    except Exception as exc:
+        return False, f"gallery-dl cannot read it: {exc.__class__.__name__}: {exc}"
 
 
 def _archive_check(self):
@@ -134,9 +163,8 @@ def posts(self):
         if media.get("pk") and archived(media["pk"]):
             counts["archived"] += 1
             continue
-        if complete(media):
+        if complete(media) and _parses(self, _fill_users(media))[0]:
             counts["listed"] += 1
-            media.setdefault("caption", None)
             yield media
             continue
 
@@ -144,15 +172,16 @@ def posts(self):
             if misses[name] >= GIVE_UP_AFTER:
                 continue
             try:
-                full = {**media, **(method(self, media) or {})}
+                full = _fill_users({**media, **(method(self, media) or {})})
             except Exception as exc:
-                full, reason = None, f"{exc.__class__.__name__}: {exc}"
+                full, ok = None, False
+                reason = f"{exc.__class__.__name__}: {exc}"
             else:
-                reason = "incomplete media"
-            if full and complete(full):
+                ok, reason = (_parses(self, full) if complete(full)
+                              else (False, "incomplete media"))
+            if ok:
                 misses[name] = 0
                 counts[name] += 1
-                full.setdefault("caption", None)
                 yield full
                 break
             misses[name] += 1
