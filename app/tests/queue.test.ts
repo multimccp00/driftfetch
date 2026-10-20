@@ -1217,6 +1217,60 @@ describe("persistent scheduler", () => {
       expect(job().partialFailure).toBeUndefined();
     },
   );
+  it("keeps a profile saved with gaps when retrying its failed part saves nothing", async () => {
+    const r = create(false);
+    const targetDir = fs.mkdtempSync(path.join(r.dir, "gaps-"));
+    const gap = { parts: ["reels"], error: "Earlier reason." };
+    r.queue.jobs.push({
+      id: "ffffffff-6",
+      originalUrl: "https://example.invalid/someone/",
+      title: "someone profile",
+      source: "example.invalid",
+      mediaKey: "GalleryDL:https://example.invalid/someone/",
+      linkType: "profile",
+      status: "completed",
+      progress: 100,
+      totalBytes: 5000,
+      partialFailure: gap,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      targetDir,
+    });
+    const asked: (string[] | undefined)[] = [];
+    vi.spyOn(r.engine, "download").mockImplementation((job, _auth, line) => {
+      asked.push(job.partialFailure?.parts);
+      if (asked.length === 2) {
+        const reel = path.join(targetDir, "reel.mkv");
+        fs.writeFileSync(reel, "video");
+        line("DRIFTFETCH_FILE:" + JSON.stringify(reel));
+      }
+      const failed = asked.length === 1;
+      return {
+        done: Promise.resolve({
+          code: failed ? 1 : 0,
+          stdout: "",
+          stderr: "",
+          partErrors: failed
+            ? { reels: "Failed to download 4 reels; retry later" }
+            : undefined,
+        }),
+        stop: async () => {},
+      } as Running;
+    });
+    const job = () => r.queue.jobs[0];
+    await r.queue.action([job().id], "start");
+    await waitUntil(() => asked.length === 1 && job().status === "completed");
+    expect(asked[0]).toEqual(["reels"]);
+    expect(job()).toMatchObject({
+      totalBytes: 5000,
+      partialFailure: { parts: ["reels"] },
+    });
+    // The next retry saves a reel: it adds to the size and clears the gap.
+    await r.queue.action([job().id], "start");
+    await waitUntil(() => asked.length === 2 && job().status === "completed");
+    expect(job().totalBytes).toBe(5000 + "video".length);
+    expect(job().partialFailure).toBeUndefined();
+  });
   it("restores removed entries until something newer is removed", async () => {
     const r = create(false);
     const make = (id: string): Job => ({

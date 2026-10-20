@@ -911,6 +911,10 @@ export class Queue {
         job.linkType !== "profile"
           ? job.filesSaved || 0
           : 0;
+      // A retry of only a profile's failed parts adds to what is already saved.
+      const earlierBytes = job.partialFailure?.parts.length
+        ? job.totalBytes || 0
+        : 0;
       this.save(job, {
         status: "downloading",
         speedLimitKiB: rule?.speedLimitKiB ?? this.settings.speedLimitKiB,
@@ -1019,7 +1023,8 @@ export class Queue {
       const partialFailure =
         result.code !== 0 &&
         profile &&
-        savedPaths.size &&
+        // A retry of only the failed parts keeps what the earlier run saved.
+        (savedPaths.size || job.partialFailure) &&
         !rateLimited(
           [result.stderr, ...Object.values(result.partErrors ?? {})].join("\n"),
         )
@@ -1033,7 +1038,7 @@ export class Queue {
         // A profile is a folder: its size is every file this run saved or found,
         // and no single file stands for it. gallery-dl reports a DASH video by its
         // .mp4 name, but yt-dlp merges it into .mkv.
-        let total = 0,
+        let total = earlierBytes,
           last: string | undefined;
         for (const reported of savedPaths.values()) {
           for (const file of [reported, reported.replace(/\.mp4$/i, ".mkv")]) {
