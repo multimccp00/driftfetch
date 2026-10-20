@@ -620,6 +620,14 @@ export class Engine {
           "--filename",
           "{username|category}_{shortcode|id|filename}_{num|filename}.{extension}",
           ...(job.galleryRange ? ["--range", job.galleryRange] : []),
+          // Reels are not part of gallery-dl's default "posts"; the archive drops repeats.
+          ...(job.linkType === "profile" &&
+          /(^|\.)instagram\.com$/i.test(job.source)
+            ? [
+                "--option",
+                `extractor.instagram.include=posts,reels${job.includeStories ? ",stories,highlights" : ""}`,
+              ]
+            : []),
           // Remembers saved profile items so later runs fetch only new posts.
           ...(job.linkType === "profile"
             ? [
@@ -661,9 +669,10 @@ export class Engine {
           "--directory",
           job.targetDir!,
           "--filename",
-          // Direct image URLs have no post id. Hash the URL to distinguish
-          // identical basenames, with stable names when retrying the same job.
-          "\fF {filename[:80]}_{hash_sha1(_url)[:16]}.{extension}",
+          // Direct image URLs have no post id except the fragment the queue adds,
+          // which leads the name. Hash the URL to distinguish identical basenames,
+          // with stable names when retrying the same job.
+          "\fF {fragment[:20] + '_' if fragment else ''}{filename[:80]}_{hash_sha1(_url)[:16]}.{extension}",
           "--windows-filenames",
           "--option",
           `downloader.http.headers.Referer=${job.resolvedUrl || job.originalUrl}`,

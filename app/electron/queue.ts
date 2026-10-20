@@ -892,6 +892,7 @@ export class Queue {
           rule?.fragmentConcurrency ?? this.settings.fragmentConcurrency,
         requestDelaySec: sourceLimits(this.settings, job.source)
           .requestDelaySec,
+        includeStories: this.settings.instagramStories,
         scheduleHeld: false,
         retryAt: undefined,
         error: undefined,
@@ -1189,7 +1190,13 @@ export class Queue {
           job.thumbnailUrl ||
           available.find((entry) => entry.thumbnail)?.thumbnail,
         entries: undefined,
-        imageUrls: entries.map((entry) => entry.url),
+        // The post ID rides in the URL fragment so the file name can carry it
+        // (gallery-dl indexes are not source IDs, so those are left alone).
+        imageUrls: entries.map((entry) =>
+          /^\d{1,20}$/.test(entry.id) && !job.mediaKey?.startsWith("GalleryDL:")
+            ? entry.url.replace(/#.*$/, "") + "#" + entry.id
+            : entry.url,
+        ),
         selectedAll: entries.length === available.length,
         discoveredItems: available.length,
         expectedFiles: new Set(entries.map((entry) => entry.url)).size,

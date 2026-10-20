@@ -1190,6 +1190,19 @@ export function SettingsView({
       ),
     },
     {
+      id: "instagram-stories",
+      section: "advanced",
+      group: "App",
+      label: "Instagram profiles include stories and highlights",
+      desc: "Profile links also save the account's live stories and highlights. Needs your Instagram sign-in.",
+      icon: <Power size={17} />,
+      control: toggle(
+        "Include stories and highlights",
+        s.instagramStories,
+        "instagramStories",
+      ),
+    },
+    {
       id: "login",
       section: "advanced",
       group: "App",

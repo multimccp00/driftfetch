@@ -60,6 +60,8 @@ export interface Job {
   speedLimitKiB?: number;
   fragmentConcurrency?: number;
   requestDelaySec?: number;
+  /** Profile download also fetches the account's stories and highlights. */
+  includeStories?: boolean;
   formats?: VideoFormat[];
   selectedFormatId?: string;
   actualFormatId?: string;
@@ -178,6 +180,8 @@ export interface Settings {
   grouping: "source" | "date" | "none";
   filenameTemplate: string;
   launchAtLogin: boolean;
+  /** Instagram profile downloads also include stories and highlights. */
+  instagramStories: boolean;
   /** Check for and install verified yt-dlp and gallery-dl updates when the app starts. */
   autoUpdateEngines: boolean;
   /** "system" follows Windows. */

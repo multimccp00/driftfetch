@@ -123,6 +123,7 @@ try {
         grouping: "source",
         filenameTemplate: "{title} [{id}]",
         launchAtLogin: false,
+        instagramStories: false,
         autoUpdateEngines: true,
       },
     };

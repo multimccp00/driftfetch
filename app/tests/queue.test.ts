@@ -316,7 +316,9 @@ describe("persistent scheduler", () => {
           missingFiles: 0,
           selectedAll: true,
         });
-        expect(job.imageUrls).toEqual(originals.map((entry) => entry.url));
+        expect(job.imageUrls).toEqual(
+          originals.map((entry) => `${entry.url}#${entry.id}`),
+        );
       } else {
         expect(job.entries).toEqual(originals);
         // Also protect old/restored selection lists and repeated checkbox IDs.
@@ -325,7 +327,10 @@ describe("persistent scheduler", () => {
           url: "https://example.invalid/alternate/7.png",
         });
         r.queue.selectCollection(job.id, ["7", "7", "42"]);
-        expect(job.imageUrls).toEqual([originals[7].url, originals[42].url]);
+        expect(job.imageUrls).toEqual([
+          `${originals[7].url}#7`,
+          `${originals[42].url}#42`,
+        ]);
         expect(job).toMatchObject({
           expectedFiles: 2,
           selectedAll: false,
@@ -374,7 +379,7 @@ describe("persistent scheduler", () => {
     expect(job.status).toBe("collection");
     r.queue.selectCollection(job.id, ["2"]);
     await waitUntil(() => job.status === "completed");
-    expect(job.imageUrls).toEqual(["https://example.invalid/two.png"]);
+    expect(job.imageUrls).toEqual(["https://example.invalid/two.png#2"]);
     expect(job.selectedAll).toBe(false);
   });
 
@@ -878,7 +883,7 @@ describe("persistent scheduler", () => {
       expect(r.queue.jobs).toHaveLength(1);
       if (scenario.expected === "completed")
         expect(r.queue.jobs[0].imageUrls).toEqual([
-          "http://127.0.0.1:1/image.jpg",
+          "http://127.0.0.1:1/image.jpg#0",
         ]);
       else expect(r.maxActive).toBe(0);
     },
