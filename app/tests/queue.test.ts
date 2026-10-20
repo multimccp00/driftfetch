@@ -1106,6 +1106,52 @@ describe("persistent scheduler", () => {
       "c-cccccccc.mp4.part",
     ]);
   });
+  it.each([
+    ["search", 5, 6],
+    ["profile", 0, 1],
+  ] as const)(
+    "resumes a stopped gallery-dl %s job after the files it already saved",
+    async (kind, resumed, saved) => {
+      const r = create(false);
+      const targetDir = fs.mkdtempSync(path.join(r.dir, "resume-"));
+      r.queue.jobs.push({
+        id: "dddddddd-4",
+        originalUrl: "https://example.invalid/search",
+        title: "search",
+        source: "example.invalid",
+        mediaKey: "GalleryDL:https://example.invalid/search",
+        ...(kind === "profile"
+          ? { linkType: "profile" as const }
+          : { imageSearch: true }),
+        status: "paused",
+        progress: 0,
+        filesSaved: 5,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        targetDir,
+      });
+      let resumedAt: number | undefined;
+      vi.spyOn(r.engine, "download").mockImplementation((job, _auth, line) => {
+        resumedAt = job.filesSaved;
+        const file = path.join(targetDir, "six.png");
+        fs.writeFileSync(file, "fixture");
+        line("DRIFTFETCH_FILE:" + JSON.stringify(file));
+        return {
+          done: Promise.resolve({ code: 0, stdout: "", stderr: "" }),
+          stop: async () => {},
+        } as Running;
+      });
+      await r.queue.action(["dddddddd-4"], "retry");
+      await waitUntil(() =>
+        ["completed", "failed"].includes(r.queue.jobs[0].status),
+      );
+      expect(resumedAt).toBe(resumed);
+      expect(r.queue.jobs[0]).toMatchObject({
+        status: "completed",
+        filesSaved: saved,
+      });
+    },
+  );
   it("restores removed entries until something newer is removed", async () => {
     const r = create(false);
     const make = (id: string): Job => ({

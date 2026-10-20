@@ -2,7 +2,7 @@ import { spawn, type ChildProcess } from "node:child_process";
 import { createHash, randomUUID } from "node:crypto";
 import os from "node:os";
 import fs from "node:fs/promises";
-import { existsSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { createInterface } from "node:readline";
 import type { EngineInfo, Job, Entry } from "../src/shared";
@@ -38,6 +38,13 @@ const galleryOutputArgs = [
   "--option",
   "output.mode=pipe",
 ];
+/** The last pagination cursor gallery-dl logged for each part of a profile (posts, reels, ...). */
+export function savedCursors(log: string): Record<string, string> {
+  const cursors: Record<string, string> = {};
+  for (const [, part, cursor] of log.matchAll(/^(\w+)\tCursor: (\S+)$/gm))
+    cursors[part] = cursor;
+  return cursors;
+}
 export function runProcess(
   exe: string,
   args: string[],
@@ -610,8 +617,19 @@ export class Engine {
     );
   }
   download(job: Job, auth: string[], onLine: (line: string) => void): Running {
-    if (job.mediaKey?.startsWith("GalleryDL:"))
-      return runProcess(
+    if (job.mediaKey?.startsWith("GalleryDL:")) {
+      const instagramProfile =
+        job.linkType === "profile" && /(^|\.)instagram\.com$/i.test(job.source);
+      // Instagram walks every page again on a restart (and asks for each reel
+      // separately), so the pagination cursors it logs let a stopped run continue.
+      const cursorLog = instagramProfile
+        ? path.join(this.directory, "..", `gallery-dl-cursor-${job.id}.log`)
+        : undefined;
+      const cursors =
+        cursorLog && existsSync(cursorLog)
+          ? savedCursors(readFileSync(cursorLog, "utf8"))
+          : {};
+      const running = runProcess(
         this.galleryExecutable,
         [
           ...galleryOutputArgs,
@@ -619,13 +637,38 @@ export class Engine {
           job.targetDir!,
           "--filename",
           "{username|category}_{shortcode|id|filename}_{num|filename}.{extension}",
-          ...(job.galleryRange ? ["--range", job.galleryRange] : []),
+          // filesSaved carries over from a stopped run. Sites that support it skip
+          // whole pages up to the range start instead of fetching each post.
+          ...(job.galleryRange
+            ? ["--range", job.galleryRange]
+            : job.filesSaved
+              ? ["--range", `${job.filesSaved + 1}-`]
+              : []),
           // Reels are not part of gallery-dl's default "posts"; the archive drops repeats.
-          ...(job.linkType === "profile" &&
-          /(^|\.)instagram\.com$/i.test(job.source)
+          ...(instagramProfile
             ? [
                 "--option",
                 `extractor.instagram.include=posts,reels${job.includeStories ? ",stories,highlights" : ""}`,
+              ]
+            : []),
+          ...Object.entries(cursors).flatMap(([part, cursor]) => [
+            "--option",
+            `extractor.instagram.${part}.cursor=${JSON.stringify(cursor)}`,
+          ]),
+          ...(cursorLog
+            ? [
+                "--option",
+                `output.logfile=${JSON.stringify({
+                  path: cursorLog,
+                  mode: "a",
+                  level: 10,
+                  format: {
+                    debug: "{extractor.subcategory}\t{message}",
+                    info: "",
+                    warning: "",
+                    error: "",
+                  },
+                })}`,
               ]
             : []),
           // Remembers saved profile items so later runs fetch only new posts.
@@ -655,6 +698,16 @@ export class Engine {
         0,
         job.imageSearch ? 120_000 : 0,
       );
+      if (!cursorLog) return running;
+      return {
+        ...running,
+        // A finished run starts over next time; a stopped or failed one keeps its place.
+        done: running.done.then(async (result) => {
+          if (result.code === 0) await fs.rm(cursorLog, { force: true });
+          return result;
+        }),
+      };
+    }
     if (job.imageUrls?.length) {
       // Outside the download folder, so a crash leaves nothing behind there.
       const batchFile = path.join(

@@ -885,6 +885,16 @@ export class Queue {
         this.save(job, { scheduleHeld: true });
         return;
       }
+      // A stopped gallery-dl run resumes after the files it already saved, so it
+      // does not ask the site about each of them again (see Engine.download).
+      // Not profiles: gallery-dl applies the range to each part (posts, reels,
+      // stories) separately, and their download archive already skips saved items.
+      const resumeFrom =
+        job.mediaKey?.startsWith("GalleryDL:") &&
+        !job.galleryRange &&
+        job.linkType !== "profile"
+          ? job.filesSaved || 0
+          : 0;
       this.save(job, {
         status: "downloading",
         speedLimitKiB: rule?.speedLimitKiB ?? this.settings.speedLimitKiB,
@@ -906,7 +916,7 @@ export class Queue {
         ...(job.linkType === "profile" ||
         job.imageSearch ||
         job.imageUrls?.length
-          ? { filePath: undefined, filesSaved: 0 }
+          ? { filePath: undefined, filesSaved: resumeFrom }
           : {}),
       });
       token.process = this.engine.download(job, auth.args, (line) => {
@@ -945,7 +955,7 @@ export class Queue {
               savedPaths.set(reported.key, reported.file);
               this.save(job, {
                 filePath: reported.file,
-                filesSaved: savedPaths.size,
+                filesSaved: resumeFrom + savedPaths.size,
               });
             }
           } else if (line.startsWith("DRIFTFETCH_FORMAT_ID:")) {
