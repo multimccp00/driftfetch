@@ -76,6 +76,13 @@
       {
         "from": "resources/yt-dlp-plugins",
         "to": "yt-dlp-plugins"
+      },
+      {
+        "from": "resources/gallery-dl-modules",
+        "to": "gallery-dl-modules",
+        "filter": [
+          "*.py"
+        ]
       }
     ],
     "electronDist": "node_modules/electron/dist",

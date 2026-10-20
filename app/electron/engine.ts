@@ -667,6 +667,17 @@ export class Engine {
                 }`,
               ]
             : []),
+          // Builds reels from the reels list instead of asking Instagram for
+          // each one (resources/gallery-dl-modules); null keeps gallery-dl's own.
+          ...(instagramProfile
+            ? [
+                "--option",
+                `extractor.module-sources=${JSON.stringify([
+                  path.join(this.bundled, "..", "gallery-dl-modules"),
+                  null,
+                ])}`,
+              ]
+            : []),
           ...Object.entries(cursors).flatMap(([part, cursor]) => [
             "--option",
             `extractor.instagram.${part}.cursor=${JSON.stringify(cursor)}`,
