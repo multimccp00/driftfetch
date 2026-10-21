@@ -29,6 +29,8 @@ const defaultSourceLimits: Record<
 
 /** Sites where an account can be locked for hammering. A rate limit stops work there for a long cooldown. */
 const protectedSources = ["instagram.com"];
+/** Shortest wait between requests on a protected source, whatever a site rule says. */
+const protectedMinDelaySec = 6;
 /** Shortest pause after a rate limit on a protected source, longer than any ordinary retry. */
 export const protectedCooldownMs = 60 * 60_000;
 export function isProtectedSource(source: string | undefined): boolean {
@@ -42,6 +44,18 @@ export function isRateLimited(raw: string): boolean {
     rateLimitWait(raw) !== undefined ||
     /429|too many requests|rate limit/i.test(raw)
   );
+}
+/**
+ * gallery-dl output that says Instagram sent the session to its login,
+ * security-check or home page. Retrying (or signing in again) right away is
+ * what makes a session look hijacked, so it is treated like a rate limit.
+ */
+export function isAccountWarning(raw: string): boolean {
+  return /redirect to (?:login|challenge|home) page/i.test(raw);
+}
+/** gallery-dl's warning that the signed-in account cannot see the profile. */
+export function isPrivateProfile(raw: string): boolean {
+  return /\bposts are private\b|DRIFTFETCH_PRIVATE/.test(raw);
 }
 /** When work on a protected source may resume: the source's own wait if longer, else the cooldown. */
 export function protectedCooldown(raw: string): number {
@@ -58,10 +72,14 @@ export function sourceLimits(
   const fallback = Object.entries(defaultSourceLimits).find(([d]) =>
     match(d),
   )?.[1];
+  const requestDelaySec =
+    rule?.requestDelaySec ?? fallback?.requestDelaySec ?? 0;
   return {
     // 0 means no per-source limit beyond the global one.
     maxSimultaneous: rule?.maxSimultaneous ?? fallback?.maxSimultaneous ?? 0,
-    requestDelaySec: rule?.requestDelaySec ?? fallback?.requestDelaySec ?? 0,
+    requestDelaySec: isProtectedSource(source)
+      ? Math.max(protectedMinDelaySec, requestDelaySec)
+      : requestDelaySec,
   };
 }
 

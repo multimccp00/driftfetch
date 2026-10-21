@@ -1,13 +1,60 @@
-import type { AccountField } from "../src/shared";
+import {
+  privateSessionSuffix,
+  sessionKey,
+  type AccountField,
+} from "../src/shared";
 import { validateAccountValues } from "./account-fields";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import { safeStorage, session, type Cookie } from "electron";
 import { domainOf, validateDomain } from "./core";
 import { Store } from "./store";
 /** Cookie storage of DriftFetch's own sign-in window, kept across restarts. */
 export const accountsPartition = "persist:accounts";
+/** The private-profiles sign-in keeps its own cookies, so both accounts stay signed in. */
+export const privateAccountsPartition = "persist:accounts-private";
+export const partitionFor = (isPrivate: boolean) =>
+  isPrivate ? privateAccountsPartition : accountsPartition;
+/** Splits a session key (see sessionKey) into its domain and slot. */
+export function parseSessionKey(key: string) {
+  const isPrivate = key.endsWith(privateSessionSuffix);
+  return {
+    domain: validateDomain(
+      isPrivate ? key.slice(0, -privateSessionSuffix.length) : key,
+    ),
+    isPrivate,
+  };
+}
+/**
+ * The sign-in window's user agent as Chrome itself would send it: no app or
+ * Electron token (sites refuse embedded browsers) and Chrome's reduced
+ * "major.0.0.0" version. The engines send the same one, so the session does
+ * not look like it moved to another browser.
+ */
+export const browserUserAgent = (electronAgent: string) =>
+  electronAgent
+    .replace(/\s(?:DriftFetch|driftfetch|Electron)\/\S+/g, "")
+    .replace(/Chrome\/(\d+)[\d.]*/, "Chrome/$1.0.0.0");
+/** The user agent of the installed Chrome, which a Chrome-profile session came from. */
+export async function chromeUserAgent(): Promise<string | undefined> {
+  try {
+    const { stdout } = await promisify(execFile)("reg", [
+      "query",
+      "HKCU\\Software\\Google\\Chrome\\BLBeacon",
+      "/v",
+      "version",
+    ]);
+    const major = /version\s+REG_SZ\s+(\d+)\./.exec(stdout)?.[1];
+    return major
+      ? `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${major}.0.0.0 Safari/537.36`
+      : undefined;
+  } catch {
+    return;
+  }
+}
 export function netscapeCookies(cookies: Cookie[]): string {
   return (
     "# Netscape HTTP Cookie File\n" +
@@ -73,38 +120,58 @@ export class Sessions {
       return [];
     }
   }
-  async setChrome(domain: string, profile: string) {
-    domain = validateDomain(domain);
+  async setChrome(key: string, profile: string) {
+    const { domain, isPrivate } = parseSessionKey(key);
     if (!(await this.profiles()).includes(profile))
       throw new Error("Choose an available Chrome profile.");
     this.store.saveSession({
       domain,
       kind: "chrome",
       profile,
+      private: isPrivate || undefined,
       updatedAt: Date.now(),
     });
   }
-  private get browser() {
-    return session.fromPartition(accountsPartition);
+  private browser(isPrivate: boolean) {
+    return session.fromPartition(partitionFor(isPrivate));
   }
-  private async browserCookies(domain: string): Promise<string> {
+  private async browserCookies(
+    domain: string,
+    isPrivate: boolean,
+  ): Promise<string> {
     try {
       return filterCookies(
-        netscapeCookies(await this.browser.cookies.get({})),
+        netscapeCookies(await this.browser(isPrivate).cookies.get({})),
         domain,
       );
     } catch {
       throw new Error("Session unavailable");
     }
   }
-  async saveBrowser(domain: string) {
-    domain = validateDomain(domain);
-    await this.browserCookies(domain).catch(() => {
+  async saveBrowser(key: string) {
+    const { domain, isPrivate } = parseSessionKey(key);
+    await this.browserCookies(domain, isPrivate).catch(() => {
       throw new Error(
         "No sign-in was found for this site. Log in in the window, then close it.",
       );
     });
-    this.store.saveSession({ domain, kind: "browser", updatedAt: Date.now() });
+    this.store.saveSession({
+      domain,
+      kind: "browser",
+      private: isPrivate || undefined,
+      updatedAt: Date.now(),
+    });
+  }
+  /** Whether the site has a private-profiles sign-in to fall back on. */
+  hasPrivate(source: string | undefined) {
+    return this.store
+      .sessions()
+      .some(
+        (s) =>
+          s.private &&
+          !!source &&
+          (source === s.domain || source.endsWith("." + s.domain)),
+      );
   }
   async saveCredentials(
     domain: string,
@@ -126,7 +193,9 @@ export class Sessions {
     fields: AccountField[],
   ): Promise<Record<string, string>> {
     domain = validateDomain(domain);
-    const info = this.store.sessions().find((s) => s.domain === domain);
+    const info = this.store
+      .sessions()
+      .find((s) => s.domain === domain && !s.private);
     const secret = this.store.sessionSecret(domain);
     if (
       !info ||
@@ -145,53 +214,80 @@ export class Sessions {
       throw new Error("API credentials are invalid.");
     }
   }
-  async remove(domain: string) {
-    domain = validateDomain(domain);
+  async remove(key: string) {
+    const { domain, isPrivate } = parseSessionKey(key);
     if (
-      this.store.sessions().find((s) => s.domain === domain)?.kind === "browser"
-    )
-      for (const c of await this.browser.cookies.get({})) {
+      this.store
+        .sessions()
+        .find((s) => s.domain === domain && !!s.private === isPrivate)
+        ?.kind === "browser"
+    ) {
+      const browser = this.browser(isPrivate);
+      for (const c of await browser.cookies.get({})) {
         const host = c.domain!.replace(/^\./, "");
         if (host === domain || host.endsWith("." + domain))
-          await this.browser.cookies.remove(
+          await browser.cookies.remove(
             `https://${host}${c.path || "/"}`,
             c.name,
           );
       }
-    this.store.removeSession(domain);
+    }
+    this.store.removeSession(key);
   }
-  async importFile(domain: string, filename: string) {
-    domain = validateDomain(domain);
+  async importFile(key: string, filename: string) {
+    const { domain, isPrivate } = parseSessionKey(key);
     if (!safeStorage.isEncryptionAvailable())
       throw new Error("Windows credential encryption is unavailable.");
     const size = (await fs.stat(filename)).size;
     if (size > 5_000_000) throw new Error("Cookie file is too large.");
     const filtered = filterCookies(await fs.readFile(filename, "utf8"), domain);
     this.store.saveSession(
-      { domain, kind: "file", updatedAt: Date.now() },
+      {
+        domain,
+        kind: "file",
+        private: isPrivate || undefined,
+        updatedAt: Date.now(),
+      },
       safeStorage.encryptString(filtered),
     );
   }
+  /**
+   * Engine arguments for the saved sign-in: its cookies and, where the browser
+   * is known, that browser's user agent. `--user-agent` means the same to
+   * yt-dlp and gallery-dl.
+   */
   async argumentsFor(
     url: string,
+    usePrivate = false,
   ): Promise<{ args: string[]; cleanup(): Promise<void> }> {
     const domain = domainOf(url);
     const info = this.store
       .sessions()
-      .filter((s) => domain === s.domain || domain.endsWith("." + s.domain))
+      .filter(
+        (s) =>
+          !!s.private === usePrivate &&
+          (domain === s.domain || domain.endsWith("." + s.domain)),
+      )
       .sort((a, b) => b.domain.length - a.domain.length)[0];
     if (!info) return { args: [], cleanup: async () => {} };
     if (info.kind === "api" || info.kind === "credentials")
       return { args: [], cleanup: async () => {} };
-    if (info.kind === "chrome")
+    if (info.kind === "chrome") {
+      const agent = await chromeUserAgent();
       return {
-        args: ["--cookies-from-browser", `chrome:${info.profile}`],
+        args: [
+          "--cookies-from-browser",
+          `chrome:${info.profile}`,
+          ...(agent ? ["--user-agent", agent] : []),
+        ],
         cleanup: async () => {},
       };
+    }
     let text: string;
-    if (info.kind === "browser") text = await this.browserCookies(info.domain);
+    if (info.kind === "browser")
+      text = await this.browserCookies(info.domain, usePrivate);
     else {
-      const secret = this.store.sessionSecret(info.domain);
+      const secret = this.store.sessionSecret(sessionKey(info));
       if (!secret || !safeStorage.isEncryptionAvailable())
         throw new Error("Session unavailable");
       text = safeStorage.decryptString(secret);
@@ -202,7 +298,17 @@ export class Sessions {
       mode: 0o600,
     });
     return {
-      args: ["--cookies", file],
+      args: [
+        "--cookies",
+        file,
+        // Imported files come from an unknown browser: the engine's own agent stays.
+        ...(info.kind === "browser"
+          ? [
+              "--user-agent",
+              browserUserAgent(this.browser(usePrivate).getUserAgent()),
+            ]
+          : []),
+      ],
       cleanup: async () => {
         await fs.rm(file, { force: true });
       },

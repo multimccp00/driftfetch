@@ -62,6 +62,8 @@ export interface Job {
   requestDelaySec?: number;
   /** Profile download also fetches the account's stories and highlights. */
   includeStories?: boolean;
+  /** The profile was private to the site's usual sign-in, so it uses the private-profiles sign-in. */
+  usePrivateAccount?: boolean;
   /** Profile saved its files but some parts (reels, stories, ...) could not be read; Retry asks for only those. */
   partialFailure?: { parts: string[]; error: string };
   formats?: VideoFormat[];
@@ -195,8 +197,14 @@ export interface SessionInfo {
   domain: string;
   kind: "chrome" | "file" | "browser" | "api" | "credentials";
   profile?: string;
+  /** A second sign-in, used only for profiles the usual one cannot see. */
+  private?: boolean;
   updatedAt: number;
 }
+/** How a session is named over IPC and stored: the domain, plus this for the private-profiles sign-in. */
+export const privateSessionSuffix = "#private";
+export const sessionKey = (s: Pick<SessionInfo, "domain" | "private">) =>
+  s.domain + (s.private ? privateSessionSuffix : "");
 export interface AccountField {
   key: string;
   label: string;

@@ -104,6 +104,7 @@ function create(auto = true, previewCollections = false) {
   } as unknown as Engine;
   const sessions = {
     argumentsFor: async () => ({ args: [], cleanup: async () => {} }),
+    hasPrivate: () => false,
   } as unknown as Sessions;
   const extensions = new Extensions(path.join(dir, "extensions"));
   const queue = new Queue(
@@ -1217,6 +1218,90 @@ describe("persistent scheduler", () => {
       expect(job().partialFailure).toBeUndefined();
     },
   );
+  const instagramProfileJob = (id: string, targetDir: string): Job => ({
+    id,
+    originalUrl: "https://www.instagram.com/someone/",
+    title: "someone profile",
+    source: "www.instagram.com",
+    mediaKey: "GalleryDL:https://www.instagram.com/someone/",
+    linkType: "profile",
+    status: "paused",
+    progress: 0,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    targetDir,
+  });
+  it("retries a private profile once with the private-profiles sign-in", async () => {
+    const r = create(false);
+    const targetDir = fs.mkdtempSync(path.join(r.dir, "private-"));
+    r.queue.jobs.push(instagramProfileJob("abababab-1", targetDir));
+    r.sessions.hasPrivate = () => true;
+    const slots: (boolean | undefined)[] = [];
+    vi.spyOn(r.sessions, "argumentsFor").mockImplementation(
+      async (_url, usePrivate) => {
+        slots.push(usePrivate);
+        return { args: [], cleanup: async () => {} };
+      },
+    );
+    vi.spyOn(r.engine, "download").mockImplementation((job, _auth, line) => {
+      if (job.usePrivateAccount) {
+        const image = path.join(targetDir, "post.jpg");
+        fs.writeFileSync(image, "fixture");
+        line("DRIFTFETCH_FILE:" + JSON.stringify(image));
+      }
+      return {
+        done: Promise.resolve({
+          code: 0,
+          stdout: "",
+          stderr: job.usePrivateAccount
+            ? ""
+            : "[instagram][warning] someone's posts are private",
+        }),
+        stop: async () => {},
+      } as Running;
+    });
+    const job = () => r.queue.jobs[0];
+    await r.queue.action([job().id], "start");
+    await waitUntil(() => job().status === "completed");
+    expect(slots).toEqual([undefined, true]);
+    expect(job().usePrivateAccount).toBe(true);
+  });
+  it("explains a private profile when there is no private-profiles sign-in", async () => {
+    const r = create(false);
+    const targetDir = fs.mkdtempSync(path.join(r.dir, "private-"));
+    r.queue.jobs.push(instagramProfileJob("abababab-2", targetDir));
+    vi.spyOn(r.engine, "download").mockReturnValue({
+      done: Promise.resolve({
+        code: 0,
+        stdout: "",
+        stderr: "[instagram][warning] someone's posts are private",
+      }),
+      stop: async () => {},
+    } as Running);
+    const job = () => r.queue.jobs[0];
+    await r.queue.action([job().id], "start");
+    await waitUntil(() => job().status === "failed");
+    expect(job().error).toContain("private-profiles sign-in");
+  });
+  it("pauses Instagram when it sends the session to a security check", async () => {
+    const r = create(false);
+    const targetDir = fs.mkdtempSync(path.join(r.dir, "challenge-"));
+    r.queue.jobs.push(instagramProfileJob("abababab-3", targetDir));
+    vi.spyOn(r.engine, "download").mockReturnValue({
+      done: Promise.resolve({
+        code: 1,
+        stdout: "",
+        stderr:
+          "[instagram][error] AbortExtraction: HTTP redirect to challenge page (https://www.instagram.com/challenge/)",
+      }),
+      stop: async () => {},
+    } as Running);
+    const job = () => r.queue.jobs[0];
+    await r.queue.action([job().id], "start");
+    await waitUntil(() => job().status === "failed");
+    expect(job().error).toContain("security-check page");
+    expect(job().error).toContain("paused for about 60 minutes");
+  });
   it("keeps a profile saved with gaps when retrying its failed part saves nothing", async () => {
     const r = create(false);
     const targetDir = fs.mkdtempSync(path.join(r.dir, "gaps-"));

@@ -1,6 +1,7 @@
 import { DatabaseSync, type StatementSync } from "node:sqlite";
 import fs from "node:fs";
 import { migrate } from "./migrations";
+import { sessionKey } from "../src/shared";
 import type { Job, Settings, SessionInfo, Capture } from "../src/shared";
 export class Store {
   db: DatabaseSync;
@@ -98,16 +99,17 @@ export class Store {
   saveSession(info: SessionInfo, secret?: Buffer) {
     this.stmt(
       "INSERT INTO sessions VALUES (?,?,?) ON CONFLICT(domain) DO UPDATE SET data=excluded.data,secret=excluded.secret",
-    ).run(info.domain, JSON.stringify(info), secret ?? null);
+    ).run(sessionKey(info), JSON.stringify(info), secret ?? null);
   }
-  sessionSecret(domain: string): Buffer | undefined {
+  /** By session key (see sessionKey); the column is still named domain. */
+  sessionSecret(key: string): Buffer | undefined {
     const r = this.stmt("SELECT secret FROM sessions WHERE domain=?").get(
-      domain,
+      key,
     ) as { secret: Uint8Array | null } | undefined;
     return r?.secret ? Buffer.from(r.secret) : undefined;
   }
-  removeSession(domain: string) {
-    this.stmt("DELETE FROM sessions WHERE domain=?").run(domain);
+  removeSession(key: string) {
+    this.stmt("DELETE FROM sessions WHERE domain=?").run(key);
   }
   close() {
     this.statements.clear();

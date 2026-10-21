@@ -32,7 +32,12 @@ import {
 import { Store } from "./store";
 import { Engine } from "./engine";
 import { Queue } from "./queue";
-import { accountsPartition, Sessions } from "./sessions";
+import {
+  browserUserAgent,
+  parseSessionKey,
+  partitionFor,
+  Sessions,
+} from "./sessions";
 import { Extensions } from "./extensions";
 import {
   ClipboardTracker,
@@ -284,7 +289,7 @@ async function init() {
     popup?.notify({
       title: `Paused ${source}`,
       lines: [
-        `${source} asked DriftFetch to slow down, so its downloads are paused for about ${minutes} minutes to protect your account.`,
+        `${source} pushed back on DriftFetch's requests, so its downloads are paused for about ${minutes} minutes to protect your account.`,
         "Open DriftFetch and press Retry to continue now, or leave it paused.",
       ],
       tone: "warn",
@@ -310,15 +315,15 @@ async function init() {
     (_wc, _permission, callback) => callback(false),
   );
   session.defaultSession.setPermissionCheckHandler(() => false);
-  const accounts = session.fromPartition(accountsPartition);
-  accounts.setPermissionRequestHandler((_wc, _permission, callback) =>
-    callback(false),
-  );
-  accounts.setPermissionCheckHandler(() => false);
-  // Sites often refuse logins from browsers that identify as embedded apps.
-  accounts.setUserAgent(
-    accounts.getUserAgent().replace(/\s(?:DriftFetch|Electron)\/\S+/g, ""),
-  );
+  for (const isPrivate of [false, true]) {
+    const accounts = session.fromPartition(partitionFor(isPrivate));
+    accounts.setPermissionRequestHandler((_wc, _permission, callback) =>
+      callback(false),
+    );
+    accounts.setPermissionCheckHandler(() => false);
+    // Sites often refuse logins from browsers that identify as embedded apps.
+    accounts.setUserAgent(browserUserAgent(accounts.getUserAgent()));
+  }
   window = new BrowserWindow({
     width: 1380,
     height: 880,
@@ -727,29 +732,29 @@ async function init() {
     await sessions!.setChrome(domain, profile);
     changed();
   });
-  handle("import-session", async (domain) => {
-    domain = validateDomain(domain);
+  handle("import-session", async (key) => {
+    parseSessionKey(key);
     const result = await dialog.showOpenDialog(window!, {
       title: "Import cookies for this source",
       filters: [{ name: "Cookie file", extensions: ["txt"] }],
       properties: ["openFile"],
     });
     if (result.canceled) return false;
-    await sessions!.importFile(domain, result.filePaths[0]);
+    await sessions!.importFile(key, result.filePaths[0]);
     changed();
     return true;
   });
-  handle("browser-session", async (domain) => {
-    domain = validateDomain(domain);
+  handle("browser-session", async (key) => {
+    const { domain, isPrivate } = parseSessionKey(key);
     const login = new BrowserWindow({
       parent: window,
       width: 520,
       height: 760,
-      title: `Sign in · ${domain}`,
+      title: `Sign in · ${domain}${isPrivate ? " · private profiles" : ""}`,
       icon: windowIcon(),
       autoHideMenuBar: true,
       webPreferences: {
-        partition: accountsPartition,
+        partition: partitionFor(isPrivate),
         nodeIntegration: false,
         contextIsolation: true,
         sandbox: true,
@@ -760,7 +765,7 @@ async function init() {
     );
     login.loadURL(`https://${domain}/`).catch(() => {});
     await closed;
-    await sessions!.saveBrowser(domain);
+    await sessions!.saveBrowser(key);
     changed();
   });
   handle("save-account", async (domain, values) => {

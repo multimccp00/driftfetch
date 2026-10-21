@@ -413,6 +413,8 @@ export function friendlyError(raw: string): string {
     return "The collection is incomplete: some selected files could not be verified on disk. Saved files are kept. Retry to check or download the missing files.";
   if (/DRIFTFETCH_INCOMPLETE_DISCOVERY/.test(raw))
     return "The collection could not be fully read. Check the source counts and pagination details. Saved files are kept. Use Download again for a fresh lookup.";
+  if (/DRIFTFETCH_PRIVATE|\bposts are private\b/.test(raw))
+    return "This profile is private and the signed-in account does not follow it. Add an account that follows it as the private-profiles sign-in in Settings → Sites & sign-ins, then retry.";
   if (/DRIFTFETCH_REMOVED/.test(raw))
     return "This post or its media was removed or deleted at the source, so nothing is left to download.";
   if (/DRIFTFETCH_NOTHING_READ/.test(raw))

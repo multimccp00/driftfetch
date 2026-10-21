@@ -49,6 +49,14 @@ export function savedCursors(log: string): Record<string, string> {
   return cursors;
 }
 /** The first error gallery-dl logged for each part of a profile. */
+/**
+ * A random wait of 1 to 1.5 times the delay between gallery-dl requests: a
+ * fixed beat is easier to tell apart from a person browsing.
+ */
+export const galleryDelayArgs = (seconds: number) => [
+  "--sleep-request",
+  `${seconds}-${Math.round(seconds * 15) / 10}`,
+];
 export function partErrors(log: string): Record<string, string> {
   const errors: Record<string, string> = {};
   for (const [, part, message] of log.matchAll(/^(\w+)\tERROR (.+)$/gm))
@@ -616,7 +624,7 @@ export class Engine {
         ...galleryOutputArgs,
         "--dump-json",
         ...(requestDelaySec
-          ? ["--sleep-request", String(requestDelaySec)]
+          ? galleryDelayArgs(requestDelaySec)
           : []),
         ...auth,
         "--",
@@ -709,7 +717,7 @@ export class Engine {
             ? ["--limit-rate", `${job.speedLimitKiB}k`]
             : []),
           ...(job.requestDelaySec
-            ? ["--sleep-request", String(job.requestDelaySec)]
+            ? galleryDelayArgs(job.requestDelaySec)
             : []),
           ...this.galleryVideoArgs(),
           ...auth,

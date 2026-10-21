@@ -19,6 +19,8 @@ import { incompleteCollection } from "../shared/collection-discovery";
 import { reportedDownloadFile } from "./download-files";
 import { savedFileQuality } from "../shared/quality";
 import {
+  isAccountWarning,
+  isPrivateProfile,
   isProtectedSource,
   isRateLimited,
   protectedCooldown,
@@ -216,7 +218,15 @@ export class Queue {
     const first = !this.cooling({ ...job, source });
     this.cooldowns.set(this.siteOf(source), until);
     const resumes = this.settings.automaticRetries;
-    const error = `${source} asked DriftFetch to slow down, so downloads from it are paused for about ${minutes} minutes to protect your account. ${
+    const error = `${
+      isAccountWarning(raw)
+        ? `${source} sent DriftFetch to its sign-in or security-check page`
+        : `${source} asked DriftFetch to slow down`
+    }, so downloads from it are paused for about ${minutes} minutes to protect your account. ${
+      isAccountWarning(raw)
+        ? `Open ${source} in your browser and clear any security prompt first; if you were signed out, sign in again there or in Settings → Sites & sign-ins. `
+        : ""
+    }${
       resumes
         ? "They resume by themselves. Press Retry to continue now, or Cancel to stop."
         : "Press Retry to continue, or Cancel to stop."
@@ -251,12 +261,31 @@ export class Queue {
   }
   private fail(job: Job, err: unknown, stage: "extraction" | "download") {
     const raw = String(err),
-      attempts = job.retryCount || 0;
+      attempts = job.retryCount || 0,
+      source = job.source || domainOf(job.originalUrl);
     if (
-      isProtectedSource(job.source || domainOf(job.originalUrl)) &&
-      isRateLimited(raw)
+      isProtectedSource(source) &&
+      (isRateLimited(raw) || isAccountWarning(raw))
     ) {
       this.holdSource(job, raw, stage);
+      return;
+    }
+    // The usual sign-in cannot see this profile: try once more with the
+    // private-profiles one, which only ever handles such profiles.
+    if (
+      isPrivateProfile(raw) &&
+      !job.usePrivateAccount &&
+      this.sessions.hasPrivate(source)
+    ) {
+      this.save(job, {
+        status: "queued",
+        usePrivateAccount: true,
+        error: undefined,
+        failureStage: undefined,
+        retryAt: undefined,
+        speed: undefined,
+        eta: undefined,
+      });
       return;
     }
     const delay = this.settings.automaticRetries
@@ -410,7 +439,7 @@ export class Queue {
       let auth: Awaited<ReturnType<Sessions["argumentsFor"]>> | undefined;
       try {
         const url = job.resolvedUrl || job.originalUrl;
-        auth = await this.sessions.argumentsFor(url);
+        auth = await this.sessions.argumentsFor(url, job.usePrivateAccount);
         if (token.stop) return;
         token.process = this.engine.probe(url, auth.args);
         const result = await token.process.done;
@@ -678,7 +707,7 @@ export class Queue {
         return;
       }
       job.resolvedUrl = url;
-      auth = await this.sessions.argumentsFor(url);
+      auth = await this.sessions.argumentsFor(url, job.usePrivateAccount);
       if (token.stop) return;
       controller.signal.throwIfAborted();
       // Reddit blocks yt-dlp (HTTP 403) and counts the attempt against its small
@@ -882,7 +911,10 @@ export class Queue {
           .some((e) => e.id === job.extensionId && e.enabled)
       )
         throw new Error("DRIFTFETCH_EXTENSION_REQUIRED");
-      auth = await this.sessions.argumentsFor(sourceUrl);
+      auth = await this.sessions.argumentsFor(
+        sourceUrl,
+        job.usePrivateAccount,
+      );
       if (job.imageSearch && this.extensions) {
         const hidden = await hideSecretOptions(
           await this.extensions.galleryArguments(sourceUrl, (domain, fields) =>
@@ -1016,6 +1048,9 @@ export class Queue {
           throw new Error("DRIFTFETCH_INCOMPLETE_DISCOVERY");
       }
       const profile = job.linkType === "profile";
+      // gallery-dl only warns, then finds nothing, when the account does not follow a private profile.
+      if (profile && !savedPaths.size && isPrivateProfile(result.stderr))
+        throw new Error("DRIFTFETCH_PRIVATE");
       // gallery-dl moves on when one part of a profile (say, reels) cannot be
       // read; what the other parts saved still counts, and Retry asks again
       // for only the failed parts. A rate limit still fails, so it waits and

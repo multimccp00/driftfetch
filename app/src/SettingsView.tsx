@@ -32,7 +32,12 @@ import {
 import { ConfirmButton } from "./ConfirmButton";
 import { Modal } from "./Modal";
 import { PrivacyNote } from "./PrivacyNote";
-import type { Settings, Snapshot } from "./shared";
+import {
+  privateSessionSuffix,
+  sessionKey,
+  type Settings,
+  type Snapshot,
+} from "./shared";
 import { Switch, radioKeys } from "./ui";
 import { when } from "./format";
 
@@ -164,10 +169,17 @@ export function SettingsView({
   const [chromeOpen, setChromeOpen] = useState(false);
   const [values, setValues] = useState<Record<string, string>>({});
   const [connecting, setConnecting] = useState(false);
+  const [privateSlot, setPrivateSlot] = useState(false);
   const normalized = domain
     .trim()
     .toLowerCase()
     .replace(/^www\./, "");
+  // Only Instagram falls back to a second sign-in for private profiles.
+  const offersPrivate = normalized === "instagram.com";
+  const key =
+    offersPrivate && privateSlot
+      ? normalized + privateSessionSuffix
+      : normalized;
   const extension = state.extensions.find(
     (e) => e.enabled && e.domains.includes(normalized),
   );
@@ -736,10 +748,10 @@ export function SettingsView({
 
     // ---------- Sites & sign-ins ----------
     ...state.sessions.map<Row>((saved) => ({
-      id: `session-${saved.domain}`,
+      id: `session-${sessionKey(saved)}`,
       section: "sites",
       group: `Signed-in sites · ${state.sessions.length}`,
-      label: saved.domain,
+      label: saved.private ? `${saved.domain} · private profiles` : saved.domain,
       desc: `${methodLabel(saved.kind, saved.profile)} · saved ${when(saved.updatedAt)}${
         ["api", "credentials"].includes(saved.kind) &&
         !state.extensions.some(
@@ -754,6 +766,7 @@ export function SettingsView({
           {btn("Update", () => {
             setValues({});
             setDomain(saved.domain);
+            setPrivateSlot(!!saved.private);
             document
               .getElementById("sign-in-card")
               ?.scrollIntoView({ block: "nearest" });
@@ -764,7 +777,9 @@ export function SettingsView({
             aria-label={`Remove session for ${saved.domain}`}
             confirmLabel="Remove? You must sign in again"
             onConfirm={() =>
-              void execute(() => window.driftfetch.removeSession(saved.domain))
+              void execute(() =>
+                window.driftfetch.removeSession(sessionKey(saved)),
+              )
             }
           >
             Remove
@@ -1307,6 +1322,20 @@ export function SettingsView({
               ))}
             </datalist>
           </label>
+          {offersPrivate && (
+            <div className="hero-private">
+              <Switch
+                label="For private profiles"
+                value={privateSlot}
+                onChange={setPrivateSlot}
+              />
+              <p className="fine">
+                {privateSlot
+                  ? "Sign in with your main account, the one that follows the private profiles. DriftFetch uses it only when the usual Instagram sign-in cannot see a profile."
+                  : "Use a second account here for public profiles, and turn this on to add your main account for private ones. Most requests then never touch your main account."}
+              </p>
+            </div>
+          )}
           {account && (
             <div className="hero-fields">
               {account.fields.map((field) => (
@@ -1357,7 +1386,7 @@ export function SettingsView({
               className={`btn lg ${account ? "" : "primary"}`}
               disabled={connecting || !normalized}
               onClick={() =>
-                void connect(() => window.driftfetch.browserSession(normalized))
+                void connect(() => window.driftfetch.browserSession(key))
               }
             >
               <AppWindow size={16} strokeWidth={2} />
@@ -1367,7 +1396,7 @@ export function SettingsView({
               className="btn lg"
               disabled={connecting || !normalized}
               onClick={() =>
-                void connect(() => window.driftfetch.importSession(normalized))
+                void connect(() => window.driftfetch.importSession(key))
               }
             >
               <FileUp size={15} />
@@ -1409,7 +1438,7 @@ export function SettingsView({
                 }
                 onClick={() =>
                   void connect(() =>
-                    window.driftfetch.chromeSession(normalized, profile),
+                    window.driftfetch.chromeSession(key, profile),
                   )
                 }
               >

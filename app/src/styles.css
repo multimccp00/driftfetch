@@ -2427,6 +2427,12 @@ h1 {
 .hero-chrome .fine {
   flex-basis: 100%;
 }
+.hero-private {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 520px;
+}
 .lock-line {
   display: flex;
   align-items: center;
