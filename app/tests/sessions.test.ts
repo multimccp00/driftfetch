@@ -5,7 +5,7 @@ import {
   filterCookies,
   netscapeCookies,
 } from "../electron/sessions";
-import { galleryDelayArgs } from "../electron/engine";
+import { galleryDelayArgs, loggedRequests } from "../electron/engine";
 describe("cookie isolation", () => {
   it("exports sign-in window cookies in a format the engines accept", () => {
     const text = netscapeCookies([
@@ -72,4 +72,17 @@ describe("matching the sign-in browser", () => {
   it("randomises the wait between requests above the configured delay", () => {
     expect(galleryDelayArgs(10)).toEqual(["--sleep-request", "10-15"]);
   });
+});
+
+it("counts a profile run's site requests from gallery-dl's debug log", () => {
+  expect(
+    loggedRequests(
+      [
+        "posts\tSleeping 11.20 seconds (request)",
+        "posts\tCursor: abc",
+        "reels\tSleeping 10.00 seconds (request)",
+        "posts\tSleeping 2.00 seconds (download)",
+      ].join("\n"),
+    ),
+  ).toBe(3);
 });

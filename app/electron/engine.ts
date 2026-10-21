@@ -22,6 +22,8 @@ interface ProcessResult {
   timedOut?: boolean;
   /** Instagram profile parts (posts, reels, ...) that failed in this run, with gallery-dl's reason. */
   partErrors?: Record<string, string>;
+  /** Requests gallery-dl sent to the site in this run (Instagram profiles only). */
+  requests?: number;
 }
 export interface Running {
   child: ChildProcess;
@@ -30,6 +32,8 @@ export interface Running {
 }
 // The frozen Windows engine otherwise writes the local code page, which loses
 // Unicode output paths. Its own settings work even when Python env vars do not.
+/** Saved items in a row after which a repeat profile sync stops a part. */
+export const stopAtSavedItems = 20;
 const galleryOutputArgs = [
   "--config-ignore",
   "--no-colors",
@@ -57,6 +61,13 @@ export const galleryDelayArgs = (seconds: number) => [
   "--sleep-request",
   `${seconds}-${Math.round(seconds * 15) / 10}`,
 ];
+/**
+ * Requests in a profile run's debug log: gallery-dl waits before every site
+ * request but the first, and file downloads from the media servers are not
+ * among them.
+ */
+export const loggedRequests = (log: string) =>
+  1 + (log.match(/\tSleeping [\d.]+ seconds \(request\)$/gm)?.length ?? 0);
 export function partErrors(log: string): Record<string, string> {
   const errors: Record<string, string> = {};
   for (const [, part, message] of log.matchAll(/^(\w+)\tERROR (.+)$/gm))
@@ -713,6 +724,9 @@ export class Engine {
                 path.join(this.directory, "..", "gallery-dl-archive.sqlite3"),
               ]
             : []),
+          // Each part (posts, reels) stops after this many saved items in a row
+          // instead of paging through the whole profile again.
+          ...(job.stopAtSaved ? ["--abort", String(stopAtSavedItems)] : []),
           ...(job.speedLimitKiB
             ? ["--limit-rate", `${job.speedLimitKiB}k`]
             : []),
@@ -738,13 +752,14 @@ export class Engine {
         ...running,
         // A finished run starts over next time; a stopped or failed one keeps its place.
         done: running.done.then(async (result) => {
+          const log = await fs.readFile(cursorLog, "utf8").catch(() => "");
+          // Only this run's lines: the log is appended to across runs.
+          const runLog = log.startsWith(previousLog)
+            ? log.slice(previousLog.length)
+            : log;
+          result.requests = loggedRequests(runLog);
           if (result.code === 0) await fs.rm(cursorLog, { force: true });
           else {
-            const log = await fs.readFile(cursorLog, "utf8").catch(() => "");
-            // Only this run's lines: the log is appended to across runs.
-            const runLog = log.startsWith(previousLog)
-              ? log.slice(previousLog.length)
-              : log;
             result.partErrors = partErrors(runLog);
             // A part that lost a file before its last cursor reads again from the
             // top. A part that was cut off (a redirect, a rate limit) keeps its place,

@@ -64,6 +64,10 @@ export interface Job {
   includeStories?: boolean;
   /** The profile was private to the site's usual sign-in, so it uses the private-profiles sign-in. */
   usePrivateAccount?: boolean;
+  /** Waiting because its sign-in used up today's Instagram requests; starts again the next day. */
+  limitHeld?: boolean;
+  /** Profile download stops each part at posts saved by an earlier complete run. */
+  stopAtSaved?: boolean;
   /** Profile saved its files but some parts (reels, stories, ...) could not be read; Retry asks for only those. */
   partialFailure?: { parts: string[]; error: string };
   formats?: VideoFormat[];
@@ -186,6 +190,8 @@ export interface Settings {
   launchAtLogin: boolean;
   /** Instagram profile downloads also include stories and highlights. */
   instagramStories: boolean;
+  /** Most Instagram requests a day for each sign-in; 0 is no limit. */
+  instagramDailyRequests: number;
   /** Check for and install verified yt-dlp and gallery-dl updates when the app starts. */
   autoUpdateEngines: boolean;
   /** "system" follows Windows. */

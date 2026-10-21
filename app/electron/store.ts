@@ -41,6 +41,9 @@ export class Store {
       db.exec(
         "CREATE TABLE IF NOT EXISTS captures(id TEXT PRIMARY KEY, at INTEGER NOT NULL, data TEXT NOT NULL)",
       );
+      db.exec(
+        "CREATE TABLE IF NOT EXISTS usage(key TEXT PRIMARY KEY, count INTEGER NOT NULL)",
+      );
       migrate(db);
       return db;
     } catch (error) {
@@ -63,6 +66,24 @@ export class Store {
     );
     this.db.exec(
       "DELETE FROM captures WHERE id NOT IN (SELECT id FROM captures ORDER BY at DESC, rowid DESC LIMIT 100)",
+    );
+  }
+  /** Requests counted under a key such as "instagram:usual:2026-10-21". */
+  usage(key: string): number {
+    return (
+      (
+        this.stmt("SELECT count FROM usage WHERE key=?").get(key) as
+          { count: number } | undefined
+      )?.count ?? 0
+    );
+  }
+  addUsage(key: string, count: number) {
+    this.stmt(
+      "INSERT INTO usage VALUES (?,?) ON CONFLICT(key) DO UPDATE SET count=count+excluded.count",
+    ).run(key, count);
+    // Only today's counts matter; keep the table tiny.
+    this.stmt("DELETE FROM usage WHERE key NOT LIKE ?").run(
+      `%:${key.split(":").pop()}`,
     );
   }
   clearCaptures() {

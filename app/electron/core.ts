@@ -30,6 +30,7 @@ export const defaultSettings = (downloads: string): Settings => ({
   filenameTemplate: "{title} [{id}]",
   launchAtLogin: false,
   instagramStories: false,
+  instagramDailyRequests: 800,
   autoUpdateEngines: true,
   theme: "dark",
   privacyNoticeVersion: 0,
@@ -241,6 +242,12 @@ export function validateSettings(
   )
     // 0 means no limit.
     throw new Error("Choose 1 to 8 simultaneous downloads, or Unlimited.");
+  if (
+    !Number.isInteger(s.instagramDailyRequests) ||
+    s.instagramDailyRequests < 0 ||
+    s.instagramDailyRequests > 100_000
+  )
+    throw new Error("Choose a daily Instagram request limit, or No limit.");
   if (
     !Number.isInteger(s.fragmentConcurrency) ||
     s.fragmentConcurrency < 1 ||

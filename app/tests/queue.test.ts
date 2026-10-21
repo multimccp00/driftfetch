@@ -1302,6 +1302,67 @@ describe("persistent scheduler", () => {
     expect(job().error).toContain("security-check page");
     expect(job().error).toContain("paused for about 60 minutes");
   });
+  it("counts Instagram requests and holds work past the daily limit", async () => {
+    const r = create(false);
+    r.queue.settings.instagramDailyRequests = 30;
+    const targetDir = fs.mkdtempSync(path.join(r.dir, "limit-"));
+    r.queue.jobs.push(instagramProfileJob("cdcdcdcd-1", targetDir), {
+      ...instagramProfileJob("cdcdcdcd-2", targetDir),
+      originalUrl: "https://www.instagram.com/other/",
+      mediaKey: "GalleryDL:https://www.instagram.com/other/",
+    });
+    const download = vi
+      .spyOn(r.engine, "download")
+      .mockImplementation((_job, _auth, line) => {
+        const image = path.join(targetDir, `${_job.id}.jpg`);
+        fs.writeFileSync(image, "fixture");
+        line("DRIFTFETCH_FILE:" + JSON.stringify(image));
+        return {
+          done: Promise.resolve({
+            code: 0,
+            stdout: "",
+            stderr: "",
+            requests: 31,
+          }),
+          stop: async () => {},
+        } as Running;
+      });
+    const [first, second] = r.queue.jobs;
+    await r.queue.action([first.id], "start");
+    await waitUntil(() => first.status === "completed");
+    await r.queue.action([second.id], "start");
+    await waitUntil(() => !!second.limitHeld);
+    expect(second.status).toBe("queued");
+    expect(download).toHaveBeenCalledTimes(1);
+    // The private-profiles sign-in has its own count.
+    second.usePrivateAccount = true;
+    await waitUntil(() => second.status === "completed");
+    expect(second.limitHeld).toBeUndefined();
+  });
+  it("stops a repeat sync of a fully saved profile at its saved posts", async () => {
+    const r = create(false);
+    const targetDir = fs.mkdtempSync(path.join(r.dir, "repeat-"));
+    r.queue.jobs.push(
+      {
+        ...instagramProfileJob("efefefef-1", targetDir),
+        status: "completed",
+        finishedAt: Date.now(),
+      },
+      instagramProfileJob("efefefef-2", targetDir),
+    );
+    const asked: (boolean | undefined)[] = [];
+    vi.spyOn(r.engine, "download").mockImplementation((job) => {
+      asked.push(job.stopAtSaved);
+      return {
+        done: Promise.resolve({ code: 0, stdout: "", stderr: "" }),
+        stop: async () => {},
+      } as Running;
+    });
+    const job = r.queue.jobs[1];
+    await r.queue.action([job.id], "start");
+    await waitUntil(() => job.status === "completed");
+    expect(asked).toEqual([true]);
+  });
   it("keeps a profile saved with gaps when retrying its failed part saves nothing", async () => {
     const r = create(false);
     const targetDir = fs.mkdtempSync(path.join(r.dir, "gaps-"));

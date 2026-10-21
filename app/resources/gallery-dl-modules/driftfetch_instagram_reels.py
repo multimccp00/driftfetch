@@ -6,6 +6,8 @@ now often redirects that request to its home page, which stopped the whole
 reels part. Here, for each listed reel:
 
 1. A reel already in the download archive is skipped without any request.
+   With gallery-dl's "abort:N" skip setting, N of them in a row end the
+   list, as saved files do for other parts (gallery-dl never sees these).
 2. A complete list entry is used as it is (the list usually lacks videos).
 3. Otherwise the reel's media comes from the single-post GraphQL query the
    Instagram website uses, then from the reel's own page, and only then from
@@ -22,7 +24,7 @@ import copy
 import json
 import sqlite3
 
-from gallery_dl import util
+from gallery_dl import text, util
 from gallery_dl.extractor import instagram
 
 POST_QUERY = "PolarisLoggedOutDesktopWWWPostRootContentQuery"
@@ -146,8 +148,18 @@ METHODS = (
 )
 
 
+def _abort_after(self):
+    """N from an "abort:N" skip setting (--abort N), else None."""
+    skip = self.config("skip")
+    if isinstance(skip, str) and skip.startswith("abort:"):
+        return text.parse_int(skip.split(":")[1]) or None
+    return None
+
+
 def posts(self):
     archived = _archive_check(self)
+    abort_after = _abort_after(self)
+    in_a_row = 0
     counts = dict.fromkeys(
         ("archived", "listed", "failed", *(name for name, _ in METHODS)), 0)
     misses = dict.fromkeys((name for name, _ in METHODS), 0)
@@ -162,7 +174,13 @@ def posts(self):
 
         if media.get("pk") and archived(media["pk"]):
             counts["archived"] += 1
+            in_a_row += 1
+            if abort_after and in_a_row >= abort_after:
+                self.log.debug(
+                    "DriftFetch: %s saved reels in a row; stopping", in_a_row)
+                break
             continue
+        in_a_row = 0
         if complete(media) and _parses(self, _fill_users(media))[0]:
             counts["listed"] += 1
             yield media

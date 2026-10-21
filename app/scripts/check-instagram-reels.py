@@ -123,4 +123,19 @@ extr.videos_dash = False
 post = extr._parse_post(out[0])
 assert post["post_shortcode"] == "C101"
 assert post["_files"][0]["video_url"] == "https://cdn.example/101.mp4", post
+# A repeat sync (--abort 2) ends the list after two saved reels in a row,
+# counting reels saved from the posts grid too.
+db = sqlite3.connect(archive)
+db.execute("INSERT INTO archive VALUES ('instagram200'), ('instagram201')")
+db.commit()
+db.close()
+LIST[:] = [reel("199", **video("199")), reel("200"), reel("201"),
+           reel("202", **video("202"))]
+config.set(("extractor",), "skip", "abort:2")
+extr = extractor.find("https://www.instagram.com/someone/reels/")
+extr.initialize()
+extr.api = API()
+extr.request = request
+extr.item = "someone"
+assert [m["pk"] for m in extr.posts()] == ["199"]
 print("reels module check passed")

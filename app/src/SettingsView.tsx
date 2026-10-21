@@ -1218,6 +1218,34 @@ export function SettingsView({
       ),
     },
     {
+      id: "instagram-daily-limit",
+      section: "advanced",
+      group: "App",
+      label: "Daily Instagram request limit",
+      desc: "Most requests to Instagram a day for each sign-in. Past it, Instagram downloads wait until the next day. Lower is safer for your accounts.",
+      words: "instagram limit requests daily budget account",
+      control: seg(
+        "Daily Instagram request limit",
+        String(s.instagramDailyRequests),
+        [
+          ...[300, 500, 800, 1000].map((n): [string, string] => [
+            String(n),
+            String(n),
+          ]),
+          ["0", "No limit"],
+          ...(![0, 300, 500, 800, 1000].includes(s.instagramDailyRequests)
+            ? ([
+                [
+                  String(s.instagramDailyRequests),
+                  String(s.instagramDailyRequests),
+                ],
+              ] as [string, string][])
+            : []),
+        ],
+        (v) => void update({ instagramDailyRequests: Number(v) }),
+      ),
+    },
+    {
       id: "login",
       section: "advanced",
       group: "App",

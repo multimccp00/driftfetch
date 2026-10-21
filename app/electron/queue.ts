@@ -203,6 +203,27 @@ export class Queue {
   private cooldowns = new Map<string, number>();
   /** Called once when a protected source pauses itself, so the app can tell the user. */
   onHold?: (source: string, minutes: number) => void;
+  /** Today's request count for the sign-in this job uses, kept per day. */
+  private usageKey(job: Job) {
+    return `instagram:${job.usePrivateAccount ? "private" : "usual"}:${new Date().toLocaleDateString("sv")}`;
+  }
+  /** Instagram work waits once its sign-in has used today's requests. */
+  private overLimit(job: Job) {
+    const limit = this.settings.instagramDailyRequests;
+    const held =
+      !!limit &&
+      isProtectedSource(job.source || domainOf(job.originalUrl)) &&
+      this.store.usage(this.usageKey(job)) >= limit;
+    if (held !== !!job.limitHeld)
+      this.save(job, { limitHeld: held || undefined });
+    return held;
+  }
+  // ponytail: probes and single links count as one request each; only profile
+  // runs report a real count. A run already going finishes past the limit.
+  private countRequests(job: Job, count = 1) {
+    if (isProtectedSource(job.source || domainOf(job.originalUrl)))
+      this.store.addUsage(this.usageKey(job), count);
+  }
   private siteOf(source: string | undefined) {
     return (source ?? "").split(".").slice(-2).join(".");
   }
@@ -306,6 +327,22 @@ export class Queue {
       speed: undefined,
       eta: undefined,
     });
+  }
+  /**
+   * Whether this profile was saved completely before (by this or another
+   * download), so everything older than the newest saved posts is on disk.
+   * Without that history the profile is read in full, which is always safe.
+   */
+  private syncedBefore(job: Job) {
+    return (
+      job.linkType === "profile" &&
+      this.jobs.some(
+        (other) =>
+          other.mediaKey === job.mediaKey &&
+          !!other.finishedAt &&
+          !other.partialFailure,
+      )
+    );
   }
   /** When each job was last written to SQLite, so progress ticks can skip it. */
   private persistedAt = new WeakMap<Job, number>();
@@ -443,6 +480,7 @@ export class Queue {
         if (token.stop) return;
         token.process = this.engine.probe(url, auth.args);
         const result = await token.process.done;
+        this.countRequests(job);
         if (token.stop) return;
         if (result.timedOut) throw new Error("DRIFTFETCH_TIMEOUT");
         if (result.code !== 0) throw new Error(result.stderr);
@@ -511,6 +549,7 @@ export class Queue {
         job.status === "resolving" &&
         !this.running.has(job.id) &&
         !this.cooling(job) &&
+        !this.overLimit(job) &&
         this.resolving.size < 2
       ) {
         this.resolving.add(job.id);
@@ -534,6 +573,7 @@ export class Queue {
         job.status === "queued" &&
         !this.running.has(job.id) &&
         !this.cooling(job) &&
+        !this.overLimit(job) &&
         (this.settings.concurrency === 0 ||
           active < this.settings.concurrency) &&
         this.sourceHasRoom(job)
@@ -721,6 +761,7 @@ export class Queue {
       const result = token.process
         ? await token.process.done
         : { code: 1, stdout: "", stderr: "", timedOut: false };
+      if (token.process) this.countRequests(job);
       if (token.stop) return;
       controller.signal.throwIfAborted();
       if (result.timedOut) throw new Error("DRIFTFETCH_TIMEOUT");
@@ -955,6 +996,10 @@ export class Queue {
         requestDelaySec: sourceLimits(this.settings, job.source)
           .requestDelaySec,
         includeStories: this.settings.instagramStories,
+        // A partial retry asks for only its failed parts, so it reads them in full.
+        stopAtSaved: job.partialFailure?.parts.length
+          ? false
+          : this.syncedBefore(job),
         scheduleHeld: false,
         retryAt: undefined,
         error: undefined,
@@ -1025,6 +1070,7 @@ export class Queue {
         }
       });
       const result = await token.process.done;
+      this.countRequests(job, result.requests);
       if (token.stop) return;
       if (result.timedOut) throw new Error("DRIFTFETCH_TIMEOUT");
       if (job.collectionKind === "images" || expectedFiles !== undefined) {

@@ -151,12 +151,16 @@ export function rowView(
       return {
         tone: "muted",
         dot: true,
-        label: !scheduleAllows(settings, new Date(now))
-          ? "Waiting for schedule"
-          : ahead
-            ? `Waiting · ${ahead} ahead`
-            : "Waiting · next in line",
-        sub: "Starts when a download finishes",
+        label: job.limitHeld
+          ? "Waiting · daily Instagram limit"
+          : !scheduleAllows(settings, new Date(now))
+            ? "Waiting for schedule"
+            : ahead
+              ? `Waiting · ${ahead} ahead`
+              : "Waiting · next in line",
+        sub: job.limitHeld
+          ? "Starts again tomorrow, or raise the limit in Settings"
+          : "Starts when a download finishes",
         ...estimated(job.totalBytes),
       };
     case "downloading":
