@@ -1222,7 +1222,7 @@ export function SettingsView({
       section: "advanced",
       group: "App",
       label: "Daily Instagram request limit",
-      desc: "Most requests to Instagram a day for each sign-in. Past it, Instagram downloads wait until the next day. Lower is safer for your accounts.",
+      desc: `Most requests to Instagram a day for each sign-in. Past it, Instagram downloads wait until the next day. Lower is safer for your accounts. Used today: ${state.instagramUsage.usual} usual, ${state.instagramUsage.private} private.`,
       words: "instagram limit requests daily budget account",
       control: seg(
         "Daily Instagram request limit",

@@ -121,6 +121,7 @@ const snapshot = (): Snapshot => ({
   sessions: store!.sessions(),
   engine: engine!.info,
   chromeProfiles,
+  instagramUsage: queue!.instagramUsage(),
   extensions: extensions?.list() || [],
 });
 // Completions gathered between broadcasts, so a 50-item batch is one toast.

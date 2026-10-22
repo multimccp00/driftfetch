@@ -254,6 +254,8 @@ export interface Snapshot {
   sessions: SessionInfo[];
   engine: EngineInfo;
   chromeProfiles: string[];
+  /** Instagram requests sent today, by sign-in. */
+  instagramUsage: { usual: number; private: number };
 }
 export type Action =
   "start" | "pause" | "cancel" | "retry" | "again" | "remove" | "next";

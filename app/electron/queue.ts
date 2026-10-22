@@ -232,6 +232,22 @@ export class Queue {
   private usageKey(job: Job) {
     return `instagram:${job.usePrivateAccount ? "private" : "usual"}:${new Date().toLocaleDateString("sv")}`;
   }
+  /** Today's Instagram requests per sign-in, including runs still going. */
+  instagramUsage() {
+    const day = new Date().toLocaleDateString("sv");
+    const used = {
+      usual: this.store.usage(`instagram:usual:${day}`),
+      private: this.store.usage(`instagram:private:${day}`),
+    };
+    for (const job of this.jobs)
+      if (
+        job.status === "downloading" &&
+        isProtectedSource(job.source || domainOf(job.originalUrl))
+      )
+        used[job.usePrivateAccount ? "private" : "usual"] +=
+          this.engine.liveRequests(job);
+    return used;
+  }
   /** Instagram work waits once its sign-in has used today's requests. */
   private overLimit(job: Job) {
     const limit = this.settings.instagramDailyRequests;
