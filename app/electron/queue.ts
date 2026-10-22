@@ -143,6 +143,31 @@ export class Queue {
           await token.done;
         }
       }
+      // A profile run sends thousands of requests, so the limit also stops a run
+      // that is already going; it resumes from its cursors once the day turns.
+      const limit = this.settings.instagramDailyRequests;
+      for (const job of this.jobs) {
+        const token = this.running.get(job.id);
+        if (
+          !limit ||
+          job.status !== "downloading" ||
+          !token ||
+          token.stop ||
+          !isProtectedSource(job.source || domainOf(job.originalUrl)) ||
+          this.store.usage(this.usageKey(job)) + this.engine.liveRequests(job) <
+            limit
+        )
+          continue;
+        token.stop = true;
+        this.save(job, {
+          status: "queued",
+          limitHeld: true,
+          speed: undefined,
+          eta: undefined,
+        });
+        await token.process?.stop();
+        await token.done;
+      }
       for (const job of this.jobs) {
         if (!job.retryAt) continue;
         if (!this.settings.automaticRetries)
@@ -219,7 +244,7 @@ export class Queue {
     return held;
   }
   // ponytail: probes and single links count as one request each; only profile
-  // runs report a real count. A run already going finishes past the limit.
+  // runs report a real count, so a run is stopped by its live count, not the saved one.
   private countRequests(job: Job, count = 1) {
     if (isProtectedSource(job.source || domainOf(job.originalUrl)))
       this.store.addUsage(this.usageKey(job), count);

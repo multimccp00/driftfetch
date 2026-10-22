@@ -645,6 +645,23 @@ export class Engine {
       120000,
     );
   }
+  /** Where this run's lines start in a profile job's cursor log. */
+  private runLogStart = new Map<string, number>();
+  /** Requests the running profile job has sent so far (0 when it keeps no log). */
+  liveRequests(job: Job) {
+    const start = this.runLogStart.get(job.id);
+    if (start === undefined) return 0;
+    try {
+      return loggedRequests(
+        readFileSync(
+          path.join(this.directory, "..", `gallery-dl-cursor-${job.id}.log`),
+          "utf8",
+        ).slice(start),
+      );
+    } catch {
+      return 0;
+    }
+  }
   download(job: Job, auth: string[], onLine: (line: string) => void): Running {
     if (job.mediaKey?.startsWith("GalleryDL:")) {
       const instagramProfile =
@@ -659,6 +676,7 @@ export class Engine {
           ? readFileSync(cursorLog, "utf8")
           : "";
       const cursors = savedCursors(previousLog);
+      if (cursorLog) this.runLogStart.set(job.id, previousLog.length);
       const running = runProcess(
         this.galleryExecutable,
         [
