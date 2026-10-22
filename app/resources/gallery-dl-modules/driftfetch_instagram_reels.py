@@ -15,6 +15,10 @@ reels part. Here, for each listed reel:
 4. A reel that still fails is logged and skipped, so the rest still download;
    one error at the end marks the reels part for a retry.
 
+Instagram also began rejecting two GraphQL queries (missing_required_variable_value)
+unless they carry one more variable each; gallery-dl adds them in newer builds, so
+they are only filled in where it has not (see RELAY_DEFAULTS).
+
 Loaded through gallery-dl's extractor.module-sources option. It defines no
 extractors of its own: a profile download builds its reels part from
 InstagramReelsExtractor directly, so the class is patched in place.
@@ -30,6 +34,13 @@ from gallery_dl.extractor import instagram
 POST_QUERY = "PolarisLoggedOutDesktopWWWPostRootContentQuery"
 POST_DOC_ID = "27130156389949648"
 REELS_QUERY = "PolarisProfileReelsTabContentQuery_connection"
+PREFIX = "__relay_internal__pv__"
+RELAY_DEFAULTS = {
+    "PolarisProfilePageContentQuery": {
+        "PolarisProfileInformTreatmentBannerEnabledrelayprovider": False},
+    "PolarisProfilePostsTabContentQuery_connection": {
+        "PolarisSEOIsCrawlerrelayprovider": False},
+}
 # A way of reading reels that fails this many times in a row is dropped for the run.
 GIVE_UP_AFTER = 3
 
@@ -225,3 +236,16 @@ def posts(self):
 
 
 instagram.InstagramReelsExtractor.posts = posts
+
+
+def _with_relay_defaults(method):
+    def wrapper(self, opname, variables, *args, **kwargs):
+        for name, value in RELAY_DEFAULTS.get(opname, {}).items():
+            variables.setdefault(PREFIX + name, value)
+        return method(self, opname, variables, *args, **kwargs)
+    return wrapper
+
+
+for _name in ("_call_graphql", "_pagination_graphql"):
+    setattr(instagram.InstagramAPI, _name,
+            _with_relay_defaults(getattr(instagram.InstagramAPI, _name)))
