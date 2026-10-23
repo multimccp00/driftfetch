@@ -2678,3 +2678,18 @@ h1 {
     transition: none !important;
   }
 }
+.usage {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+.usage-head {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+.usage-head .num {
+  color: var(--text-1);
+}

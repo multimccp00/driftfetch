@@ -1222,7 +1222,7 @@ export function SettingsView({
       section: "advanced",
       group: "App",
       label: "Daily Instagram request limit",
-      desc: `Most requests to Instagram a day for each sign-in. Past it, Instagram downloads wait until the next day. Lower is safer for your accounts. Used today: ${state.instagramUsage.usual} usual, ${state.instagramUsage.private} private.`,
+      desc: "Most requests to Instagram a day for each sign-in. Past it, Instagram downloads wait until the next day. Lower is safer for your accounts.",
       words: "instagram limit requests daily budget account",
       control: seg(
         "Daily Instagram request limit",
@@ -1243,6 +1243,38 @@ export function SettingsView({
             : []),
         ],
         (v) => void update({ instagramDailyRequests: Number(v) }),
+      ),
+      below: (
+        <div className="usage">
+          {(
+            [
+              ["Usual sign-in", state.instagramUsage.usual],
+              ["Private-profiles sign-in", state.instagramUsage.private],
+            ] as const
+          ).map(([name, used]) => (
+            <div key={name}>
+              <div className="usage-head">
+                <span>{name}</span>
+                <span className="num">
+                  {used}
+                  {s.instagramDailyRequests
+                    ? ` / ${s.instagramDailyRequests}`
+                    : " today"}
+                </span>
+              </div>
+              {s.instagramDailyRequests > 0 && (
+                <div className="meter">
+                  <i
+                    className={used >= s.instagramDailyRequests ? "wait" : ""}
+                    style={{
+                      width: `${Math.min(100, (used / s.instagramDailyRequests) * 100)}%`,
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       ),
     },
     {
