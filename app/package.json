@@ -1,7 +1,7 @@
 {
   "name": "driftfetch",
   "productName": "DriftFetch",
-  "version": "0.10.4",
+  "version": "0.10.5",
   "description": "A quiet, capable desktop download manager",
   "author": "DriftFetch contributors",
   "private": true,
