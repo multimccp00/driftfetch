@@ -190,7 +190,8 @@ export function App() {
     const paste = (e: ClipboardEvent) => {
       const target = e.target as HTMLElement | null;
       if (target?.closest("input, textarea, select, [contenteditable]")) return;
-      if (document.querySelector('[role="dialog"]')) return;
+      // The details side panel is a dialog too, but a pasted link is still welcome behind it.
+      if (document.querySelector('[role="dialog"]:not(.side-panel)')) return;
       const text = e.clipboardData?.getData("text") || "";
       if (!/https?:\/\//i.test(text)) return;
       e.preventDefault();
