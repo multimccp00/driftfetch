@@ -124,6 +124,13 @@ const snapshot = (): Snapshot => ({
   instagramUsage: queue!.instagramUsage(),
   extensions: extensions?.list() || [],
 });
+// A minimized or tray-hidden window can still report focus, so it must also be on screen.
+const userIsLooking = () =>
+  !!window &&
+  !window.isDestroyed() &&
+  window.isVisible() &&
+  !window.isMinimized() &&
+  window.isFocused();
 // Completions gathered between broadcasts, so a 50-item batch is one toast.
 let finishedIds: string[] = [];
 function changed() {
@@ -134,13 +141,7 @@ function changed() {
   broadcastTimer = setTimeout(() => {
     broadcastTimer = undefined;
     // Someone looking at DriftFetch already sees the list; the popup is for when it is in the background.
-    if (
-      finishedIds.length &&
-      window &&
-      !window.isDestroyed() &&
-      window.isFocused()
-    )
-      finishedIds = [];
+    if (finishedIds.length && userIsLooking()) finishedIds = [];
     if (finishedIds.length) {
       popup?.finished(finishedIds);
       finishedIds = [];
@@ -917,7 +918,7 @@ async function init() {
       if (links.length) {
         const before = new Set(store!.captures().map((c) => c.id));
         queue!.addLinks(links.join("\n"), { origin: "clipboard" });
-        if (queue!.settings.captureNotifications && !window!.isFocused())
+        if (queue!.settings.captureNotifications && !userIsLooking())
           popup!.show(
             store!
               .captures()
