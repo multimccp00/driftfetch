@@ -128,13 +128,21 @@ export function rowView(
     };
   switch (job.status) {
     case "resolving":
-      return {
-        tone: "muted",
-        icon: spinner,
-        label: "Checking link",
-        sub: "Finding what can be downloaded",
-        ...none,
-      };
+      return job.limitHeld
+        ? {
+            tone: "muted",
+            dot: true,
+            label: "Waiting · daily Instagram limit",
+            sub: "Checks again tomorrow, or raise the limit in Settings",
+            ...none,
+          }
+        : {
+            tone: "muted",
+            icon: spinner,
+            label: "Checking link",
+            sub: "Finding what can be downloaded",
+            ...none,
+          };
     case "review":
       return {
         tone: "accent",
