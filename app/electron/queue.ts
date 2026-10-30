@@ -280,8 +280,10 @@ export class Queue {
   private blockedUntil(job: Job): number | undefined {
     const until = this.cooldowns.get(this.accountOf(job));
     if (until && until > Date.now()) return until;
+    // Link checks are allowed past the limit: they tell the app which sign-in the link needs.
     const limit = this.settings.instagramDailyRequests;
     if (
+      job.status === "queued" &&
       limit &&
       isProtectedSource(job.source || domainOf(job.originalUrl)) &&
       this.store.usage(this.usageKey(job)) >= limit
@@ -294,6 +296,8 @@ export class Queue {
   }
   /** Link checks kept until their download finishes, by sign-in and pasted link, so a retry does not spend requests again. */
   private checkCache = new Map<string, Partial<Job>>();
+  /** Links a check found only the private-profiles sign-in can see, until their download finishes. */
+  private privateLinks = new Set<string>();
   private checkKey(job: Job, url: string) {
     return `${this.accountOf(job)}|${url}`;
   }
@@ -384,8 +388,12 @@ export class Queue {
       !job.usePrivateAccount &&
       this.sessions.hasPrivate(source)
     ) {
+      // The account is now known for this link: remember it until its download finishes,
+      // so later checks go straight to the private-profiles sign-in.
+      this.privateLinks.add(job.originalUrl);
       this.save(job, {
-        status: "queued",
+        // A link not yet checked goes back to checking, now with the private-profiles sign-in.
+        status: job.mediaKey ? "queued" : "resolving",
         usePrivateAccount: true,
         error: undefined,
         failureStage: undefined,
@@ -434,8 +442,10 @@ export class Queue {
   private persistedAt = new WeakMap<Job, number>();
   save(job: Job, patch: Partial<Job> = {}, persist = true) {
     // A finished download no longer needs its link check, so the cache entry goes with it.
-    if (patch.status === "completed")
+    if (patch.status === "completed") {
       this.checkCache.delete(this.checkKey(job, job.originalUrl));
+      this.privateLinks.delete(job.originalUrl);
+    }
     Object.assign(job, patch, { updatedAt: Date.now() });
     if (persist) {
       this.store.saveJob(job);
@@ -639,7 +649,6 @@ export class Queue {
         job.status === "resolving" &&
         !this.running.has(job.id) &&
         !this.cooling(job) &&
-        !this.overLimit(job) &&
         this.resolving.size < 2
       ) {
         this.resolving.add(job.id);
@@ -836,6 +845,8 @@ export class Queue {
         this.acceptCollection(job, gallery);
         return;
       }
+      if (this.privateLinks.has(job.originalUrl) && !job.usePrivateAccount)
+        this.save(job, { usePrivateAccount: true });
       // A check already made for this link and sign-in is reused until its download finishes.
       const cachedCheck = this.checkCache.get(
         this.checkKey(job, job.originalUrl),

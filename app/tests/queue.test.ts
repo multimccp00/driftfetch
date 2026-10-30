@@ -1313,6 +1313,18 @@ describe("persistent scheduler", () => {
     await waitUntil(() => r.queue.jobs[0].status === "review");
     expect(r.probes).toBe(1);
   });
+  it("checks a new Instagram link even when today's limit is used up", async () => {
+    const r = create(false);
+    r.queue.settings.instagramDailyRequests = 5;
+    r.store.addUsage(
+      `instagram:usual:${new Date().toLocaleDateString("sv")}`,
+      5,
+    );
+    r.queue.addLinks("https://www.instagram.com/p/limitcheck1/");
+    // The check runs even though the limit is used up; its outcome does not matter here.
+    await waitUntil(() => r.probes === 1);
+    expect(r.probes).toBe(1);
+  });
   it("pauses only the account that was challenged, not the private-profiles one", async () => {
     const r = create(false);
     const targetDir = fs.mkdtempSync(path.join(r.dir, "per-account-"));
