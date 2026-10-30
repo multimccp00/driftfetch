@@ -1302,6 +1302,49 @@ describe("persistent scheduler", () => {
     expect(job().error).toContain("security-check page");
     expect(job().error).toContain("paused for about 60 minutes");
   });
+  it("reuses a link check until its download finishes instead of asking again", async () => {
+    const r = create(false);
+    r.queue.addLinks("http://127.0.0.1:1/check-once");
+    await waitUntil(() => r.queue.jobs[0].status === "review");
+    expect(r.probes).toBe(1);
+    // A retry of the same link goes back through the checking step without another request.
+    r.queue.save(r.queue.jobs[0], { status: "resolving" });
+    r.queue.pump();
+    await waitUntil(() => r.queue.jobs[0].status === "review");
+    expect(r.probes).toBe(1);
+  });
+  it("pauses only the account that was challenged, not the private-profiles one", async () => {
+    const r = create(false);
+    const targetDir = fs.mkdtempSync(path.join(r.dir, "per-account-"));
+    r.queue.jobs.push(
+      instagramProfileJob("abababab-4", targetDir),
+      instagramProfileJob("abababab-5", targetDir),
+    );
+    r.queue.jobs[1].usePrivateAccount = true;
+    vi.spyOn(r.engine, "download").mockImplementation(
+      (job) =>
+        ({
+          done: Promise.resolve(
+            job.usePrivateAccount
+              ? { code: 0, stdout: "", stderr: "" }
+              : {
+                  code: 1,
+                  stdout: "",
+                  stderr:
+                    "[instagram][error] AbortExtraction: HTTP redirect to challenge page (https://www.instagram.com/challenge/)",
+                },
+          ),
+          stop: async () => {},
+        }) as Running,
+    );
+    await r.queue.action(
+      [r.queue.jobs[0].id, r.queue.jobs[1].id],
+      "start",
+    );
+    await waitUntil(() => r.queue.jobs[0].status === "failed");
+    expect(r.queue.jobs[1].status).not.toBe("failed");
+    expect(r.queue.jobs[1].error).toBeUndefined();
+  });
   it("counts Instagram requests and holds work past the daily limit", async () => {
     const r = create(false);
     r.queue.settings.instagramDailyRequests = 30;

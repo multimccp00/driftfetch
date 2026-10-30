@@ -268,9 +268,54 @@ export class Queue {
   private siteOf(source: string | undefined) {
     return (source ?? "").split(".").slice(-2).join(".");
   }
+  /** Cooldowns and the daily limit are per account: a site's usual and private sign-ins are separate. */
+  private accountOf(job: Job) {
+    return `${this.siteOf(job.source || domainOf(job.originalUrl))}:${job.usePrivateAccount ? "private" : "usual"}`;
+  }
   private cooling(job: Job) {
-    const until = this.cooldowns.get(this.siteOf(job.source));
+    const until = this.cooldowns.get(this.accountOf(job));
     return !!until && until > Date.now();
+  }
+  /** When a waiting job can start again: its account's cooldown, or the next day's limit reset. */
+  private blockedUntil(job: Job): number | undefined {
+    const until = this.cooldowns.get(this.accountOf(job));
+    if (until && until > Date.now()) return until;
+    const limit = this.settings.instagramDailyRequests;
+    if (
+      limit &&
+      isProtectedSource(job.source || domainOf(job.originalUrl)) &&
+      this.store.usage(this.usageKey(job)) >= limit
+    ) {
+      const midnight = new Date();
+      midnight.setHours(24, 0, 0, 0);
+      return midnight.getTime();
+    }
+    return undefined;
+  }
+  /** Link checks kept until their download finishes, by sign-in and pasted link, so a retry does not spend requests again. */
+  private checkCache = new Map<string, Partial<Job>>();
+  private checkKey(job: Job, url: string) {
+    return `${this.accountOf(job)}|${url}`;
+  }
+  private wakeTimer?: ReturnType<typeof setTimeout>;
+  /** Pumps again when the earliest blocked job can run, so a held link is not left waiting for another event. */
+  private scheduleWake() {
+    let at: number | undefined;
+    for (const job of this.jobs) {
+      if (
+        !["queued", "resolving"].includes(job.status) ||
+        this.running.has(job.id)
+      )
+        continue;
+      const until = this.blockedUntil(job);
+      if (until !== undefined && (at === undefined || until < at)) at = until;
+    }
+    clearTimeout(this.wakeTimer);
+    if (at !== undefined)
+      this.wakeTimer = setTimeout(
+        () => this.pump(),
+        Math.max(0, at - Date.now()) + 1000,
+      );
   }
   /** Stops the rate-limited source instead of retrying: the account is at risk, not just the download. */
   private holdSource(job: Job, raw: string, stage: "extraction" | "download") {
@@ -278,7 +323,7 @@ export class Queue {
     const until = Date.now() + protectedCooldown(raw);
     const minutes = Math.round((until - Date.now()) / 60_000);
     const first = !this.cooling({ ...job, source });
-    this.cooldowns.set(this.siteOf(source), until);
+    this.cooldowns.set(this.accountOf({ ...job, source }), until);
     const resumes = this.settings.automaticRetries;
     const error = `${
       isAccountWarning(raw)
@@ -306,11 +351,11 @@ export class Queue {
       failureCode: failureCode(raw),
       checkedEngineVersion: this.engine.info.version,
     });
-    // Everything else waiting on the same source holds too; running ones fail on their own.
+    // Everything else waiting on the same sign-in holds too; running ones fail on their own.
     for (const other of this.jobs)
       if (
         other !== job &&
-        this.siteOf(other.source) === this.siteOf(source) &&
+        this.accountOf(other) === this.accountOf({ ...job, source }) &&
         ["queued", "resolving"].includes(other.status) &&
         !this.running.has(other.id)
       )
@@ -388,6 +433,9 @@ export class Queue {
   /** When each job was last written to SQLite, so progress ticks can skip it. */
   private persistedAt = new WeakMap<Job, number>();
   save(job: Job, patch: Partial<Job> = {}, persist = true) {
+    // A finished download no longer needs its link check, so the cache entry goes with it.
+    if (patch.status === "completed")
+      this.checkCache.delete(this.checkKey(job, job.originalUrl));
     Object.assign(job, patch, { updatedAt: Date.now() });
     if (persist) {
       this.store.saveJob(job);
@@ -585,6 +633,7 @@ export class Queue {
       !this.engine.info.available
     )
       return;
+    this.scheduleWake();
     for (const job of this.jobs) {
       if (
         job.status === "resolving" &&
@@ -787,6 +836,11 @@ export class Queue {
         this.acceptCollection(job, gallery);
         return;
       }
+      // A check already made for this link and sign-in is reused until its download finishes.
+      const cachedCheck = this.checkCache.get(
+        this.checkKey(job, job.originalUrl),
+      );
+      if (cachedCheck) return this.finishCheck(job, { ...cachedCheck }, url);
       job.resolvedUrl = url;
       auth = await this.sessions.argumentsFor(url, job.usePrivateAccount);
       if (token.stop) return;
@@ -824,6 +878,8 @@ export class Queue {
         );
         stopOnRateLimit(token.process);
         const listed = await token.process?.done;
+        // The listing is a request to the account too, so it counts against today's limit.
+        if (listed) this.countRequests(job);
         if (token.stop) return;
         controller.signal.throwIfAborted();
         // The source announced a wait: fail now so the job retries after it,
@@ -866,6 +922,7 @@ export class Queue {
           const targetAuth = await this.sessions.argumentsFor(target);
           token.process = this.engine.probe(target, targetAuth.args);
           const probed = await token.process.done;
+          this.countRequests(job);
           await targetAuth.cleanup().catch(() => {});
           if (token.stop) return;
           controller.signal.throwIfAborted();
@@ -905,36 +962,11 @@ export class Queue {
         throw extractionError instanceof Error
           ? extractionError
           : new Error(String(extractionError));
-      metadata.formatsCheckedAt = Date.now();
-      metadata.checkedEngineVersion = this.engine.info.version;
-      if (domainOf(job.originalUrl) !== domainOf(metadata.resolvedUrl || url))
-        metadata.linkType = "redirect";
-      if (metadata.status === "collection") {
-        this.acceptCollection(job, metadata);
-        return;
-      }
-      const duplicate = this.jobs.find(
-        (j) =>
-          j.id !== job.id &&
-          j.mediaKey === metadata.mediaKey &&
-          !["cancelled", "duplicate", "failed"].includes(j.status),
-      );
-      this.save(job, {
-        ...metadata,
-        ...(job.entryTitle ? { title: job.entryTitle } : {}),
-        status:
-          duplicate && !job.force
-            ? "duplicate"
-            : (this.autoFor(metadata.source) && !job.holdForReview) ||
-                job.startRequested
-              ? "queued"
-              : "review",
-        startRequested: false,
-        duplicateOf: duplicate?.id,
-        error: undefined,
-        failureStage: undefined,
-        retryAt: undefined,
-      });
+      if (metadata.status !== "collection")
+        this.checkCache.set(this.checkKey(job, job.originalUrl), {
+          ...metadata,
+        });
+      this.finishCheck(job, metadata, url);
     } catch (err) {
       if (!token.stop)
         this.fail(
@@ -946,6 +978,39 @@ export class Queue {
       clearTimeout(deadline);
       await auth?.cleanup().catch(() => {});
     }
+  }
+  /** Saves a finished link check to the job: a collection's entries, or the file metadata that queues it. */
+  private finishCheck(job: Job, metadata: Partial<Job>, url: string) {
+    metadata.formatsCheckedAt = Date.now();
+    metadata.checkedEngineVersion = this.engine.info.version;
+    if (domainOf(job.originalUrl) !== domainOf(metadata.resolvedUrl || url))
+      metadata.linkType = "redirect";
+    if (metadata.status === "collection") {
+      this.acceptCollection(job, metadata);
+      return;
+    }
+    const duplicate = this.jobs.find(
+      (j) =>
+        j.id !== job.id &&
+        j.mediaKey === metadata.mediaKey &&
+        !["cancelled", "duplicate", "failed"].includes(j.status),
+    );
+    this.save(job, {
+      ...metadata,
+      ...(job.entryTitle ? { title: job.entryTitle } : {}),
+      status:
+        duplicate && !job.force
+          ? "duplicate"
+          : (this.autoFor(metadata.source) && !job.holdForReview) ||
+              job.startRequested
+            ? "queued"
+            : "review",
+      startRequested: false,
+      duplicateOf: duplicate?.id,
+      error: undefined,
+      failureStage: undefined,
+      retryAt: undefined,
+    });
   }
   private async download(job: Job, token: Token) {
     let auth: Awaited<ReturnType<Sessions["argumentsFor"]>> | undefined;
