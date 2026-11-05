@@ -92,6 +92,10 @@ export async function findUpdate(
     },
     signal,
   });
+  if ([403, 429].includes(response.status))
+    throw new Error(
+      "GitHub's limit on update checks was reached. Try again in about an hour.",
+    );
   if (!response.ok)
     throw new Error(`Update check returned HTTP ${response.status}.`);
   const release = await response.json();

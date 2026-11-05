@@ -130,12 +130,16 @@ function checkAppUpdate(quiet = false) {
           ],
           tone: "ok",
         });
-    } catch {
+    } catch (error) {
+      // Our own messages (HTTP status, rate limit, checksum) are safe to show; anything else is a network failure.
+      const reason =
+        error instanceof Error &&
+        /^(?:Update |GitHub's|The (?:update|installer))/.test(error.message)
+          ? error.message
+          : "Could not reach GitHub.";
       appUpdate = {
         status: "error",
-        message: quiet
-          ? undefined
-          : "Could not check for updates. Check your connection and try again.",
+        message: quiet ? undefined : `Could not check for updates. ${reason}`,
       };
     } finally {
       clearTimeout(stop);
