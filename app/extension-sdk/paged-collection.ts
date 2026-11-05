@@ -118,10 +118,13 @@ async function readWithRetry(
     try {
       return await readPage(index);
     } catch (error) {
-      if (signal.aborted || attempt >= 3 || isRejected(error)) throw error;
-      await delay(Math.max(interval, 1000) * 2 ** (attempt + 1), undefined, {
-        signal,
-      });
+      if (signal.aborted || attempt >= 6 || isRejected(error)) throw error;
+      // 2s, 4s ... up to a minute: a rate limit usually lifts within a couple of minutes.
+      await delay(
+        Math.min(60_000, Math.max(interval, 1000) * 2 ** (attempt + 1)),
+        undefined,
+        { signal },
+      );
     }
   }
 }

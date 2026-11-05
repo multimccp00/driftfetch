@@ -267,7 +267,7 @@ it("keeps the posts read so far when a later page keeps failing", async () => {
     expect(result.entries).toHaveLength(2);
     expect(result.collectionLimited).toBe(true);
     expect(result.collectionDiscovery.stopReason).toBe("read-error");
-    expect(read).toHaveBeenCalledTimes(5); // page 0, then page 1 tried four times
+    expect(read).toHaveBeenCalledTimes(8); // page 0, then page 1 tried seven times
   } finally {
     vi.useRealTimers();
   }
