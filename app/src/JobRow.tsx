@@ -346,6 +346,9 @@ function rowButtons(job: Job, actions: RowActions): RowButton[] {
         button(<ListChecks size={16} />, "Choose items", () =>
           actions.collection(job),
         ),
+        button(<RotateCw size={16} />, "Search again", () =>
+          actions.act(id, "start"),
+        ),
         remove,
       ];
     case "failed":

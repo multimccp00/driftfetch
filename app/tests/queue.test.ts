@@ -278,6 +278,36 @@ describe("persistent scheduler", () => {
       }
     },
   );
+  it("searches a collection again from scratch", async () => {
+    const r = create(false);
+    r.queue.settings.autoDownloadCollections = false;
+    const read = vi
+      .spyOn(engineModule, "imageGalleryMetadata")
+      .mockResolvedValueOnce({
+        status: "collection",
+        collectionKind: "images",
+        mediaKey: "fixture:again",
+        entries: [
+          { id: "1", title: "One", url: "https://example.invalid/1.png" },
+        ],
+      })
+      .mockResolvedValueOnce({
+        status: "collection",
+        collectionKind: "images",
+        mediaKey: "fixture:again",
+        entries: [
+          { id: "1", title: "One", url: "https://example.invalid/1.png" },
+          { id: "2", title: "Two", url: "https://example.invalid/2.png" },
+        ],
+      });
+    r.queue.addLinks("http://127.0.0.1:1/search-again");
+    await waitUntil(() => r.queue.jobs[0].status === "collection", 5000);
+    expect(r.queue.jobs[0].entries).toHaveLength(1);
+    await r.queue.action([r.queue.jobs[0].id], "start");
+    await waitUntil(() => r.queue.jobs[0].entries?.length === 2, 5000);
+    expect(r.queue.jobs[0].status).toBe("collection");
+    expect(read).toHaveBeenCalledTimes(2);
+  });
   it.each([true, false])(
     "keeps 272 URLs for 242 item IDs to 242 collection entries (automatic=%s)",
     async (automatic) => {
@@ -1349,10 +1379,7 @@ describe("persistent scheduler", () => {
           stop: async () => {},
         }) as Running,
     );
-    await r.queue.action(
-      [r.queue.jobs[0].id, r.queue.jobs[1].id],
-      "start",
-    );
+    await r.queue.action([r.queue.jobs[0].id, r.queue.jobs[1].id], "start");
     await waitUntil(() => r.queue.jobs[0].status === "failed");
     expect(r.queue.jobs[1].status).not.toBe("failed");
     expect(r.queue.jobs[1].error).toBeUndefined();

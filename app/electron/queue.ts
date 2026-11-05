@@ -746,11 +746,12 @@ export class Queue {
     let auth: Awaited<ReturnType<Sessions["argumentsFor"]>> | undefined;
     const controller = (token.controller = new AbortController());
     let expired = false;
-    const deadline = setTimeout(() => {
+    const expire = () => {
       expired = true;
       controller.abort();
       void token.process?.stop();
-    }, 120_000);
+    };
+    let deadline = setTimeout(expire, 120_000);
     try {
       this.save(job, {
         collectionReadAttempts: undefined,
@@ -764,13 +765,19 @@ export class Queue {
           (domain, fields) => this.sessions.credentialsFor(domain, fields),
           (collectionReadAttempts) =>
             this.save(job, { collectionReadAttempts }),
-          (outcome) =>
+          (outcome) => {
             this.save(job, {
               extensionChecks: [
                 ...(job.extensionChecks || []),
                 { stage, outcome },
               ],
-            }),
+            });
+            // A long search reads hundreds of pages; give a matched extension far longer than a normal link.
+            if (outcome === "selected") {
+              clearTimeout(deadline);
+              deadline = setTimeout(expire, 30 * 60_000);
+            }
+          },
         );
       const extension = await readExtension(job.originalUrl, "submitted");
       if (token.stop) return;
@@ -1069,10 +1076,7 @@ export class Queue {
           .some((e) => e.id === job.extensionId && e.enabled)
       )
         throw new Error("DRIFTFETCH_EXTENSION_REQUIRED");
-      auth = await this.sessions.argumentsFor(
-        sourceUrl,
-        job.usePrivateAccount,
-      );
+      auth = await this.sessions.argumentsFor(sourceUrl, job.usePrivateAccount);
       if (job.imageSearch && this.extensions) {
         const hidden = await hideSecretOptions(
           await this.extensions.galleryArguments(sourceUrl, (domain, fields) =>
@@ -1384,6 +1388,21 @@ export class Queue {
             gallerySource: job.gallerySource,
             refererUrl: job.refererUrl,
           },
+        });
+      } else if (
+        action === "start" &&
+        job.status === "collection" &&
+        !this.running.has(id)
+      ) {
+        // Search again: read the link from scratch. Clearing the old list means a failed read retries as a read.
+        this.save(job, {
+          status: "resolving",
+          mediaKey: undefined,
+          entries: undefined,
+          discoveredItems: undefined,
+          collectionLimited: undefined,
+          error: undefined,
+          retryCount: 0,
         });
       } else if (
         !this.running.has(id) &&
