@@ -1,7 +1,7 @@
 {
   "name": "driftfetch",
   "productName": "DriftFetch",
-  "version": "0.10.7",
+  "version": "0.10.8",
   "description": "A quiet, capable desktop download manager",
   "author": "DriftFetch contributors",
   "private": true,
@@ -63,7 +63,11 @@
       {
         "from": ".",
         "to": "licenses",
-        "filter": ["LICENSE", "THIRD-PARTY-NOTICES.md", "SOURCE-OFFER.md"]
+        "filter": [
+          "LICENSE",
+          "THIRD-PARTY-NOTICES.md",
+          "SOURCE-OFFER.md"
+        ]
       },
       {
         "from": "electron/extension-host.cjs",
