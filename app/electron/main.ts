@@ -1111,11 +1111,16 @@ async function start() {
           // The file was checked when chosen; check it again so a swap in between cannot run.
           await verifyInstaller(updateInstaller);
           await new Promise<void>((resolve, reject) => {
-            const child = spawn(updateInstaller!, [], {
-              shell: false,
-              detached: true,
-              stdio: "ignore",
-            });
+            // Silent update that reopens DriftFetch when it finishes (the installer's own switches).
+            const child = spawn(
+              updateInstaller!,
+              ["/S", "--updated", "--force-run"],
+              {
+                shell: false,
+                detached: true,
+                stdio: "ignore",
+              },
+            );
             child.once("error", reject);
             child.once("spawn", () => {
               child.unref();

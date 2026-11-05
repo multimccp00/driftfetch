@@ -109,7 +109,7 @@
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "runAfterFinish": false,
+      "runAfterFinish": true,
       "include": "build/installer.nsh",
       "license": "build/privacy-notice.txt"
     },
