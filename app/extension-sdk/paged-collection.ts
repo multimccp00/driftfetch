@@ -113,6 +113,7 @@ async function readWithRetry(
   index: number,
   signal: AbortSignal,
   interval: number,
+  retryMs: number,
 ): Promise<CollectionPage> {
   for (let attempt = 0; ; attempt++) {
     try {
@@ -121,7 +122,7 @@ async function readWithRetry(
       if (signal.aborted || attempt >= 6 || isRejected(error)) throw error;
       // 2s, 4s ... up to a minute: a rate limit usually lifts within a couple of minutes.
       await delay(
-        Math.min(60_000, Math.max(interval, 1000) * 2 ** (attempt + 1)),
+        Math.min(60_000, Math.max(interval, retryMs) * 2 ** (attempt + 1)),
         undefined,
         { signal },
       );
@@ -133,7 +134,7 @@ async function readWithRetry(
 export async function readPagedCollection(
   readPage: (index: number) => Promise<CollectionPage>,
   signal: AbortSignal,
-  options: { maxPages?: number; intervalMs?: number } = {},
+  options: { maxPages?: number; intervalMs?: number; retryMs?: number } = {},
 ): Promise<{
   entries: Entry[];
   sourceItemCount?: number;
@@ -161,7 +162,13 @@ export async function readPagedCollection(
       await delay(interval, undefined, { signal });
     let page: CollectionPage;
     try {
-      page = await readWithRetry(readPage, index, signal, interval);
+      page = await readWithRetry(
+        readPage,
+        index,
+        signal,
+        interval,
+        options.retryMs ?? 1000,
+      );
     } catch (error) {
       // A long search must not lose thousands of posts to one bad page.
       if (signal.aborted || !posts.size || isRejected(error)) throw error;
