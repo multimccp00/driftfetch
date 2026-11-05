@@ -1156,6 +1156,10 @@ export function SettingsView({
                 ),
               ),
           )}
+          {btn(
+            "Update…",
+            () => void execute(() => window.driftfetch.importExtension()),
+          )}
           <ConfirmButton
             className="icon-button"
             title={`Remove ${extension.name}`}
