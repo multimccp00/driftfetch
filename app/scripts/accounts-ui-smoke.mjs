@@ -47,6 +47,7 @@ try {
     let subscriber = () => {};
     const state = {
       appVersion: "fixture",
+      appUpdate: { status: "idle" },
       jobs: [
         {
           id: "failure-fixture",

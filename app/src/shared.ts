@@ -247,9 +247,16 @@ export interface EngineInfo {
   busy: boolean;
   message?: string;
 }
+/** Where the check for a newer DriftFetch stands; "ready" means the installer is downloaded and verified. */
+export interface AppUpdateInfo {
+  status: "idle" | "checking" | "downloading" | "ready" | "current" | "error";
+  version?: string;
+  message?: string;
+}
 export interface Snapshot {
   extensions: ExtensionInfo[];
   appVersion: string;
+  appUpdate: AppUpdateInfo;
   captures: Capture[];
   jobs: Job[];
   settings: Settings;
@@ -275,7 +282,7 @@ export interface DesktopAPI {
   setFormat(id: string, formatId: string): Promise<void>;
   copyDiagnostic(id: string): Promise<void>;
   clearCaptures(): Promise<void>;
-  appAction(action: "shortcut" | "update"): Promise<void>;
+  appAction(action: "shortcut" | "check" | "update"): Promise<void>;
   onNavigate(listener: (page: "downloads" | "captures") => void): () => void;
   snapshot(): Promise<Snapshot>;
   /** The full job, including the format and entry lists the snapshot omits for finished jobs. */

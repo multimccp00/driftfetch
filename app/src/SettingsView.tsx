@@ -145,6 +145,16 @@ const methodLabel = (kind: string, profile?: string) =>
           ? "Built-in browser"
           : "Imported cookies.txt";
 
+const updateText = (u: Snapshot["appUpdate"]) =>
+  ({
+    idle: "Checks GitHub for a newer version when it starts. DriftFetch saves and closes its workers before installing.",
+    checking: "Looking for a newer version…",
+    downloading: `Downloading ${u.version}…`,
+    ready: `Version ${u.version} is downloaded and checked. DriftFetch saves and closes its workers, then runs the installer.`,
+    current: "You have the latest version.",
+    error: u.message ?? "Could not check for updates.",
+  })[u.status];
+
 export function SettingsView({
   state,
   update,
@@ -1303,7 +1313,7 @@ export function SettingsView({
       section: "advanced",
       group: "App",
       label: `DriftFetch ${state.appVersion}`,
-      desc: "Use one desktop shortcut. To update, press Install app update: it uses the update DriftFetch already downloaded, or asks you to choose an installer with its .sha256 file beside it. DriftFetch saves and closes its workers before starting the installer.",
+      desc: updateText(state.appUpdate),
       icon: <AppWindow size={17} />,
       control: (
         <span className="btn-row">
@@ -1315,9 +1325,18 @@ export function SettingsView({
                 "Desktop shortcut updated.",
               ),
           )}
-          {btn(
-            "Install app update…",
-            () => void execute(() => window.driftfetch.appAction("update")),
+          {state.appUpdate.status === "ready" ? (
+            btn(
+              `Install ${state.appUpdate.version} and restart`,
+              () => void execute(() => window.driftfetch.appAction("update")),
+            )
+          ) : (
+            btn(
+              ["checking", "downloading"].includes(state.appUpdate.status)
+                ? "Checking…"
+                : "Check for updates",
+              () => void execute(() => window.driftfetch.appAction("check")),
+            )
           )}
         </span>
       ),
