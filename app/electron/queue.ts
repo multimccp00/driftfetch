@@ -1156,9 +1156,12 @@ export class Queue {
                 status,
                 downloadedBytes: downloaded,
                 totalBytes: total || undefined,
-                progress: total
-                  ? Math.min(99.9, (downloaded / total) * 100)
-                  : 0,
+                // An image list shows files saved out of files chosen, below.
+                progress: expectedFiles
+                  ? job.progress
+                  : total
+                    ? Math.min(99.9, (downloaded / total) * 100)
+                    : 0,
                 speed: Number(p.speed) || undefined,
                 eta: Number(p.eta) || undefined,
               },
@@ -1174,6 +1177,12 @@ export class Queue {
               this.save(job, {
                 filePath: reported.file,
                 filesSaved: resumeFrom + savedPaths.size,
+                ...(expectedFiles && {
+                  progress: Math.min(
+                    99.9,
+                    ((resumeFrom + savedPaths.size) / expectedFiles) * 100,
+                  ),
+                }),
               });
             }
           } else if (line.startsWith("DRIFTFETCH_FORMAT_ID:")) {
