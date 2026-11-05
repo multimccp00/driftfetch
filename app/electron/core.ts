@@ -6,7 +6,7 @@ import { rateLimitWait } from "../shared/transfer-policy";
  * and broadcast to the renderer, so a 100,000-post search would stall both.
  * ponytail: hard cap, flagged via collectionLimited; page the list if users need more.
  */
-export const maxCollectionEntries = 5000;
+export const maxCollectionEntries = 100_000;
 export const defaultSettings = (downloads: string): Settings => ({
   warnBelowHeight: 720,
   speedLimitKiB: 0,
@@ -32,6 +32,7 @@ export const defaultSettings = (downloads: string): Settings => ({
   instagramStories: false,
   instagramDailyRequests: 800,
   autoUpdateEngines: true,
+  autoUpdateApp: true,
   theme: "dark",
   privacyNoticeVersion: 0,
 });
@@ -225,6 +226,7 @@ export function validateSettings(
       "launchAtLogin",
       "instagramStories",
       "autoUpdateEngines",
+      "autoUpdateApp",
       "automaticRetries",
       "scheduleEnabled",
     ].some((k) => typeof s[k as keyof Settings] !== "boolean")

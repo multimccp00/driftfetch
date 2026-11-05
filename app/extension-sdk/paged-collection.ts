@@ -104,6 +104,28 @@ function fileUrl(value: unknown): string | undefined {
   }
 }
 
+const isRejected = (error: unknown) =>
+  /credentials were rejected/i.test(String(error));
+
+/** Rate limits and dropped connections are common on long searches: retry a page with a growing pause. */
+async function readWithRetry(
+  readPage: (index: number) => Promise<CollectionPage>,
+  index: number,
+  signal: AbortSignal,
+  interval: number,
+): Promise<CollectionPage> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await readPage(index);
+    } catch (error) {
+      if (signal.aborted || attempt >= 3 || isRejected(error)) throw error;
+      await delay(Math.max(interval, 1000) * 2 ** (attempt + 1), undefined, {
+        signal,
+      });
+    }
+  }
+}
+
 /** Count source posts before filtering; one URL can legitimately belong to several posts. */
 export async function readPagedCollection(
   readPage: (index: number) => Promise<CollectionPage>,
@@ -134,7 +156,15 @@ export async function readPagedCollection(
     signal.throwIfAborted();
     if (audit.pagesRead && interval)
       await delay(interval, undefined, { signal });
-    let page = await readPage(index);
+    let page: CollectionPage;
+    try {
+      page = await readWithRetry(readPage, index, signal, interval);
+    } catch (error) {
+      // A long search must not lose thousands of posts to one bad page.
+      if (signal.aborted || !posts.size || isRejected(error)) throw error;
+      audit.stopReason = "read-error";
+      break;
+    }
     signal.throwIfAborted();
     audit.pagesRead++;
     if (page.total !== undefined) total = Math.max(total ?? 0, page.total);

@@ -253,3 +253,22 @@ it("only includes bounded discovery counters in diagnostic reports", async () =>
   expect(report).not.toContain("SECRET");
   expect(JSON.parse(report).collectionDiscovery).toEqual(audit);
 });
+
+it("keeps the posts read so far when a later page keeps failing", async () => {
+  vi.useFakeTimers();
+  try {
+    const read = vi.fn(async (page: number) => {
+      if (page) throw new Error("Source API returned HTTP 429.");
+      return { posts: list(2) };
+    });
+    const pending = readPagedCollection(read, signal());
+    await vi.runAllTimersAsync();
+    const result = await pending;
+    expect(result.entries).toHaveLength(2);
+    expect(result.collectionLimited).toBe(true);
+    expect(result.collectionDiscovery.stopReason).toBe("read-error");
+    expect(read).toHaveBeenCalledTimes(5); // page 0, then page 1 tried four times
+  } finally {
+    vi.useRealTimers();
+  }
+});

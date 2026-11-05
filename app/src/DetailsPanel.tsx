@@ -490,6 +490,7 @@ export function DetailsPanel({
           "empty-page": "API returned an empty page",
           "repeated-page": "API kept repeating the same posts",
           "page-limit": "Page limit reached",
+          "read-error": "The source stopped answering",
         }[discovery.stopReason],
       ],
     );
