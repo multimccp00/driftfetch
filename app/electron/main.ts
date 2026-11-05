@@ -25,6 +25,8 @@ import { diagnosticReport } from "../shared/diagnostics";
 import {
   chooseUpdate,
   createShortcut,
+  downloadUpdate,
+  findUpdate,
   isNewer,
   packagedAppUserModelId,
   verifyInstaller,
@@ -78,6 +80,8 @@ let quitting = false,
 let chromeProfiles: string[] = [];
 let popup: CapturePopup | undefined;
 let updateInstaller: string | undefined;
+/** A newer installer already downloaded and checked; "Install app update" uses it before asking for a file. */
+let readyUpdate: string | undefined;
 let backupBusy = false;
 const completionTracker = new CompletionTracker();
 const collectionPreviews = new CollectionPreviews();
@@ -306,6 +310,38 @@ async function init() {
       .update()
       .catch(() => {}) // The reason stays in the engine panel's message.
       .finally(() => queue?.pump());
+  // Installed copies only: the portable build has no installer to run, and a dev run has no version to compare.
+  if (
+    queue.settings.autoUpdateApp &&
+    app.isPackaged &&
+    !portableDir &&
+    process.env.DRIFTFETCH_NO_ENGINE_UPDATE !== "1"
+  )
+    void (async () => {
+      const controller = new AbortController();
+      const stop = setTimeout(() => controller.abort(), 10 * 60_000);
+      try {
+        const update = await findUpdate(app.getVersion(), controller.signal);
+        if (!update) return;
+        readyUpdate = await downloadUpdate(
+          update,
+          path.join(userData, "updates"),
+          controller.signal,
+        );
+        popup?.notify({
+          title: `DriftFetch ${update.version} is ready`,
+          lines: [
+            "The update was downloaded and checked.",
+            "Open Settings > Advanced > App and press Install app update when no downloads are running.",
+          ],
+          tone: "ok",
+        });
+      } catch {
+        // Silent: the next start tries again, and the manual installer still works.
+      } finally {
+        clearTimeout(stop);
+      }
+    })();
   completionTracker.update(queue.jobs);
   // Later checks happen when History opens; a sleeping disk stays asleep.
   void queue.checkFiles();
@@ -606,7 +642,7 @@ async function init() {
   handle("app-action", async (action) => {
     if (action === "shortcut") return createShortcut(launcher);
     if (action !== "update") throw new Error("Unknown app action.");
-    const installer = await chooseUpdate(window!);
+    const installer = readyUpdate ?? (await chooseUpdate(window!));
     if (installer) {
       updateInstaller = installer;
       app.quit();

@@ -1098,6 +1098,18 @@ export function SettingsView({
       ),
     },
     {
+      id: "app-auto",
+      section: "advanced",
+      group: "App",
+      label: "Download app updates automatically",
+      desc: "When DriftFetch starts, it checks GitHub for a newer version and downloads it after checking its SHA-256 checksum. Nothing is installed until you press Install app update. Installed copies only.",
+      control: toggle(
+        "Download app updates automatically",
+        s.autoUpdateApp,
+        "autoUpdateApp",
+      ),
+    },
+    {
       id: "extensions-add",
       section: "advanced",
       group: "Extensions",
@@ -1291,7 +1303,7 @@ export function SettingsView({
       section: "advanced",
       group: "App",
       label: `DriftFetch ${state.appVersion}`,
-      desc: "Use one desktop shortcut. To update, choose a newer DriftFetch installer and keep its .sha256 file beside it. DriftFetch saves and closes its workers before starting the installer.",
+      desc: "Use one desktop shortcut. To update, press Install app update: it uses the update DriftFetch already downloaded, or asks you to choose an installer with its .sha256 file beside it. DriftFetch saves and closes its workers before starting the installer.",
       icon: <AppWindow size={17} />,
       control: (
         <span className="btn-row">

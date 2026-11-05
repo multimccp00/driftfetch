@@ -21,7 +21,7 @@
     "ffmpeg:build": "node scripts/build-ffmpeg.mjs",
     "privacy": "node scripts/make-privacy-notice.mjs",
     "release:check": "node scripts/release-check.mjs",
-    "package": "npm run engines && npm run release:check && npm run build && electron-builder --win nsis --x64",
+    "package": "npm run engines && npm run release:check && npm run build && electron-builder --win nsis --x64 && node scripts/checksum-installer.mjs",
     "package:dir": "npm run engines && npm run build && electron-builder --win --dir --x64",
     "package:portable": "npm run engines && npm run release:check && npm run build && electron-builder --win portable --x64",
     "test:installed-engines": "node scripts/installed-engines-smoke.mjs"

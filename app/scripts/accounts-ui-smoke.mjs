@@ -143,6 +143,7 @@ try {
         launchAtLogin: false,
         instagramStories: false,
         autoUpdateEngines: true,
+        autoUpdateApp: true,
       },
     };
     state.jobs.push({

@@ -31,7 +31,7 @@ export interface CollectionDiscovery {
   postsWithoutFiles: number;
   invalidPosts: number;
   sharedFileUrls: number;
-  stopReason: "empty-page" | "repeated-page" | "page-limit";
+  stopReason: "empty-page" | "repeated-page" | "page-limit" | "read-error";
 }
 export interface Job {
   extensionId?: string;
@@ -194,6 +194,8 @@ export interface Settings {
   instagramDailyRequests: number;
   /** Check for and install verified yt-dlp and gallery-dl updates when the app starts. */
   autoUpdateEngines: boolean;
+  /** Download and check a newer DriftFetch installer when the app starts (installed copies only). */
+  autoUpdateApp: boolean;
   /** "system" follows Windows. */
   theme: "dark" | "light" | "system";
   /** Version of the privacy note the user has seen; 0 = not yet shown. */

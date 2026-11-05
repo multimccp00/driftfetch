@@ -11,7 +11,7 @@ export interface PrivacySection {
   paragraphs: string[];
 }
 export const privacyNote = {
-  version: 4,
+  version: 5,
   title: "Privacy note",
   summary:
     "DriftFetch runs on your computer. It has no account, no ads and no usage tracking, and it does not send your links, history or settings to its developers or to anyone else. It contacts the websites you ask it to download from, and nothing more unless you use a feature described below.",
@@ -36,6 +36,7 @@ export const privacyNote = {
       paragraphs: [
         "The website of every link you add, and the servers that website uses to deliver its media. Those sites see your internet address and the details a download program sends, in the same way as for a browser, plus the cookies of any sign-in you saved for that site.",
         "GitHub and Codeberg, each time DriftFetch starts and when you press Check for updates in Settings, to look for and download new versions of yt-dlp and gallery-dl. DriftFetch checks the maintainers' signature before it installs them. Turn off Update engines automatically in Settings to check only when you press the button.",
+        "GitHub, each time an installed copy of DriftFetch starts, to look for a newer DriftFetch release and download its installer. DriftFetch checks the installer against its published SHA-256 checksum and installs it only when you press Install app update. Turn off Download app updates automatically in Settings to stop these checks.",
         "The sources of thumbnails, when it shows one in your list or in a collection preview, and the extension providers you enable, for their own websites.",
         "Nothing else. DriftFetch has no servers of its own.",
       ],
