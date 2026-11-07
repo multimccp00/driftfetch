@@ -1416,7 +1416,40 @@ describe("persistent scheduler", () => {
     await waitUntil(() => !!second.limitHeld);
     expect(second.status).toBe("queued");
     expect(download).toHaveBeenCalledTimes(1);
-    // The private-profiles sign-in has its own count.
+    // The user can send one past the limit.
+    await r.queue.action([second.id], "force");
+    await waitUntil(() => second.status === "completed");
+    expect(second.limitHeld).toBeUndefined();
+    expect(download).toHaveBeenCalledTimes(2);
+  });
+  it("a private-profiles sign-in has its own daily count", async () => {
+    const r = create(false);
+    r.queue.settings.instagramDailyRequests = 30;
+    const targetDir = fs.mkdtempSync(path.join(r.dir, "limit-"));
+    r.queue.jobs.push(instagramProfileJob("cdcdcdcd-1", targetDir), {
+      ...instagramProfileJob("cdcdcdcd-2", targetDir),
+      originalUrl: "https://www.instagram.com/other/",
+      mediaKey: "GalleryDL:https://www.instagram.com/other/",
+    });
+    vi.spyOn(r.engine, "download").mockImplementation((_job, _auth, line) => {
+      const image = path.join(targetDir, `${_job.id}.jpg`);
+      fs.writeFileSync(image, "fixture");
+      line("DRIFTFETCH_FILE:" + JSON.stringify(image));
+      return {
+        done: Promise.resolve({
+          code: 0,
+          stdout: "",
+          stderr: "",
+          requests: 31,
+        }),
+        stop: async () => {},
+      } as Running;
+    });
+    const [first, second] = r.queue.jobs;
+    await r.queue.action([first.id], "start");
+    await waitUntil(() => first.status === "completed");
+    await r.queue.action([second.id], "start");
+    await waitUntil(() => !!second.limitHeld);
     second.usePrivateAccount = true;
     await waitUntil(() => second.status === "completed");
     expect(second.limitHeld).toBeUndefined();

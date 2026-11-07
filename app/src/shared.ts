@@ -66,6 +66,8 @@ export interface Job {
   usePrivateAccount?: boolean;
   /** Waiting because its sign-in used up today's Instagram requests; starts again the next day. */
   limitHeld?: boolean;
+  /** The user chose to download this one past the daily Instagram limit. */
+  overrideLimit?: boolean;
   /** Profile download stops each part at posts saved by an earlier complete run. */
   stopAtSaved?: boolean;
   /** Profile saved its files but some parts (reels, stories, ...) could not be read; Retry asks for only those. */
@@ -267,7 +269,14 @@ export interface Snapshot {
   instagramUsage: { usual: number; private: number };
 }
 export type Action =
-  "start" | "pause" | "cancel" | "retry" | "again" | "remove" | "next";
+  | "start"
+  | "pause"
+  | "cancel"
+  | "retry"
+  | "again"
+  | "remove"
+  | "next"
+  | "force";
 export interface DesktopAPI {
   refreshFormats(id: string): Promise<void>;
   backup(action: "export" | "restore", password: string): Promise<string>;

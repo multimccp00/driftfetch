@@ -150,6 +150,7 @@ export class Queue {
         const token = this.running.get(job.id);
         if (
           !limit ||
+          job.overrideLimit ||
           job.status !== "downloading" ||
           !token ||
           token.stop ||
@@ -253,6 +254,7 @@ export class Queue {
     const limit = this.settings.instagramDailyRequests;
     const held =
       !!limit &&
+      !job.overrideLimit &&
       isProtectedSource(job.source || domainOf(job.originalUrl)) &&
       this.store.usage(this.usageKey(job)) >= limit;
     if (held !== !!job.limitHeld)
@@ -285,6 +287,7 @@ export class Queue {
     if (
       job.status === "queued" &&
       limit &&
+      !job.overrideLimit &&
       isProtectedSource(job.source || domainOf(job.originalUrl)) &&
       this.store.usage(this.usageKey(job)) >= limit
     ) {
@@ -1345,6 +1348,7 @@ export class Queue {
         "again",
         "remove",
         "next",
+        "force",
       ].includes(action)
     )
       throw new Error("Invalid queue action.");
@@ -1389,6 +1393,10 @@ export class Queue {
             speed: undefined,
             eta: undefined,
           });
+      } else if (action === "force") {
+        // Past today's limit on purpose: the user accepts the account risk for this download.
+        if (job.status === "queued")
+          this.save(job, { overrideLimit: true, limitHeld: undefined });
       } else if (action === "again") {
         this.addLinks(job.originalUrl, {
           force: true,

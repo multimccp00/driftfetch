@@ -324,6 +324,13 @@ function rowButtons(job: Job, actions: RowActions): RowButton[] {
       ];
     case "queued":
       return [
+        ...(job.limitHeld
+          ? [
+              button(<Play size={16} />, "Download anyway", () =>
+                actions.act(id, "force"),
+              ),
+            ]
+          : []),
         button(<ArrowUpToLine size={16} />, "Download next", () =>
           actions.act(id, "next"),
         ),
