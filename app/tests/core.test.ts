@@ -255,6 +255,20 @@ describe("metadata and recovery", () => {
     expect(metadata.entries).toHaveLength(100);
     expect(metadata.collectionLimited).toBe(true);
   });
+  it("lists every file gallery-dl finds, well past 100", () => {
+    const files = Array.from({ length: 500 }, (_, i) => [
+      3,
+      `https://cdn.example/v${i}.mp4`,
+      { extension: "mp4" },
+    ]);
+    const metadata = galleryDlMetadata(
+      JSON.stringify([[2, {}], ...files]),
+      "https://example.com/folder",
+    )!;
+    expect(metadata.entries).toHaveLength(500);
+    expect(metadata.entries![499].id).toBe("499");
+    expect(metadata.collectionLimited).toBe(false);
+  });
   it("turns gallery-dl JSON into an account-named collection", () => {
     const post = "https://www.instagram.com/p/abc/";
     const image = "https://scontent.cdninstagram.com/v/a_n.jpg?stp=x&oh=1";

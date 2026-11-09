@@ -6,7 +6,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { createInterface } from "node:readline";
 import type { EngineInfo, Job, Entry } from "../src/shared";
-import { domainOf, normalizeUrl } from "./core";
+import { domainOf, maxCollectionEntries, normalizeUrl } from "./core";
 import { preferredLabelFormat } from "../shared/quality";
 import { verifyDetached, type SigningKey } from "./signature";
 import { ytDlpKeyFingerprint, ytDlpPublicKey } from "./yt-dlp-public-key";
@@ -318,14 +318,16 @@ export function galleryDlMetadata(
     status: "collection",
     linkType: videos === files.length ? "video page" : "image gallery",
     collectionKind: "images",
-    entries: files.slice(0, 100).map(([, url, file], index) => ({
-      id: String(index),
-      title: `${video(url, file) ? "Video" : "Image"} ${index + 1}`,
-      url,
-      thumbnail:
-        normalizeUrl(file?.thumbnail || file?.preview_url || "") || undefined,
-    })),
-    collectionLimited: files.length > 100,
+    entries: files
+      .slice(0, maxCollectionEntries)
+      .map(([, url, file], index) => ({
+        id: String(index),
+        title: `${video(url, file) ? "Video" : "Image"} ${index + 1}`,
+        url,
+        thumbnail:
+          normalizeUrl(file?.thumbnail || file?.preview_url || "") || undefined,
+      })),
+    collectionLimited: files.length > maxCollectionEntries,
   };
 }
 
