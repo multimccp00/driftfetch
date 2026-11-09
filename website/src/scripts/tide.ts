@@ -11,10 +11,13 @@ let vel = 0;
 let lastSy: number | null = null;
 let raf = 0;
 
-function overlap(el: HTMLElement) {
+function overlap(el: HTMLElement, before: HTMLElement, beforeCol: string, col: string) {
   if (ready.has(el)) return;
   ready.add(el);
   const cs = getComputedStyle(el);
+  // Where the wave dips below the seam, the next block is clipped away: the previous block's colour has to be there.
+  before.style.boxShadow = `0 ${MID}px 0 0 ${beforeCol}`;
+  if (cs.backgroundColor === CLEAR) el.style.backgroundColor = col;
   if (cs.position === "static") el.style.position = "relative";
   el.style.marginTop = `calc(${cs.marginTop} - ${MID}px)`;
   el.style.paddingTop = `calc(${cs.paddingTop} + ${MID}px)`;
@@ -28,14 +31,14 @@ function draw(now: number) {
   vel = vel * 0.93 + Math.abs(v) * 0.07;
   const A = rm ? 18 : 22 + Math.min(48, vel * 1.8);
 
-  let prev: string | null = null, j = 0;
+  let prev: string | null = null, prevEl: HTMLElement | null = null, j = 0;
   document.querySelectorAll<HTMLElement>("[data-tide]").forEach((el) => {
     let col = getComputedStyle(el).backgroundColor;
     let p = el.parentElement;
     while (col === CLEAR && p) { col = getComputedStyle(p).backgroundColor; p = p.parentElement; }
     if (prev && col !== prev && col !== CLEAR) {
       const jj = j++;
-      overlap(el);
+      overlap(el, prevEl!, prev, col);
       const yv = el.getBoundingClientRect().top + MID;
       if (yv > -140 && yv < vh + 140) {
         const VW = el.clientWidth, k = Math.min(1, VW / 1000); // shorter wavelength on phones so the waves read
@@ -47,7 +50,7 @@ function draw(now: number) {
         el.style.clipPath = `polygon(${pts.join(",")},100% 100%,0 100%)`;
       }
     }
-    if (col !== CLEAR) prev = col;
+    if (col !== CLEAR) { prev = col; prevEl = el; }
   });
 }
 
