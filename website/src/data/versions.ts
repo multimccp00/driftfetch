@@ -4,6 +4,13 @@ export type Release = { version: string; date?: string; notes: string[] };
 
 export const releases: Release[] = [
   {
+    version: "0.10.16",
+    notes: [
+      "A link with many files now lists all of them, not just the first 100.",
+      "When a site rate limits a large listing, DriftFetch lets the download engine wait out the limit and carry on, for up to 30 minutes, instead of restarting the read.",
+    ],
+  },
+  {
     version: "0.10.15",
     notes: [
       "Link checks: when a site answers with a rate limit, DriftFetch shows that reason right away instead of timing out after two minutes.",
