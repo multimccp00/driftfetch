@@ -11,15 +11,17 @@ let vel = 0;
 let lastSy: number | null = null;
 let raf = 0;
 
-function overlap(el: HTMLElement, before: HTMLElement, beforeCol: string, col: string) {
+function overlap(el: HTMLElement, before: HTMLElement, col: string) {
   if (ready.has(el)) return;
   ready.add(el);
-  const cs = getComputedStyle(el);
-  // Where the wave dips below the seam, the next block is clipped away: the previous block's colour has to be there.
-  before.style.boxShadow = `0 ${MID}px 0 0 ${beforeCol}`;
+  const cs = getComputedStyle(el), bs = getComputedStyle(before);
+  // Where the wave dips below the seam, the next block is clipped away: the previous block has to
+  // reach MID px further down to be there (its own paint, so no pixel seam). The next block then
+  // starts 2*MID higher: MID to undo that extra padding, MID to overlap.
+  before.style.paddingBottom = `calc(${bs.paddingBottom} + ${MID}px)`;
   if (cs.backgroundColor === CLEAR) el.style.backgroundColor = col;
   if (cs.position === "static") el.style.position = "relative";
-  el.style.marginTop = `calc(${cs.marginTop} - ${MID}px)`;
+  el.style.marginTop = `calc(${cs.marginTop} - ${2 * MID}px)`;
   el.style.paddingTop = `calc(${cs.paddingTop} + ${MID}px)`;
 }
 
@@ -38,7 +40,7 @@ function draw(now: number) {
     while (col === CLEAR && p) { col = getComputedStyle(p).backgroundColor; p = p.parentElement; }
     if (prev && col !== prev && col !== CLEAR) {
       const jj = j++;
-      overlap(el, prevEl!, prev, col);
+      overlap(el, prevEl!, col);
       const yv = el.getBoundingClientRect().top + MID;
       if (yv > -140 && yv < vh + 140) {
         const VW = el.clientWidth, k = Math.min(1, VW / 1000); // shorter wavelength on phones so the waves read
