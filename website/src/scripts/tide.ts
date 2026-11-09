@@ -1,31 +1,27 @@
 // "The tide": wave edges between neighbouring [data-tide] blocks with different backgrounds.
-// Port of design_handoff_driftfetch_website/pages/tide.js, plus a pause while the tab is hidden.
-// Each seam gets its own canvas inside the section, so it scrolls with the page natively. A single
-// fixed canvas redrawn per frame lags the compositor-scrolled DOM, which exposed the straight
-// section edge as a hard line while scrolling.
+// Each block that starts a new colour reaches MID px up over the end of the previous block, and its
+// top edge is clipped to a moving wave. The wave is the block's own paint, so it scrolls with the
+// page by construction: a separate canvas layer drifted out of sync while scrolling and exposed
+// the straight section edge as a hard line.
 const rm = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const CLEAR = "rgba(0, 0, 0, 0)";
-const H = 180, MID = H / 2; // canvas height, and the seam's y inside it (wave reaches at most ~78px either side)
-const canvases = new WeakMap<HTMLElement, HTMLCanvasElement>();
+const MID = 90; // overlap into the previous block; the wave reaches at most ~78px either side of the seam
+const ready = new WeakSet<HTMLElement>();
 let vel = 0;
 let lastSy: number | null = null;
 let raf = 0;
 
-function seamCanvas(el: HTMLElement) {
-  let cv = canvases.get(el);
-  if (!cv) {
-    cv = document.createElement("canvas");
-    cv.setAttribute("aria-hidden", "true");
-    cv.style.cssText = `position:absolute;left:0;top:-${MID}px;width:100%;height:${H}px;pointer-events:none;z-index:1`;
-    if (getComputedStyle(el).position === "static") el.style.position = "relative";
-    el.appendChild(cv);
-    canvases.set(el, cv);
-  }
-  return cv;
+function overlap(el: HTMLElement) {
+  if (ready.has(el)) return;
+  ready.add(el);
+  const cs = getComputedStyle(el);
+  if (cs.position === "static") el.style.position = "relative";
+  el.style.marginTop = `calc(${cs.marginTop} - ${MID}px)`;
+  el.style.paddingTop = `calc(${cs.paddingTop} + ${MID}px)`;
 }
 
 function draw(now: number) {
-  const dpr = window.devicePixelRatio || 1, vh = innerHeight;
+  const vh = innerHeight;
   const T = rm ? 0 : now / 1000, sy = window.scrollY;
   const v = lastSy == null ? 0 : sy - lastSy;
   lastSy = sy;
@@ -38,34 +34,17 @@ function draw(now: number) {
     let p = el.parentElement;
     while (col === CLEAR && p) { col = getComputedStyle(p).backgroundColor; p = p.parentElement; }
     if (prev && col !== prev && col !== CLEAR) {
-      const jj = j++, yv = el.getBoundingClientRect().top;
+      const jj = j++;
+      overlap(el);
+      const yv = el.getBoundingClientRect().top + MID;
       if (yv > -140 && yv < vh + 140) {
-        const cv = seamCanvas(el), VW = el.clientWidth;
-        const w = Math.round(VW * dpr), h = Math.round(H * dpr);
-        if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
-        const ctx = cv.getContext("2d")!;
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        ctx.clearRect(0, 0, VW, H);
-        const k = Math.min(1, VW / 1000); // shorter wavelength on phones so the waves read
-        const wy = (x: number) => MID + A * (0.62 * Math.sin(x / (230 * k) + T * 0.6 + jj * 1.7 + sy * 0.0025) + 0.38 * Math.sin(x / (97 * k) - T * 0.85 + jj));
-        // prev colour only below the seam, next colour only above it: the section's own
-        // background (gradients included) shows everywhere else, so no hard line at the edge.
-        const fill = (c: string, edge: number) => {
-          ctx.save();
-          ctx.beginPath();
-          if (edge < MID) ctx.rect(0, MID - 1, VW, H); else ctx.rect(0, 0, VW, MID + 1); // 1px overlap hides the anti-alias seam
-          ctx.clip();
-          ctx.fillStyle = c;
-          ctx.beginPath();
-          ctx.moveTo(0, edge);
-          for (let x = 0; x <= VW + 8; x += 8) ctx.lineTo(x, wy(x));
-          ctx.lineTo(VW + 8, edge);
-          ctx.closePath();
-          ctx.fill();
-          ctx.restore();
-        };
-        fill(prev, MID - A - 8);
-        fill(col, MID + A + 8);
+        const VW = el.clientWidth, k = Math.min(1, VW / 1000); // shorter wavelength on phones so the waves read
+        const pts: string[] = [];
+        for (let x = 0; x <= VW + 8; x += 8) {
+          const y = MID + A * (0.62 * Math.sin(x / (230 * k) + T * 0.6 + jj * 1.7 + sy * 0.0025) + 0.38 * Math.sin(x / (97 * k) - T * 0.85 + jj));
+          pts.push(`${x}px ${y.toFixed(1)}px`);
+        }
+        el.style.clipPath = `polygon(${pts.join(",")},100% 100%,0 100%)`;
       }
     }
     if (col !== CLEAR) prev = col;
