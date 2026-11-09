@@ -26,6 +26,8 @@ const sources = [
   {
     name: `gallery-dl-${lock["gallery-dl.exe"].version}.tar.gz`,
     url: `https://codeberg.org/mikf/gallery-dl/archive/${lock["gallery-dl.exe"].version}.tar.gz`,
+    // Codeberg builds archives on demand and sometimes does not answer; GitHub mirrors the same tag.
+    fallbackUrl: `https://github.com/mikf/gallery-dl/archive/refs/tags/${lock["gallery-dl.exe"].version}.tar.gz`,
   },
   {
     name: `FFmpeg-${ffmpegCommit}.tar.gz`,
@@ -42,12 +44,24 @@ if (!ffmpegCommit || !openpgpVersion)
 const sums = [];
 for (const source of sources) {
   console.log(`Downloading ${source.name}…`);
-  const response = await fetch(source.url, {
-    headers: { "User-Agent": "DriftFetch-Downloader" },
-    signal: AbortSignal.timeout(300000),
+  const get = (url, ms) =>
+    fetch(url, {
+      headers: { "User-Agent": "DriftFetch-Downloader" },
+      signal: AbortSignal.timeout(ms),
+    });
+  let response = await get(
+    source.url,
+    source.fallbackUrl ? 90000 : 300000,
+  ).catch((error) => {
+    if (!source.fallbackUrl) throw error;
   });
-  if (!response.ok)
-    throw new Error(`${response.status} fetching ${source.url}`);
+  if (!response?.ok && source.fallbackUrl) {
+    console.log(`  primary source did not answer, using ${source.fallbackUrl}`);
+    source.url = source.fallbackUrl;
+    response = await get(source.url, 300000);
+  }
+  if (!response?.ok)
+    throw new Error(`${response?.status} fetching ${source.url}`);
   const bytes = Buffer.from(await response.arrayBuffer());
   if (bytes.length < 10_000)
     throw new Error(`${source.name} is suspiciously small.`);
