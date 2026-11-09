@@ -5,7 +5,7 @@ import path from "node:path";
 
 const dir = path.resolve(process.argv[2] || "release");
 for (const file of fs.readdirSync(dir, { recursive: true, encoding: "utf8" })) {
-  if (!/DriftFetch-Setup-\d+\.\d+\.\d+-x64\.exe$/.test(file)) continue;
+  if (!/DriftFetch-(?:Setup|Portable)-\d+\.\d+\.\d+-x64\.exe$/.test(file)) continue;
   const full = path.join(dir, file);
   const hash = createHash("sha256").update(fs.readFileSync(full)).digest("hex");
   fs.writeFileSync(full + ".sha256", `${hash}  ${path.basename(file)}\n`);
