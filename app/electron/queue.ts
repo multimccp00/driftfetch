@@ -900,12 +900,12 @@ export class Queue {
           url,
           auth.args,
           sourceLimits(this.settings, domainOf(url)).requestDelaySec,
-          careful ? 120_000 : 10 * 60_000,
+          careful ? 120_000 : 30 * 60_000,
         );
         if (careful) stopOnRateLimit(token.process);
         else {
           clearTimeout(deadline);
-          deadline = setTimeout(expire, 10.5 * 60_000);
+          deadline = setTimeout(expire, 30.5 * 60_000);
         }
         const listed = await token.process?.done;
         // The listing is a request to the account too, so it counts against today's limit.
