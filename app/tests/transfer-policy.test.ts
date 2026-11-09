@@ -138,6 +138,11 @@ it("reads the wait a source announces and retries after it", () => {
     "[reddit][warning] API rate limit exceeded\n[reddit][info] Waiting for 4 minutes until 14:09:58 (rate limit)\n";
   expect(rateLimitWait(raw)).toBe(240_000);
   expect(rateLimitWait("Waiting for 30 seconds (rate limit)")).toBe(30_000);
+  expect(
+    rateLimitWait(
+      "[example][info] Waiting for 1 minutes until 13:56:27 (429 Too Many Requests)",
+    ),
+  ).toBe(60_000);
   expect(rateLimitWait("HTTP Error 429")).toBeUndefined();
   expect(retryDelay(raw, 0)).toBe(330_000);
   expect(retryDelay(raw, 9)).toBe(330_000); // no attempt cap: the source sets the wait
@@ -176,8 +181,8 @@ it("recognises Instagram's account warnings and private profiles", () => {
     isAccountWarning("AbortExtraction: HTTP redirect to login page (x)"),
   ).toBe(true);
   expect(isAccountWarning("HTTP Error 404")).toBe(false);
-  expect(isPrivateProfile("[instagram][warning] nasa's posts are private")).toBe(
-    true,
-  );
+  expect(
+    isPrivateProfile("[instagram][warning] nasa's posts are private"),
+  ).toBe(true);
   expect(isPrivateProfile("private_user profile")).toBe(false);
 });

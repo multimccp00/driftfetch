@@ -6,7 +6,7 @@ import type { Job, Settings } from "../src/shared";
  */
 export function rateLimitWait(raw: string): number | undefined {
   const m =
-    /Waiting for (\d+(?:\.\d+)?) (second|minute|hour)s?\b[^\n]*\(rate limit\)/i.exec(
+    /Waiting for (\d+(?:\.\d+)?) (second|minute|hour)s?\b[^\n]*\((?:rate limit|429 Too Many Requests)\)/i.exec(
       raw,
     );
   if (!m) return;
