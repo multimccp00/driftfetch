@@ -892,12 +892,21 @@ export class Queue {
         (metadata.status === "collection" &&
           /(^|\.)instagram\.com$/i.test(domainOf(url)))
       ) {
+        // Ordinary sites that rate limit a listing are best left to gallery-dl, which waits the
+        // announced time and carries on; restarting from scratch only trips the limit again.
+        // Accounts that can be flagged (Instagram and the like) still stop at the first announced wait.
+        const careful = isProtectedSource(domainOf(url));
         token.process = this.engine.listImages(
           url,
           auth.args,
           sourceLimits(this.settings, domainOf(url)).requestDelaySec,
+          careful ? 120_000 : 10 * 60_000,
         );
-        stopOnRateLimit(token.process);
+        if (careful) stopOnRateLimit(token.process);
+        else {
+          clearTimeout(deadline);
+          deadline = setTimeout(expire, 10.5 * 60_000);
+        }
         const listed = await token.process?.done;
         // The listing is a request to the account too, so it counts against today's limit.
         if (listed) this.countRequests(job);
@@ -905,7 +914,7 @@ export class Queue {
         controller.signal.throwIfAborted();
         // The source announced a wait: fail now so the job retries after it,
         // instead of sitting in the engine until the lookup deadline.
-        if (listed && rateLimitWait(listed.stderr) !== undefined)
+        if (listed?.code && rateLimitWait(listed.stderr) !== undefined)
           throw new Error(listed.stderr);
         if (listed?.timedOut)
           throw new Error(

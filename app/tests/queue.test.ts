@@ -754,6 +754,7 @@ describe("persistent scheduler", () => {
       "http://127.0.0.1:1/gallery-fallback",
       ["--cookies", "fixture-session.txt"],
       0,
+      600_000,
     );
     expect(r.queue.jobs[0].imageUrls).toEqual([
       "https://example.invalid/original.png",

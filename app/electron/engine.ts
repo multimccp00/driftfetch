@@ -625,6 +625,7 @@ export class Engine {
     url: string,
     auth: string[] = [],
     requestDelaySec = 0,
+    timeoutMs = 120000,
   ): Running | undefined {
     const exe = this.galleryExecutable;
     if (!existsSync(exe)) return;
@@ -634,15 +635,13 @@ export class Engine {
       [
         ...galleryOutputArgs,
         "--dump-json",
-        ...(requestDelaySec
-          ? galleryDelayArgs(requestDelaySec)
-          : []),
+        ...(requestDelaySec ? galleryDelayArgs(requestDelaySec) : []),
         ...auth,
         "--",
         url,
       ],
       undefined,
-      120000,
+      timeoutMs,
     );
   }
   /** Where this run's lines start in a profile job's cursor log. */
@@ -748,9 +747,7 @@ export class Engine {
           ...(job.speedLimitKiB
             ? ["--limit-rate", `${job.speedLimitKiB}k`]
             : []),
-          ...(job.requestDelaySec
-            ? galleryDelayArgs(job.requestDelaySec)
-            : []),
+          ...(job.requestDelaySec ? galleryDelayArgs(job.requestDelaySec) : []),
           ...this.galleryVideoArgs(),
           ...auth,
           "--",
