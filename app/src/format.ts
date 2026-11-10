@@ -96,6 +96,9 @@ export const when = (at?: number) => {
 export const failureSummary = (job: Job) => {
   const raw = `${job.error ?? ""} ${job.failureCode ?? ""}`;
   if (/nothing could be read|NOTHING_READ/i.test(raw)) return "Nothing found";
+  // The refused-access message only advises signing in ("If sign-in is required..."), so it must win over the sign-in test below.
+  if (/refused access to this request/i.test(job.error ?? ""))
+    return "Site refused access";
   if (/sign.?in|login required|session (?:expired|unavailable)/i.test(raw))
     return "Sign-in needed";
   if (/DRIFTFETCH_REMOVED|removed or deleted/i.test(raw))
