@@ -4,6 +4,13 @@ export type Release = { version: string; date?: string; notes: string[] };
 
 export const releases: Release[] = [
   {
+    version: "0.10.17",
+    notes: [
+      "A file a site refuses no longer shows as a sign-in problem. The row says the site refused access, and Retry is the main button.",
+      "The link popup now recovers by itself if its window stops working, instead of staying blank until you restart DriftFetch.",
+    ],
+  },
+  {
     version: "0.10.16",
     notes: [
       "A link with many files now lists all of them, not just the first 100.",
