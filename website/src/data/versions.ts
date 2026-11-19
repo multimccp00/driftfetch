@@ -4,6 +4,14 @@ export type Release = { version: string; date?: string; notes: string[] };
 
 export const releases: Release[] = [
   {
+    version: "0.10.18",
+    notes: [
+      "A profile no longer uses up the daily request limit re-reading posts you already have when one file keeps failing. Only that file's page is read again, and only once.",
+      "On every site, a profile where only some files could not be saved now ends as saved with gaps. The next update then reads only the newest posts.",
+      "Pasting the same link again with a different share tag (such as ?igsh= or ?si=) is now recognised as a repeat without contacting the site.",
+    ],
+  },
+  {
     version: "0.10.17",
     notes: [
       "A file a site refuses no longer shows as a sign-in problem. The row says the site refused access, and Retry is the main button.",
