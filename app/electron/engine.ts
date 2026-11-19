@@ -52,7 +52,41 @@ export function savedCursors(log: string): Record<string, string> {
     else delete cursors[part];
   return cursors;
 }
-/** The first error gallery-dl logged for each part of a profile. */
+/**
+ * Cursor lines that send a part back to the page where its first file failed,
+ * not to the top of the profile. A file that already failed in an earlier run is
+ * left behind, or one broken file would re-walk the profile on every retry.
+ */
+export function rewindCursors(previousLog: string, runLog: string): string[] {
+  const lines: string[] = [];
+  const failed = (log: string) =>
+    new Set(
+      Array.from(
+        log.matchAll(/^(\w+)\tERROR Failed to download (\S+)/gm),
+        (m) => `${m[1]}\t${m[2]}`,
+      ),
+    );
+  const before = failed(previousLog);
+  const parts = new Set<string>();
+  const cursorOf: Record<string, string[]> = {};
+  // Each part starts on the cursor saved before this run, then moves one page per Cursor line.
+  const start = savedCursors(previousLog);
+  for (const line of runLog.split(/\r?\n/)) {
+    const cursor = /^(\w+)\tCursor: ?(\S*)$/.exec(line);
+    if (cursor) {
+      (cursorOf[cursor[1]] ??= [start[cursor[1]] ?? ""]).push(cursor[2]);
+      continue;
+    }
+    const fail = /^(\w+)\tERROR Failed to download (\S+)/.exec(line);
+    if (!fail || parts.has(fail[1]) || before.has(`${fail[1]}\t${fail[2]}`))
+      continue;
+    parts.add(fail[1]);
+    const seen = (cursorOf[fail[1]] ??= [start[fail[1]] ?? ""]);
+    // The last Cursor line is the next page's; the failed file is on the one before.
+    lines.push(`${fail[1]}\tCursor: ${seen.length > 1 ? seen[seen.length - 2] : seen[0]}`);
+  }
+  return lines;
+}
 /**
  * A random wait of 1 to 1.5 times the delay between gallery-dl requests: a
  * fixed beat is easier to tell apart from a person browsing.
@@ -778,23 +812,13 @@ export class Engine {
           if (result.code === 0) await fs.rm(cursorLog, { force: true });
           else {
             result.partErrors = partErrors(runLog);
-            // A part that lost a file before its last cursor reads again from the
-            // top. A part that was cut off (a redirect, a rate limit) keeps its place,
-            // so each retry gets further.
-            const skippedFile = new Set(
-              Array.from(
-                runLog.matchAll(/^(\w+)\tERROR Failed to download/gm),
-                (m) => m[1],
-              ),
-            );
-            if (skippedFile.size)
+            // A part that lost a file reads again from that file's page, once. A part
+            // that was cut off (a redirect, a rate limit) keeps its place, so each
+            // retry gets further.
+            const rewind = rewindCursors(previousLog, runLog);
+            if (rewind.length)
               await fs
-                .appendFile(
-                  cursorLog,
-                  [...skippedFile]
-                    .map((part) => `${part}\tCursor: \n`)
-                    .join(""),
-                )
+                .appendFile(cursorLog, rewind.join("\n") + "\n")
                 .catch(() => {});
           }
           return result;

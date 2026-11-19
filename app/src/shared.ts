@@ -71,7 +71,7 @@ export interface Job {
   /** Profile download stops each part at posts saved by an earlier complete run. */
   stopAtSaved?: boolean;
   /** Profile saved its files but some parts (reels, stories, ...) could not be read; Retry asks for only those. */
-  partialFailure?: { parts: string[]; error: string };
+  partialFailure?: { parts: string[]; error: string; filesOnly?: boolean };
   formats?: VideoFormat[];
   selectedFormatId?: string;
   actualFormatId?: string;

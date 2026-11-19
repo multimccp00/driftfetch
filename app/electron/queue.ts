@@ -33,6 +33,7 @@ import {
 import {
   domainOf,
   friendlyError,
+  onlyFileFailures,
   instagramProfile,
   rateLimited,
   redditFeed,
@@ -69,6 +70,11 @@ function partialProfileFailure(result: {
   );
   return {
     parts: failed.map(([part]) => part),
+    // Only single files failed, so the profile itself was read to the end.
+    ...(failed.length &&
+      failed.every(([, msg]) => msg.startsWith("[download]")) && {
+        filesOnly: true,
+      }),
     // Raw engine output can hold signed URLs; the renderer gets the plain reason.
     error: friendlyError(failed[0]?.[1] || result.stderr),
   };
@@ -437,7 +443,7 @@ export class Queue {
         (other) =>
           other.mediaKey === job.mediaKey &&
           !!other.finishedAt &&
-          !other.partialFailure,
+          (!other.partialFailure || other.partialFailure.filesOnly),
       )
     );
   }
@@ -1252,7 +1258,20 @@ export class Queue {
           [result.stderr, ...Object.values(result.partErrors ?? {})].join("\n"),
         )
           ? partialProfileFailure(result)
-          : undefined;
+          : // Other sites report no parts: a run where only single files failed
+            // still read the whole profile, so it ends here instead of re-walking
+            // it on every automatic retry.
+            result.code !== 0 &&
+              profile &&
+              !result.partErrors &&
+              onlyFileFailures(result.stderr) &&
+              !rateLimited(result.stderr)
+            ? {
+                parts: [],
+                error: friendlyError(result.stderr),
+                filesOnly: true as const,
+              }
+            : undefined;
       // An archive can mean no new files, but any other engine error is still a failure.
       if (result.code !== 0 && !partialFailure) throw new Error(result.stderr);
       if (job.imageSearch && !job.filePath)

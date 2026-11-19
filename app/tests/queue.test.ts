@@ -1479,6 +1479,56 @@ describe("persistent scheduler", () => {
     await waitUntil(() => job.status === "completed");
     expect(asked).toEqual([true]);
   });
+  it("also stops a repeat sync after a run where only single files failed", async () => {
+    const r = create(false);
+    const targetDir = fs.mkdtempSync(path.join(r.dir, "filesonly-"));
+    r.queue.jobs.push(
+      {
+        ...instagramProfileJob("efefefef-3", targetDir),
+        status: "completed",
+        finishedAt: Date.now(),
+        partialFailure: { parts: ["posts"], error: "x", filesOnly: true },
+      },
+      instagramProfileJob("efefefef-4", targetDir),
+    );
+    const asked: (boolean | undefined)[] = [];
+    vi.spyOn(r.engine, "download").mockImplementation((job) => {
+      asked.push(job.stopAtSaved);
+      return {
+        done: Promise.resolve({ code: 0, stdout: "", stderr: "" }),
+        stop: async () => {},
+      } as Running;
+    });
+    const job = r.queue.jobs[1];
+    await r.queue.action([job.id], "start");
+    await waitUntil(() => job.status === "completed");
+    expect(asked).toEqual([true]);
+  });
+  it("ends a profile of another site as saved with gaps when only single files failed", async () => {
+    const r = create(false);
+    const targetDir = fs.mkdtempSync(path.join(r.dir, "otherfiles-"));
+    r.queue.jobs.push({
+      ...instagramProfileJob("efefefef-5", targetDir),
+      originalUrl: "https://example.invalid/someone/",
+      source: "example.invalid",
+      mediaKey: "GalleryDL:https://example.invalid/someone/",
+    });
+    vi.spyOn(r.engine, "download").mockImplementation(
+      () =>
+        ({
+          done: Promise.resolve({
+            code: 1,
+            stdout: "",
+            stderr: "[example][error] Failed to download a_1.mkv\n",
+          }),
+          stop: async () => {},
+        }) as Running,
+    );
+    const job = r.queue.jobs[0];
+    await r.queue.action([job.id], "start");
+    await waitUntil(() => job.status === "completed");
+    expect(job.partialFailure).toMatchObject({ parts: [], filesOnly: true });
+  });
   it("keeps a profile saved with gaps when retrying its failed part saves nothing", async () => {
     const r = create(false);
     const targetDir = fs.mkdtempSync(path.join(r.dir, "gaps-"));

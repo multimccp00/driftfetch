@@ -42,6 +42,14 @@ export function normalizeUrl(input: string): string | null {
     if (!["https:", "http:"].includes(u.protocol) || u.username || u.password)
       return null;
     u.hash = "";
+    // Share buttons add a fresh tracking value each time, so the same link would
+    // look new and cost a request to find out it is a repeat.
+    for (const key of [...u.searchParams.keys()])
+      if (
+        /^(utm_|fbclid$|gclid$|igsh$|igshid$|mc_[ce]id$)/i.test(key) ||
+        (key === "si" && /(^|\.)(youtube\.com|youtu\.be)$/i.test(u.hostname))
+      )
+        u.searchParams.delete(key);
     return u.href;
   } catch {
     return null;
@@ -415,6 +423,16 @@ export function redditFeed(url: string): string | undefined {
 export const rateLimited = (raw: string) =>
   rateLimitWait(raw) !== undefined ||
   /\b429\b|too many requests|rate limit/i.test(raw);
+/** True when every error gallery-dl printed is one file that could not be saved, so the run itself read everything. */
+export function onlyFileFailures(stderr: string): boolean {
+  const errors = stderr
+    .split(/\r?\n/)
+    .filter((l) => /\[error\]|^ERROR /i.test(l));
+  return (
+    errors.length > 0 &&
+    errors.every((l) => /Failed to download|\[download\] Got error/i.test(l))
+  );
+}
 export function friendlyError(raw: string): string {
   if (/DRIFTFETCH_EXTENSION_REQUIRED/.test(raw))
     return "The extension for this collection is disabled or missing. Enable it in Settings → Advanced → Extensions and retry.";

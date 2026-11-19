@@ -126,6 +126,7 @@ export const failureSummary = (job: Job) => {
 /** The parts a partly saved profile is missing, as in "Reels and stories". */
 export const missingParts = (job: Job) => {
   const parts = job.partialFailure?.parts ?? [];
+  if (job.partialFailure?.filesOnly) return "Some files";
   if (!parts.length) return "Some parts";
   const list =
     parts.length > 1
