@@ -6,3 +6,4 @@ dist/
 tmp/
 graphify-out/
 *.log
+CLAUDE.md
