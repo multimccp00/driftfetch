@@ -32,7 +32,12 @@ import {
 import { ConfirmButton } from "./ConfirmButton";
 import { Modal } from "./Modal";
 import { PrivacyNote } from "./PrivacyNote";
-import type { Settings, Snapshot } from "./shared";
+import {
+  privateSessionSuffix,
+  sessionKey,
+  type Settings,
+  type Snapshot,
+} from "./shared";
 import { Switch, radioKeys } from "./ui";
 import { when } from "./format";
 
@@ -140,6 +145,16 @@ const methodLabel = (kind: string, profile?: string) =>
           ? "Built-in browser"
           : "Imported cookies.txt";
 
+const updateText = (u: Snapshot["appUpdate"]) =>
+  ({
+    idle: "Checks GitHub for a newer version when it starts. DriftFetch saves and closes its workers before installing.",
+    checking: "Looking for a newer version…",
+    downloading: `Downloading ${u.version}…`,
+    ready: `Version ${u.version} is downloaded and checked. DriftFetch saves and closes its workers, then runs the installer.`,
+    current: "You have the latest version.",
+    error: u.message ?? "Could not check for updates.",
+  })[u.status];
+
 export function SettingsView({
   state,
   update,
@@ -164,10 +179,17 @@ export function SettingsView({
   const [chromeOpen, setChromeOpen] = useState(false);
   const [values, setValues] = useState<Record<string, string>>({});
   const [connecting, setConnecting] = useState(false);
+  const [privateSlot, setPrivateSlot] = useState(false);
   const normalized = domain
     .trim()
     .toLowerCase()
     .replace(/^www\./, "");
+  // Only Instagram falls back to a second sign-in for private profiles.
+  const offersPrivate = normalized === "instagram.com";
+  const key =
+    offersPrivate && privateSlot
+      ? normalized + privateSessionSuffix
+      : normalized;
   const extension = state.extensions.find(
     (e) => e.enabled && e.domains.includes(normalized),
   );
@@ -736,10 +758,10 @@ export function SettingsView({
 
     // ---------- Sites & sign-ins ----------
     ...state.sessions.map<Row>((saved) => ({
-      id: `session-${saved.domain}`,
+      id: `session-${sessionKey(saved)}`,
       section: "sites",
       group: `Signed-in sites · ${state.sessions.length}`,
-      label: saved.domain,
+      label: saved.private ? `${saved.domain} · private profiles` : saved.domain,
       desc: `${methodLabel(saved.kind, saved.profile)} · saved ${when(saved.updatedAt)}${
         ["api", "credentials"].includes(saved.kind) &&
         !state.extensions.some(
@@ -754,6 +776,7 @@ export function SettingsView({
           {btn("Update", () => {
             setValues({});
             setDomain(saved.domain);
+            setPrivateSlot(!!saved.private);
             document
               .getElementById("sign-in-card")
               ?.scrollIntoView({ block: "nearest" });
@@ -764,7 +787,9 @@ export function SettingsView({
             aria-label={`Remove session for ${saved.domain}`}
             confirmLabel="Remove? You must sign in again"
             onConfirm={() =>
-              void execute(() => window.driftfetch.removeSession(saved.domain))
+              void execute(() =>
+                window.driftfetch.removeSession(sessionKey(saved)),
+              )
             }
           >
             Remove
@@ -1083,6 +1108,18 @@ export function SettingsView({
       ),
     },
     {
+      id: "app-auto",
+      section: "advanced",
+      group: "App",
+      label: "Download app updates automatically",
+      desc: "When DriftFetch starts, it checks GitHub for a newer version and downloads it after checking its SHA-256 checksum. Nothing is installed until you press Install app update. Installed copies only.",
+      control: toggle(
+        "Download app updates automatically",
+        s.autoUpdateApp,
+        "autoUpdateApp",
+      ),
+    },
+    {
       id: "extensions-add",
       section: "advanced",
       group: "Extensions",
@@ -1118,6 +1155,10 @@ export function SettingsView({
                   extension.enabled ? "disable" : "enable",
                 ),
               ),
+          )}
+          {btn(
+            "Update…",
+            () => void execute(() => window.driftfetch.importExtension()),
           )}
           <ConfirmButton
             className="icon-button"
@@ -1190,6 +1231,79 @@ export function SettingsView({
       ),
     },
     {
+      id: "instagram-stories",
+      section: "advanced",
+      group: "App",
+      label: "Instagram profiles include stories and highlights",
+      desc: "Profile links also save the account's live stories and highlights. Needs your Instagram sign-in.",
+      icon: <Power size={17} />,
+      control: toggle(
+        "Include stories and highlights",
+        s.instagramStories,
+        "instagramStories",
+      ),
+    },
+    {
+      id: "instagram-daily-limit",
+      section: "advanced",
+      group: "App",
+      label: "Daily Instagram request limit",
+      desc: "Most requests to Instagram a day for each sign-in. Past it, Instagram downloads wait until the next day. Lower is safer for your accounts.",
+      words: "instagram limit requests daily budget account",
+      control: seg(
+        "Daily Instagram request limit",
+        String(s.instagramDailyRequests),
+        [
+          ...[300, 500, 800, 1000].map((n): [string, string] => [
+            String(n),
+            String(n),
+          ]),
+          ["0", "No limit"],
+          ...(![0, 300, 500, 800, 1000].includes(s.instagramDailyRequests)
+            ? ([
+                [
+                  String(s.instagramDailyRequests),
+                  String(s.instagramDailyRequests),
+                ],
+              ] as [string, string][])
+            : []),
+        ],
+        (v) => void update({ instagramDailyRequests: Number(v) }),
+      ),
+      below: (
+        <div className="usage">
+          {(
+            [
+              ["Usual sign-in", state.instagramUsage.usual],
+              ["Private-profiles sign-in", state.instagramUsage.private],
+            ] as const
+          ).map(([name, used]) => (
+            <div key={name}>
+              <div className="usage-head">
+                <span>{name}</span>
+                <span className="num">
+                  {used}
+                  {s.instagramDailyRequests
+                    ? ` / ${s.instagramDailyRequests}`
+                    : " today"}
+                </span>
+              </div>
+              {s.instagramDailyRequests > 0 && (
+                <div className="meter">
+                  <i
+                    className={used >= s.instagramDailyRequests ? "wait" : ""}
+                    style={{
+                      width: `${Math.min(100, (used / s.instagramDailyRequests) * 100)}%`,
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      ),
+    },
+    {
       id: "login",
       section: "advanced",
       group: "App",
@@ -1203,7 +1317,7 @@ export function SettingsView({
       section: "advanced",
       group: "App",
       label: `DriftFetch ${state.appVersion}`,
-      desc: "Use one desktop shortcut. To update, choose a newer DriftFetch installer and keep its .sha256 file beside it. DriftFetch saves and closes its workers before starting the installer.",
+      desc: updateText(state.appUpdate),
       icon: <AppWindow size={17} />,
       control: (
         <span className="btn-row">
@@ -1215,9 +1329,18 @@ export function SettingsView({
                 "Desktop shortcut updated.",
               ),
           )}
-          {btn(
-            "Install app update…",
-            () => void execute(() => window.driftfetch.appAction("update")),
+          {state.appUpdate.status === "ready" ? (
+            btn(
+              `Install ${state.appUpdate.version} and restart`,
+              () => void execute(() => window.driftfetch.appAction("update")),
+            )
+          ) : (
+            btn(
+              ["checking", "downloading"].includes(state.appUpdate.status)
+                ? "Checking…"
+                : "Check for updates",
+              () => void execute(() => window.driftfetch.appAction("check")),
+            )
           )}
         </span>
       ),
@@ -1294,6 +1417,20 @@ export function SettingsView({
               ))}
             </datalist>
           </label>
+          {offersPrivate && (
+            <div className="hero-private">
+              <Switch
+                label="For private profiles"
+                value={privateSlot}
+                onChange={setPrivateSlot}
+              />
+              <p className="fine">
+                {privateSlot
+                  ? "Sign in with your main account, the one that follows the private profiles. DriftFetch uses it only when the usual Instagram sign-in cannot see a profile."
+                  : "Use a second account here for public profiles, and turn this on to add your main account for private ones. Most requests then never touch your main account."}
+              </p>
+            </div>
+          )}
           {account && (
             <div className="hero-fields">
               {account.fields.map((field) => (
@@ -1344,7 +1481,7 @@ export function SettingsView({
               className={`btn lg ${account ? "" : "primary"}`}
               disabled={connecting || !normalized}
               onClick={() =>
-                void connect(() => window.driftfetch.browserSession(normalized))
+                void connect(() => window.driftfetch.browserSession(key))
               }
             >
               <AppWindow size={16} strokeWidth={2} />
@@ -1354,7 +1491,7 @@ export function SettingsView({
               className="btn lg"
               disabled={connecting || !normalized}
               onClick={() =>
-                void connect(() => window.driftfetch.importSession(normalized))
+                void connect(() => window.driftfetch.importSession(key))
               }
             >
               <FileUp size={15} />
@@ -1396,7 +1533,7 @@ export function SettingsView({
                 }
                 onClick={() =>
                   void connect(() =>
-                    window.driftfetch.chromeSession(normalized, profile),
+                    window.driftfetch.chromeSession(key, profile),
                   )
                 }
               >

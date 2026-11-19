@@ -201,7 +201,7 @@ it("rejects conflicting domains and duplicate installs without replacing the fir
   await extensions.install(fixturePackage);
   await extensions.action("landscapes", "enable");
   await expect(extensions.install(fixturePackage)).rejects.toThrow(
-    "Remove the existing",
+    "already installed",
   );
   await extensions.install(
     JSON.stringify({
@@ -401,4 +401,20 @@ it("only lets extensions pass sign-in values to the engine", () => {
     "not an array",
   ])
     expect(() => checkGalleryArguments(bad)).toThrow("sign-in values");
+});
+
+it("replaces an installed extension with a new version and keeps it enabled", async () => {
+  const { extensions } = await registry();
+  await extensions.load();
+  const make = (version: string) =>
+    JSON.stringify({
+      manifest: { ...fixtureManifest, version },
+      code: fixturePackage ? JSON.parse(fixturePackage).code : "",
+    });
+  await extensions.install(make("1.0.0"));
+  await extensions.action("landscapes", "enable");
+  await expect(extensions.install(make("1.0.0"))).rejects.toThrow("already installed");
+  await extensions.install(make("1.0.1"));
+  expect(extensions.list()[0]).toMatchObject({ version: "1.0.1", enabled: true });
+  extensions.shutdown();
 });

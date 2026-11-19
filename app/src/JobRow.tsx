@@ -26,6 +26,7 @@ import {
   collectionNoun,
   countdown,
   failureSummary,
+  missingParts,
   time,
   when,
 } from "./format";
@@ -91,6 +92,16 @@ export function rowView(
   const left = job.retryAt
     ? Math.max(0, Math.ceil((job.retryAt - now) / 1000))
     : 0;
+  if (job.partialFailure && job.status === "completed")
+    return {
+      tone: "wait",
+      icon: <CircleAlert size={13} strokeWidth={2} />,
+      label: "Saved with gaps",
+      sub: `${missingParts(job)} couldn’t be read`,
+      subLink: () => actions.details(job.id),
+      size: bytes(job.totalBytes),
+      sizeBottom: "Folder",
+    };
   if (job.fileMissing && job.status === "completed")
     return {
       tone: "wait",
@@ -140,12 +151,16 @@ export function rowView(
       return {
         tone: "muted",
         dot: true,
-        label: !scheduleAllows(settings, new Date(now))
-          ? "Waiting for schedule"
-          : ahead
-            ? `Waiting · ${ahead} ahead`
-            : "Waiting · next in line",
-        sub: "Starts when a download finishes",
+        label: job.limitHeld
+          ? "Waiting · daily Instagram limit"
+          : !scheduleAllows(settings, new Date(now))
+            ? "Waiting for schedule"
+            : ahead
+              ? `Waiting · ${ahead} ahead`
+              : "Waiting · next in line",
+        sub: job.limitHeld
+          ? "Starts again tomorrow, or raise the limit in Settings"
+          : "Starts when a download finishes",
         ...estimated(job.totalBytes),
       };
     case "downloading":
@@ -271,6 +286,18 @@ function rowButtons(job: Job, actions: RowActions): RowButton[] {
   const details = button(<Info size={16} />, "Download details", () =>
     actions.details(job.id),
   );
+  if (job.partialFailure && job.status === "completed")
+    return [
+      button(
+        <RotateCw size={16} />,
+        `Retry ${missingParts(job).toLowerCase()}`,
+        () => actions.act(id, "start"),
+      ),
+      button(<FolderOpen size={16} />, "Open folder", () =>
+        actions.openFolder(job.id),
+      ),
+      details,
+    ];
   if (job.fileMissing && job.status === "completed")
     return [
       details,
@@ -297,6 +324,13 @@ function rowButtons(job: Job, actions: RowActions): RowButton[] {
       ];
     case "queued":
       return [
+        ...(job.limitHeld
+          ? [
+              button(<Play size={16} />, "Download anyway", () =>
+                actions.act(id, "force"),
+              ),
+            ]
+          : []),
         button(<ArrowUpToLine size={16} />, "Download next", () =>
           actions.act(id, "next"),
         ),
@@ -318,6 +352,9 @@ function rowButtons(job: Job, actions: RowActions): RowButton[] {
       return [
         button(<ListChecks size={16} />, "Choose items", () =>
           actions.collection(job),
+        ),
+        button(<RotateCw size={16} />, "Search again", () =>
+          actions.act(id, "start"),
         ),
         remove,
       ];

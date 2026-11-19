@@ -31,7 +31,7 @@ export interface CollectionDiscovery {
   postsWithoutFiles: number;
   invalidPosts: number;
   sharedFileUrls: number;
-  stopReason: "empty-page" | "repeated-page" | "page-limit";
+  stopReason: "empty-page" | "repeated-page" | "page-limit" | "read-error";
 }
 export interface Job {
   extensionId?: string;
@@ -60,6 +60,18 @@ export interface Job {
   speedLimitKiB?: number;
   fragmentConcurrency?: number;
   requestDelaySec?: number;
+  /** Profile download also fetches the account's stories and highlights. */
+  includeStories?: boolean;
+  /** The profile was private to the site's usual sign-in, so it uses the private-profiles sign-in. */
+  usePrivateAccount?: boolean;
+  /** Waiting because its sign-in used up today's Instagram requests; starts again the next day. */
+  limitHeld?: boolean;
+  /** The user chose to download this one past the daily Instagram limit. */
+  overrideLimit?: boolean;
+  /** Profile download stops each part at posts saved by an earlier complete run. */
+  stopAtSaved?: boolean;
+  /** Profile saved its files but some parts (reels, stories, ...) could not be read; Retry asks for only those. */
+  partialFailure?: { parts: string[]; error: string; filesOnly?: boolean };
   formats?: VideoFormat[];
   selectedFormatId?: string;
   actualFormatId?: string;
@@ -178,8 +190,14 @@ export interface Settings {
   grouping: "source" | "date" | "none";
   filenameTemplate: string;
   launchAtLogin: boolean;
+  /** Instagram profile downloads also include stories and highlights. */
+  instagramStories: boolean;
+  /** Most Instagram requests a day for each sign-in; 0 is no limit. */
+  instagramDailyRequests: number;
   /** Check for and install verified yt-dlp and gallery-dl updates when the app starts. */
   autoUpdateEngines: boolean;
+  /** Download and check a newer DriftFetch installer when the app starts (installed copies only). */
+  autoUpdateApp: boolean;
   /** "system" follows Windows. */
   theme: "dark" | "light" | "system";
   /** Version of the privacy note the user has seen; 0 = not yet shown. */
@@ -189,8 +207,14 @@ export interface SessionInfo {
   domain: string;
   kind: "chrome" | "file" | "browser" | "api" | "credentials";
   profile?: string;
+  /** A second sign-in, used only for profiles the usual one cannot see. */
+  private?: boolean;
   updatedAt: number;
 }
+/** How a session is named over IPC and stored: the domain, plus this for the private-profiles sign-in. */
+export const privateSessionSuffix = "#private";
+export const sessionKey = (s: Pick<SessionInfo, "domain" | "private">) =>
+  s.domain + (s.private ? privateSessionSuffix : "");
 export interface AccountField {
   key: string;
   label: string;
@@ -225,18 +249,34 @@ export interface EngineInfo {
   busy: boolean;
   message?: string;
 }
+/** Where the check for a newer DriftFetch stands; "ready" means the installer is downloaded and verified. */
+export interface AppUpdateInfo {
+  status: "idle" | "checking" | "downloading" | "ready" | "current" | "error";
+  version?: string;
+  message?: string;
+}
 export interface Snapshot {
   extensions: ExtensionInfo[];
   appVersion: string;
+  appUpdate: AppUpdateInfo;
   captures: Capture[];
   jobs: Job[];
   settings: Settings;
   sessions: SessionInfo[];
   engine: EngineInfo;
   chromeProfiles: string[];
+  /** Instagram requests sent today, by sign-in. */
+  instagramUsage: { usual: number; private: number };
 }
 export type Action =
-  "start" | "pause" | "cancel" | "retry" | "again" | "remove" | "next";
+  | "start"
+  | "pause"
+  | "cancel"
+  | "retry"
+  | "again"
+  | "remove"
+  | "next"
+  | "force";
 export interface DesktopAPI {
   refreshFormats(id: string): Promise<void>;
   backup(action: "export" | "restore", password: string): Promise<string>;
@@ -251,7 +291,7 @@ export interface DesktopAPI {
   setFormat(id: string, formatId: string): Promise<void>;
   copyDiagnostic(id: string): Promise<void>;
   clearCaptures(): Promise<void>;
-  appAction(action: "shortcut" | "update"): Promise<void>;
+  appAction(action: "shortcut" | "check" | "update"): Promise<void>;
   onNavigate(listener: (page: "downloads" | "captures") => void): () => void;
   snapshot(): Promise<Snapshot>;
   /** The full job, including the format and entry lists the snapshot omits for finished jobs. */

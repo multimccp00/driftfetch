@@ -96,6 +96,9 @@ export const when = (at?: number) => {
 export const failureSummary = (job: Job) => {
   const raw = `${job.error ?? ""} ${job.failureCode ?? ""}`;
   if (/nothing could be read|NOTHING_READ/i.test(raw)) return "Nothing found";
+  // The refused-access message only advises signing in ("If sign-in is required..."), so it must win over the sign-in test below.
+  if (/refused access to this request/i.test(job.error ?? ""))
+    return "Site refused access";
   if (/sign.?in|login required|session (?:expired|unavailable)/i.test(raw))
     return "Sign-in needed";
   if (/DRIFTFETCH_REMOVED|removed or deleted/i.test(raw))
@@ -118,6 +121,18 @@ export const failureSummary = (job: Job) => {
   if (/bundled download tool|FFmpeg is missing|JavaScript runtime/i.test(raw))
     return "A tool is missing";
   return "Needs attention";
+};
+
+/** The parts a partly saved profile is missing, as in "Reels and stories". */
+export const missingParts = (job: Job) => {
+  const parts = job.partialFailure?.parts ?? [];
+  if (job.partialFailure?.filesOnly) return "Some files";
+  if (!parts.length) return "Some parts";
+  const list =
+    parts.length > 1
+      ? `${parts.slice(0, -1).join(", ")} and ${parts.at(-1)}`
+      : parts[0];
+  return list[0].toUpperCase() + list.slice(1);
 };
 
 /** A sign-in problem; the details panel then offers the fix. */

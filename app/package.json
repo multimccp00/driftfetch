@@ -1,7 +1,7 @@
 {
   "name": "driftfetch",
   "productName": "DriftFetch",
-  "version": "0.9.0",
+  "version": "0.10.18",
   "description": "A quiet, capable desktop download manager",
   "author": "DriftFetch contributors",
   "private": true,
@@ -21,9 +21,9 @@
     "ffmpeg:build": "node scripts/build-ffmpeg.mjs",
     "privacy": "node scripts/make-privacy-notice.mjs",
     "release:check": "node scripts/release-check.mjs",
-    "package": "npm run engines && npm run release:check && npm run build && electron-builder --win nsis --x64",
+    "package": "npm run engines && npm run release:check && npm run build && electron-builder --win nsis --x64 && node scripts/checksum-installer.mjs",
     "package:dir": "npm run engines && npm run build && electron-builder --win --dir --x64",
-    "package:portable": "npm run engines && npm run release:check && npm run build && electron-builder --win portable --x64",
+    "package:portable": "npm run engines && npm run release:check && npm run build && electron-builder --win portable --x64 && node scripts/checksum-installer.mjs",
     "test:installed-engines": "node scripts/installed-engines-smoke.mjs"
   },
   "dependencies": {
@@ -63,7 +63,11 @@
       {
         "from": ".",
         "to": "licenses",
-        "filter": ["LICENSE", "THIRD-PARTY-NOTICES.md", "SOURCE-OFFER.md"]
+        "filter": [
+          "LICENSE",
+          "THIRD-PARTY-NOTICES.md",
+          "SOURCE-OFFER.md"
+        ]
       },
       {
         "from": "electron/extension-host.cjs",
@@ -76,6 +80,13 @@
       {
         "from": "resources/yt-dlp-plugins",
         "to": "yt-dlp-plugins"
+      },
+      {
+        "from": "resources/gallery-dl-modules",
+        "to": "gallery-dl-modules",
+        "filter": [
+          "*.py"
+        ]
       }
     ],
     "electronDist": "node_modules/electron/dist",
@@ -98,7 +109,7 @@
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "runAfterFinish": false,
+      "runAfterFinish": true,
       "include": "build/installer.nsh",
       "license": "build/privacy-notice.txt"
     },

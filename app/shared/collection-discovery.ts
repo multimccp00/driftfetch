@@ -26,7 +26,7 @@ export function safeCollectionDiscovery(
   )
     return;
   if (
-    !["empty-page", "repeated-page", "page-limit"].includes(
+    !["empty-page", "repeated-page", "page-limit", "read-error"].includes(
       String(input.stopReason),
     )
   )

@@ -125,7 +125,13 @@ export function JobList({
   }, []);
 
   const pageJobs = useMemo(
-    () => jobs.filter((j) => terminal.includes(j.status) === history),
+    () =>
+      jobs.filter((j) =>
+        history
+          ? terminal.includes(j.status)
+          : // A profile saved with gaps also stays here until a retry fills them.
+            !terminal.includes(j.status) || !!j.partialFailure,
+      ),
     [jobs, history],
   );
   const counts = useMemo(() => {
@@ -234,6 +240,7 @@ export function JobList({
     rowHeight,
   );
   const running = jobs.filter((j) => stoppable.includes(j.status));
+  const paused = jobs.filter((j) => j.status === "paused");
   const filtering = !!search || filter !== "all" || source !== "all";
   const allOn = !!visible.length && visible.every((j) => selectedSet.has(j.id));
   const someOn = selected.length > 0 && !allOn;
@@ -313,7 +320,10 @@ export function JobList({
             <button
               className="btn sm"
               onClick={() =>
-                void execute(() => window.driftfetch.checkFiles(), "Files checked")
+                void execute(
+                  () => window.driftfetch.checkFiles(),
+                  "Files checked",
+                )
               }
             >
               <RefreshCw size={14} />
@@ -353,19 +363,34 @@ export function JobList({
               <ListX size={14} />
               <span className="btn-label">Clear list</span>
             </button>
-            <button
-              className="btn sm"
-              disabled={!running.length}
-              onClick={() =>
-                run(
-                  running.map((j) => j.id),
-                  "pause",
-                )
-              }
-            >
-              <Pause size={14} />
-              <span className="btn-label">Pause all</span>
-            </button>
+            {!running.length && paused.length ? (
+              <button
+                className="btn sm"
+                onClick={() =>
+                  run(
+                    paused.map((j) => j.id),
+                    "start",
+                  )
+                }
+              >
+                <Play size={14} />
+                <span className="btn-label">Start all</span>
+              </button>
+            ) : (
+              <button
+                className="btn sm"
+                disabled={!running.length}
+                onClick={() =>
+                  run(
+                    running.map((j) => j.id),
+                    "pause",
+                  )
+                }
+              >
+                <Pause size={14} />
+                <span className="btn-label">Pause all</span>
+              </button>
+            )}
           </>
         )}
       </div>

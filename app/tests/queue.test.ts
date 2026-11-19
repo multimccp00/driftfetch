@@ -104,6 +104,7 @@ function create(auto = true, previewCollections = false) {
   } as unknown as Engine;
   const sessions = {
     argumentsFor: async () => ({ args: [], cleanup: async () => {} }),
+    hasPrivate: () => false,
   } as unknown as Sessions;
   const extensions = new Extensions(path.join(dir, "extensions"));
   const queue = new Queue(
@@ -277,6 +278,36 @@ describe("persistent scheduler", () => {
       }
     },
   );
+  it("searches a collection again from scratch", async () => {
+    const r = create(false);
+    r.queue.settings.autoDownloadCollections = false;
+    const read = vi
+      .spyOn(engineModule, "imageGalleryMetadata")
+      .mockResolvedValueOnce({
+        status: "collection",
+        collectionKind: "images",
+        mediaKey: "fixture:again",
+        entries: [
+          { id: "1", title: "One", url: "https://example.invalid/1.png" },
+        ],
+      })
+      .mockResolvedValueOnce({
+        status: "collection",
+        collectionKind: "images",
+        mediaKey: "fixture:again",
+        entries: [
+          { id: "1", title: "One", url: "https://example.invalid/1.png" },
+          { id: "2", title: "Two", url: "https://example.invalid/2.png" },
+        ],
+      });
+    r.queue.addLinks("http://127.0.0.1:1/search-again");
+    await waitUntil(() => r.queue.jobs[0].status === "collection", 5000);
+    expect(r.queue.jobs[0].entries).toHaveLength(1);
+    await r.queue.action([r.queue.jobs[0].id], "start");
+    await waitUntil(() => r.queue.jobs[0].entries?.length === 2, 5000);
+    expect(r.queue.jobs[0].status).toBe("collection");
+    expect(read).toHaveBeenCalledTimes(2);
+  });
   it.each([true, false])(
     "keeps 272 URLs for 242 item IDs to 242 collection entries (automatic=%s)",
     async (automatic) => {
@@ -316,7 +347,9 @@ describe("persistent scheduler", () => {
           missingFiles: 0,
           selectedAll: true,
         });
-        expect(job.imageUrls).toEqual(originals.map((entry) => entry.url));
+        expect(job.imageUrls).toEqual(
+          originals.map((entry) => `${entry.url}#${entry.id}`),
+        );
       } else {
         expect(job.entries).toEqual(originals);
         // Also protect old/restored selection lists and repeated checkbox IDs.
@@ -325,7 +358,10 @@ describe("persistent scheduler", () => {
           url: "https://example.invalid/alternate/7.png",
         });
         r.queue.selectCollection(job.id, ["7", "7", "42"]);
-        expect(job.imageUrls).toEqual([originals[7].url, originals[42].url]);
+        expect(job.imageUrls).toEqual([
+          `${originals[7].url}#7`,
+          `${originals[42].url}#42`,
+        ]);
         expect(job).toMatchObject({
           expectedFiles: 2,
           selectedAll: false,
@@ -374,7 +410,7 @@ describe("persistent scheduler", () => {
     expect(job.status).toBe("collection");
     r.queue.selectCollection(job.id, ["2"]);
     await waitUntil(() => job.status === "completed");
-    expect(job.imageUrls).toEqual(["https://example.invalid/two.png"]);
+    expect(job.imageUrls).toEqual(["https://example.invalid/two.png#2"]);
     expect(job.selectedAll).toBe(false);
   });
 
@@ -718,6 +754,7 @@ describe("persistent scheduler", () => {
       "http://127.0.0.1:1/gallery-fallback",
       ["--cookies", "fixture-session.txt"],
       0,
+      1_800_000,
     );
     expect(r.queue.jobs[0].imageUrls).toEqual([
       "https://example.invalid/original.png",
@@ -878,7 +915,7 @@ describe("persistent scheduler", () => {
       expect(r.queue.jobs).toHaveLength(1);
       if (scenario.expected === "completed")
         expect(r.queue.jobs[0].imageUrls).toEqual([
-          "http://127.0.0.1:1/image.jpg",
+          "http://127.0.0.1:1/image.jpg#0",
         ]);
       else expect(r.maxActive).toBe(0);
     },
@@ -1100,6 +1137,451 @@ describe("persistent scheduler", () => {
       "b-bbbbbbbb.mkv",
       "c-cccccccc.mp4.part",
     ]);
+  });
+  it.each([
+    ["search", 5, 6],
+    ["profile", 0, 1],
+  ] as const)(
+    "resumes a stopped gallery-dl %s job after the files it already saved",
+    async (kind, resumed, saved) => {
+      const r = create(false);
+      const targetDir = fs.mkdtempSync(path.join(r.dir, "resume-"));
+      r.queue.jobs.push({
+        id: "dddddddd-4",
+        originalUrl: "https://example.invalid/search",
+        title: "search",
+        source: "example.invalid",
+        mediaKey: "GalleryDL:https://example.invalid/search",
+        ...(kind === "profile"
+          ? { linkType: "profile" as const }
+          : { imageSearch: true }),
+        status: "paused",
+        progress: 0,
+        filesSaved: 5,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        targetDir,
+      });
+      let resumedAt: number | undefined;
+      vi.spyOn(r.engine, "download").mockImplementation((job, _auth, line) => {
+        resumedAt = job.filesSaved;
+        const file = path.join(targetDir, "six.png");
+        fs.writeFileSync(file, "fixture");
+        line("DRIFTFETCH_FILE:" + JSON.stringify(file));
+        return {
+          done: Promise.resolve({ code: 0, stdout: "", stderr: "" }),
+          stop: async () => {},
+        } as Running;
+      });
+      await r.queue.action(["dddddddd-4"], "retry");
+      await waitUntil(() =>
+        ["completed", "failed"].includes(r.queue.jobs[0].status),
+      );
+      expect(resumedAt).toBe(resumed);
+      expect(r.queue.jobs[0]).toMatchObject({
+        status: "completed",
+        filesSaved: saved,
+      });
+    },
+  );
+  it.each([
+    ["one part fails", "", "completed"],
+    ["the site limits requests", "HTTP Error 429: Too Many Requests", "failed"],
+  ] as const)(
+    "keeps a profile's saved files when %s",
+    async (_case, stderr, status) => {
+      const r = create(false);
+      const targetDir = fs.mkdtempSync(path.join(r.dir, "partial-"));
+      r.queue.jobs.push({
+        id: "eeeeeeee-5",
+        originalUrl: "https://example.invalid/someone/",
+        title: "someone profile",
+        source: "example.invalid",
+        mediaKey: "GalleryDL:https://example.invalid/someone/",
+        linkType: "profile",
+        status: "paused",
+        progress: 0,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        targetDir,
+      });
+      const asked: (string[] | undefined)[] = [];
+      vi.spyOn(r.engine, "download").mockImplementation((job, _auth, line) => {
+        asked.push(job.partialFailure?.parts);
+        const image = path.join(targetDir, `post-${asked.length}.jpg`);
+        fs.writeFileSync(image, "fixture");
+        line("DRIFTFETCH_FILE:" + JSON.stringify(image));
+        // gallery-dl names a DASH video .mp4; yt-dlp merges it into .mkv.
+        const video = path.join(targetDir, `reel-${asked.length}.mp4`);
+        fs.writeFileSync(video.replace(/\.mp4$/, ".mkv"), "video");
+        line("DRIFTFETCH_FILE:" + JSON.stringify(video));
+        const failed = asked.length === 1;
+        return {
+          done: Promise.resolve({
+            code: failed ? 1 : 0,
+            stdout: "",
+            stderr: failed ? stderr : "",
+            partErrors: failed
+              ? { reels: "HTTP redirect to home page", user: "ignored" }
+              : undefined,
+          }),
+          stop: async () => {},
+        } as Running;
+      });
+      const job = () => r.queue.jobs[0];
+      await r.queue.action([job().id], "start");
+      await waitUntil(() => ["completed", "failed"].includes(job().status));
+      expect(job().status).toBe(status);
+      if (status === "failed") return;
+      expect(job().partialFailure).toEqual({
+        parts: ["reels"],
+        error: expect.stringContaining("home page instead of answering"),
+      });
+      // The size is the whole folder this run touched, not the last file.
+      expect(job()).toMatchObject({
+        totalBytes: "fixture".length + "video".length,
+        filePath: path.join(targetDir, "reel-1.mkv"),
+      });
+      // Retry asks for only the failed part, and a clean run clears the gap.
+      await r.queue.action([job().id], "start");
+      await waitUntil(() => asked.length === 2 && job().status === "completed");
+      expect(asked).toEqual([undefined, ["reels"]]);
+      expect(job().partialFailure).toBeUndefined();
+    },
+  );
+  const instagramProfileJob = (id: string, targetDir: string): Job => ({
+    id,
+    originalUrl: "https://www.instagram.com/someone/",
+    title: "someone profile",
+    source: "www.instagram.com",
+    mediaKey: "GalleryDL:https://www.instagram.com/someone/",
+    linkType: "profile",
+    status: "paused",
+    progress: 0,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    targetDir,
+  });
+  it("retries a private profile once with the private-profiles sign-in", async () => {
+    const r = create(false);
+    const targetDir = fs.mkdtempSync(path.join(r.dir, "private-"));
+    r.queue.jobs.push(instagramProfileJob("abababab-1", targetDir));
+    r.sessions.hasPrivate = () => true;
+    const slots: (boolean | undefined)[] = [];
+    vi.spyOn(r.sessions, "argumentsFor").mockImplementation(
+      async (_url, usePrivate) => {
+        slots.push(usePrivate);
+        return { args: [], cleanup: async () => {} };
+      },
+    );
+    vi.spyOn(r.engine, "download").mockImplementation((job, _auth, line) => {
+      if (job.usePrivateAccount) {
+        const image = path.join(targetDir, "post.jpg");
+        fs.writeFileSync(image, "fixture");
+        line("DRIFTFETCH_FILE:" + JSON.stringify(image));
+      }
+      return {
+        done: Promise.resolve({
+          code: 0,
+          stdout: "",
+          stderr: job.usePrivateAccount
+            ? ""
+            : "[instagram][warning] someone's posts are private",
+        }),
+        stop: async () => {},
+      } as Running;
+    });
+    const job = () => r.queue.jobs[0];
+    await r.queue.action([job().id], "start");
+    await waitUntil(() => job().status === "completed");
+    expect(slots).toEqual([undefined, true]);
+    expect(job().usePrivateAccount).toBe(true);
+  });
+  it("explains a private profile when there is no private-profiles sign-in", async () => {
+    const r = create(false);
+    const targetDir = fs.mkdtempSync(path.join(r.dir, "private-"));
+    r.queue.jobs.push(instagramProfileJob("abababab-2", targetDir));
+    vi.spyOn(r.engine, "download").mockReturnValue({
+      done: Promise.resolve({
+        code: 0,
+        stdout: "",
+        stderr: "[instagram][warning] someone's posts are private",
+      }),
+      stop: async () => {},
+    } as Running);
+    const job = () => r.queue.jobs[0];
+    await r.queue.action([job().id], "start");
+    await waitUntil(() => job().status === "failed");
+    expect(job().error).toContain("private-profiles sign-in");
+  });
+  it("pauses Instagram when it sends the session to a security check", async () => {
+    const r = create(false);
+    const targetDir = fs.mkdtempSync(path.join(r.dir, "challenge-"));
+    r.queue.jobs.push(instagramProfileJob("abababab-3", targetDir));
+    vi.spyOn(r.engine, "download").mockReturnValue({
+      done: Promise.resolve({
+        code: 1,
+        stdout: "",
+        stderr:
+          "[instagram][error] AbortExtraction: HTTP redirect to challenge page (https://www.instagram.com/challenge/)",
+      }),
+      stop: async () => {},
+    } as Running);
+    const job = () => r.queue.jobs[0];
+    await r.queue.action([job().id], "start");
+    await waitUntil(() => job().status === "failed");
+    expect(job().error).toContain("security-check page");
+    expect(job().error).toContain("paused for about 60 minutes");
+  });
+  it("reuses a link check until its download finishes instead of asking again", async () => {
+    const r = create(false);
+    r.queue.addLinks("http://127.0.0.1:1/check-once");
+    await waitUntil(() => r.queue.jobs[0].status === "review");
+    expect(r.probes).toBe(1);
+    // A retry of the same link goes back through the checking step without another request.
+    r.queue.save(r.queue.jobs[0], { status: "resolving" });
+    r.queue.pump();
+    await waitUntil(() => r.queue.jobs[0].status === "review");
+    expect(r.probes).toBe(1);
+  });
+  it("checks a new Instagram link even when today's limit is used up", async () => {
+    const r = create(false);
+    r.queue.settings.instagramDailyRequests = 5;
+    r.store.addUsage(
+      `instagram:usual:${new Date().toLocaleDateString("sv")}`,
+      5,
+    );
+    r.queue.addLinks("https://www.instagram.com/p/limitcheck1/");
+    // The check runs even though the limit is used up; its outcome does not matter here.
+    await waitUntil(() => r.probes === 1);
+    expect(r.probes).toBe(1);
+  });
+  it("pauses only the account that was challenged, not the private-profiles one", async () => {
+    const r = create(false);
+    const targetDir = fs.mkdtempSync(path.join(r.dir, "per-account-"));
+    r.queue.jobs.push(
+      instagramProfileJob("abababab-4", targetDir),
+      instagramProfileJob("abababab-5", targetDir),
+    );
+    r.queue.jobs[1].usePrivateAccount = true;
+    vi.spyOn(r.engine, "download").mockImplementation(
+      (job) =>
+        ({
+          done: Promise.resolve(
+            job.usePrivateAccount
+              ? { code: 0, stdout: "", stderr: "" }
+              : {
+                  code: 1,
+                  stdout: "",
+                  stderr:
+                    "[instagram][error] AbortExtraction: HTTP redirect to challenge page (https://www.instagram.com/challenge/)",
+                },
+          ),
+          stop: async () => {},
+        }) as Running,
+    );
+    await r.queue.action([r.queue.jobs[0].id, r.queue.jobs[1].id], "start");
+    await waitUntil(() => r.queue.jobs[0].status === "failed");
+    expect(r.queue.jobs[1].status).not.toBe("failed");
+    expect(r.queue.jobs[1].error).toBeUndefined();
+  });
+  it("counts Instagram requests and holds work past the daily limit", async () => {
+    const r = create(false);
+    r.queue.settings.instagramDailyRequests = 30;
+    const targetDir = fs.mkdtempSync(path.join(r.dir, "limit-"));
+    r.queue.jobs.push(instagramProfileJob("cdcdcdcd-1", targetDir), {
+      ...instagramProfileJob("cdcdcdcd-2", targetDir),
+      originalUrl: "https://www.instagram.com/other/",
+      mediaKey: "GalleryDL:https://www.instagram.com/other/",
+    });
+    const download = vi
+      .spyOn(r.engine, "download")
+      .mockImplementation((_job, _auth, line) => {
+        const image = path.join(targetDir, `${_job.id}.jpg`);
+        fs.writeFileSync(image, "fixture");
+        line("DRIFTFETCH_FILE:" + JSON.stringify(image));
+        return {
+          done: Promise.resolve({
+            code: 0,
+            stdout: "",
+            stderr: "",
+            requests: 31,
+          }),
+          stop: async () => {},
+        } as Running;
+      });
+    const [first, second] = r.queue.jobs;
+    await r.queue.action([first.id], "start");
+    await waitUntil(() => first.status === "completed");
+    await r.queue.action([second.id], "start");
+    await waitUntil(() => !!second.limitHeld);
+    expect(second.status).toBe("queued");
+    expect(download).toHaveBeenCalledTimes(1);
+    // The user can send one past the limit.
+    await r.queue.action([second.id], "force");
+    await waitUntil(() => second.status === "completed");
+    expect(second.limitHeld).toBeUndefined();
+    expect(download).toHaveBeenCalledTimes(2);
+  });
+  it("a private-profiles sign-in has its own daily count", async () => {
+    const r = create(false);
+    r.queue.settings.instagramDailyRequests = 30;
+    const targetDir = fs.mkdtempSync(path.join(r.dir, "limit-"));
+    r.queue.jobs.push(instagramProfileJob("cdcdcdcd-1", targetDir), {
+      ...instagramProfileJob("cdcdcdcd-2", targetDir),
+      originalUrl: "https://www.instagram.com/other/",
+      mediaKey: "GalleryDL:https://www.instagram.com/other/",
+    });
+    vi.spyOn(r.engine, "download").mockImplementation((_job, _auth, line) => {
+      const image = path.join(targetDir, `${_job.id}.jpg`);
+      fs.writeFileSync(image, "fixture");
+      line("DRIFTFETCH_FILE:" + JSON.stringify(image));
+      return {
+        done: Promise.resolve({
+          code: 0,
+          stdout: "",
+          stderr: "",
+          requests: 31,
+        }),
+        stop: async () => {},
+      } as Running;
+    });
+    const [first, second] = r.queue.jobs;
+    await r.queue.action([first.id], "start");
+    await waitUntil(() => first.status === "completed");
+    await r.queue.action([second.id], "start");
+    await waitUntil(() => !!second.limitHeld);
+    second.usePrivateAccount = true;
+    await waitUntil(() => second.status === "completed");
+    expect(second.limitHeld).toBeUndefined();
+  });
+  it("stops a repeat sync of a fully saved profile at its saved posts", async () => {
+    const r = create(false);
+    const targetDir = fs.mkdtempSync(path.join(r.dir, "repeat-"));
+    r.queue.jobs.push(
+      {
+        ...instagramProfileJob("efefefef-1", targetDir),
+        status: "completed",
+        finishedAt: Date.now(),
+      },
+      instagramProfileJob("efefefef-2", targetDir),
+    );
+    const asked: (boolean | undefined)[] = [];
+    vi.spyOn(r.engine, "download").mockImplementation((job) => {
+      asked.push(job.stopAtSaved);
+      return {
+        done: Promise.resolve({ code: 0, stdout: "", stderr: "" }),
+        stop: async () => {},
+      } as Running;
+    });
+    const job = r.queue.jobs[1];
+    await r.queue.action([job.id], "start");
+    await waitUntil(() => job.status === "completed");
+    expect(asked).toEqual([true]);
+  });
+  it("also stops a repeat sync after a run where only single files failed", async () => {
+    const r = create(false);
+    const targetDir = fs.mkdtempSync(path.join(r.dir, "filesonly-"));
+    r.queue.jobs.push(
+      {
+        ...instagramProfileJob("efefefef-3", targetDir),
+        status: "completed",
+        finishedAt: Date.now(),
+        partialFailure: { parts: ["posts"], error: "x", filesOnly: true },
+      },
+      instagramProfileJob("efefefef-4", targetDir),
+    );
+    const asked: (boolean | undefined)[] = [];
+    vi.spyOn(r.engine, "download").mockImplementation((job) => {
+      asked.push(job.stopAtSaved);
+      return {
+        done: Promise.resolve({ code: 0, stdout: "", stderr: "" }),
+        stop: async () => {},
+      } as Running;
+    });
+    const job = r.queue.jobs[1];
+    await r.queue.action([job.id], "start");
+    await waitUntil(() => job.status === "completed");
+    expect(asked).toEqual([true]);
+  });
+  it("ends a profile of another site as saved with gaps when only single files failed", async () => {
+    const r = create(false);
+    const targetDir = fs.mkdtempSync(path.join(r.dir, "otherfiles-"));
+    r.queue.jobs.push({
+      ...instagramProfileJob("efefefef-5", targetDir),
+      originalUrl: "https://example.invalid/someone/",
+      source: "example.invalid",
+      mediaKey: "GalleryDL:https://example.invalid/someone/",
+    });
+    vi.spyOn(r.engine, "download").mockImplementation(
+      () =>
+        ({
+          done: Promise.resolve({
+            code: 1,
+            stdout: "",
+            stderr: "[example][error] Failed to download a_1.mkv\n",
+          }),
+          stop: async () => {},
+        }) as Running,
+    );
+    const job = r.queue.jobs[0];
+    await r.queue.action([job.id], "start");
+    await waitUntil(() => job.status === "completed");
+    expect(job.partialFailure).toMatchObject({ parts: [], filesOnly: true });
+  });
+  it("keeps a profile saved with gaps when retrying its failed part saves nothing", async () => {
+    const r = create(false);
+    const targetDir = fs.mkdtempSync(path.join(r.dir, "gaps-"));
+    const gap = { parts: ["reels"], error: "Earlier reason." };
+    r.queue.jobs.push({
+      id: "ffffffff-6",
+      originalUrl: "https://example.invalid/someone/",
+      title: "someone profile",
+      source: "example.invalid",
+      mediaKey: "GalleryDL:https://example.invalid/someone/",
+      linkType: "profile",
+      status: "completed",
+      progress: 100,
+      totalBytes: 5000,
+      partialFailure: gap,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      targetDir,
+    });
+    const asked: (string[] | undefined)[] = [];
+    vi.spyOn(r.engine, "download").mockImplementation((job, _auth, line) => {
+      asked.push(job.partialFailure?.parts);
+      if (asked.length === 2) {
+        const reel = path.join(targetDir, "reel.mkv");
+        fs.writeFileSync(reel, "video");
+        line("DRIFTFETCH_FILE:" + JSON.stringify(reel));
+      }
+      const failed = asked.length === 1;
+      return {
+        done: Promise.resolve({
+          code: failed ? 1 : 0,
+          stdout: "",
+          stderr: "",
+          partErrors: failed
+            ? { reels: "Failed to download 4 reels; retry later" }
+            : undefined,
+        }),
+        stop: async () => {},
+      } as Running;
+    });
+    const job = () => r.queue.jobs[0];
+    await r.queue.action([job().id], "start");
+    await waitUntil(() => asked.length === 1 && job().status === "completed");
+    expect(asked[0]).toEqual(["reels"]);
+    expect(job()).toMatchObject({
+      totalBytes: 5000,
+      partialFailure: { parts: ["reels"] },
+    });
+    // The next retry saves a reel: it adds to the size and clears the gap.
+    await r.queue.action([job().id], "start");
+    await waitUntil(() => asked.length === 2 && job().status === "completed");
+    expect(job().totalBytes).toBe(5000 + "video".length);
+    expect(job().partialFailure).toBeUndefined();
   });
   it("restores removed entries until something newer is removed", async () => {
     const r = create(false);

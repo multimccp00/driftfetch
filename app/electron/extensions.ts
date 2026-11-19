@@ -221,16 +221,28 @@ export class Extensions {
   }
   async install(text: string) {
     const pkg = parseExtension(text);
-    if (this.installed.has(pkg.manifest.id))
-      throw new Error(
-        "Remove the existing extension before installing another version. Saved accounts are kept.",
-      );
+    const old = this.installed.get(pkg.manifest.id);
+    if (old?.package.manifest.version === pkg.manifest.version)
+      throw new Error("This version of the extension is already installed.");
+    // A new version replaces the old one in place: enabled state and saved accounts carry over.
     const item: Installed = {
       package: pkg,
       info: { ...pkg.manifest, enabled: false },
     };
-    await this.persist(item);
+    await this.persist({
+      ...item,
+      info: { ...item.info, enabled: !!old?.info.enabled },
+    });
+    old?.host?.stop();
     this.installed.set(item.info.id, item);
+    if (old?.info.enabled) {
+      try {
+        await this.activate(item);
+      } catch {
+        item.info.error =
+          "Could not load this extension. Reinstall a compatible version.";
+      }
+    }
   }
   private async activate(item: Installed) {
     for (const other of this.installed.values())

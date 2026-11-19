@@ -19,6 +19,8 @@ import { incompleteCollection } from "../shared/collection-discovery";
 import { reportedDownloadFile } from "./download-files";
 import { savedFileQuality } from "../shared/quality";
 import {
+  isAccountWarning,
+  isPrivateProfile,
   isProtectedSource,
   isRateLimited,
   protectedCooldown,
@@ -31,7 +33,9 @@ import {
 import {
   domainOf,
   friendlyError,
+  onlyFileFailures,
   instagramProfile,
+  rateLimited,
   redditFeed,
   headFollowingRedirects,
   outputLocation,
@@ -54,6 +58,26 @@ function stopOnRateLimit(running: Running | undefined) {
     seen = (seen + chunk).slice(-4000);
     if (rateLimitWait(seen) !== undefined) void running.stop();
   });
+}
+// Profile parts gallery-dl can be asked for again on their own.
+const profileParts = ["posts", "reels", "stories", "highlights", "tagged"];
+function partialProfileFailure(result: {
+  stderr: string;
+  partErrors?: Record<string, string>;
+}): NonNullable<Job["partialFailure"]> {
+  const failed = Object.entries(result.partErrors ?? {}).filter(([part]) =>
+    profileParts.includes(part),
+  );
+  return {
+    parts: failed.map(([part]) => part),
+    // Only single files failed, so the profile itself was read to the end.
+    ...(failed.length &&
+      failed.every(([, msg]) => msg.startsWith("[download]")) && {
+        filesOnly: true,
+      }),
+    // Raw engine output can hold signed URLs; the renderer gets the plain reason.
+    error: friendlyError(failed[0]?.[1] || result.stderr),
+  };
 }
 export class Queue {
   jobs: Job[];
@@ -125,6 +149,32 @@ export class Queue {
           await token.done;
         }
       }
+      // A profile run sends thousands of requests, so the limit also stops a run
+      // that is already going; it resumes from its cursors once the day turns.
+      const limit = this.settings.instagramDailyRequests;
+      for (const job of this.jobs) {
+        const token = this.running.get(job.id);
+        if (
+          !limit ||
+          job.overrideLimit ||
+          job.status !== "downloading" ||
+          !token ||
+          token.stop ||
+          !isProtectedSource(job.source || domainOf(job.originalUrl)) ||
+          this.store.usage(this.usageKey(job)) + this.engine.liveRequests(job) <
+            limit
+        )
+          continue;
+        token.stop = true;
+        this.save(job, {
+          status: "queued",
+          limitHeld: true,
+          speed: undefined,
+          eta: undefined,
+        });
+        await token.process?.stop();
+        await token.done;
+      }
       for (const job of this.jobs) {
         if (!job.retryAt) continue;
         if (!this.settings.automaticRetries)
@@ -185,12 +235,100 @@ export class Queue {
   private cooldowns = new Map<string, number>();
   /** Called once when a protected source pauses itself, so the app can tell the user. */
   onHold?: (source: string, minutes: number) => void;
+  /** Today's request count for the sign-in this job uses, kept per day. */
+  private usageKey(job: Job) {
+    return `instagram:${job.usePrivateAccount ? "private" : "usual"}:${new Date().toLocaleDateString("sv")}`;
+  }
+  /** Today's Instagram requests per sign-in, including runs still going. */
+  instagramUsage() {
+    const day = new Date().toLocaleDateString("sv");
+    const used = {
+      usual: this.store.usage(`instagram:usual:${day}`),
+      private: this.store.usage(`instagram:private:${day}`),
+    };
+    for (const job of this.jobs)
+      if (
+        job.status === "downloading" &&
+        isProtectedSource(job.source || domainOf(job.originalUrl))
+      )
+        used[job.usePrivateAccount ? "private" : "usual"] +=
+          this.engine.liveRequests(job);
+    return used;
+  }
+  /** Instagram work waits once its sign-in has used today's requests. */
+  private overLimit(job: Job) {
+    const limit = this.settings.instagramDailyRequests;
+    const held =
+      !!limit &&
+      !job.overrideLimit &&
+      isProtectedSource(job.source || domainOf(job.originalUrl)) &&
+      this.store.usage(this.usageKey(job)) >= limit;
+    if (held !== !!job.limitHeld)
+      this.save(job, { limitHeld: held || undefined });
+    return held;
+  }
+  // ponytail: probes and single links count as one request each; only profile
+  // runs report a real count, so a run is stopped by its live count, not the saved one.
+  private countRequests(job: Job, count = 1) {
+    if (isProtectedSource(job.source || domainOf(job.originalUrl)))
+      this.store.addUsage(this.usageKey(job), count);
+  }
   private siteOf(source: string | undefined) {
     return (source ?? "").split(".").slice(-2).join(".");
   }
+  /** Cooldowns and the daily limit are per account: a site's usual and private sign-ins are separate. */
+  private accountOf(job: Job) {
+    return `${this.siteOf(job.source || domainOf(job.originalUrl))}:${job.usePrivateAccount ? "private" : "usual"}`;
+  }
   private cooling(job: Job) {
-    const until = this.cooldowns.get(this.siteOf(job.source));
+    const until = this.cooldowns.get(this.accountOf(job));
     return !!until && until > Date.now();
+  }
+  /** When a waiting job can start again: its account's cooldown, or the next day's limit reset. */
+  private blockedUntil(job: Job): number | undefined {
+    const until = this.cooldowns.get(this.accountOf(job));
+    if (until && until > Date.now()) return until;
+    // Link checks are allowed past the limit: they tell the app which sign-in the link needs.
+    const limit = this.settings.instagramDailyRequests;
+    if (
+      job.status === "queued" &&
+      limit &&
+      !job.overrideLimit &&
+      isProtectedSource(job.source || domainOf(job.originalUrl)) &&
+      this.store.usage(this.usageKey(job)) >= limit
+    ) {
+      const midnight = new Date();
+      midnight.setHours(24, 0, 0, 0);
+      return midnight.getTime();
+    }
+    return undefined;
+  }
+  /** Link checks kept until their download finishes, by sign-in and pasted link, so a retry does not spend requests again. */
+  private checkCache = new Map<string, Partial<Job>>();
+  /** Links a check found only the private-profiles sign-in can see, until their download finishes. */
+  private privateLinks = new Set<string>();
+  private checkKey(job: Job, url: string) {
+    return `${this.accountOf(job)}|${url}`;
+  }
+  private wakeTimer?: ReturnType<typeof setTimeout>;
+  /** Pumps again when the earliest blocked job can run, so a held link is not left waiting for another event. */
+  private scheduleWake() {
+    let at: number | undefined;
+    for (const job of this.jobs) {
+      if (
+        !["queued", "resolving"].includes(job.status) ||
+        this.running.has(job.id)
+      )
+        continue;
+      const until = this.blockedUntil(job);
+      if (until !== undefined && (at === undefined || until < at)) at = until;
+    }
+    clearTimeout(this.wakeTimer);
+    if (at !== undefined)
+      this.wakeTimer = setTimeout(
+        () => this.pump(),
+        Math.max(0, at - Date.now()) + 1000,
+      );
   }
   /** Stops the rate-limited source instead of retrying: the account is at risk, not just the download. */
   private holdSource(job: Job, raw: string, stage: "extraction" | "download") {
@@ -198,9 +336,17 @@ export class Queue {
     const until = Date.now() + protectedCooldown(raw);
     const minutes = Math.round((until - Date.now()) / 60_000);
     const first = !this.cooling({ ...job, source });
-    this.cooldowns.set(this.siteOf(source), until);
+    this.cooldowns.set(this.accountOf({ ...job, source }), until);
     const resumes = this.settings.automaticRetries;
-    const error = `${source} asked DriftFetch to slow down, so downloads from it are paused for about ${minutes} minutes to protect your account. ${
+    const error = `${
+      isAccountWarning(raw)
+        ? `${source} sent DriftFetch to its sign-in or security-check page`
+        : `${source} asked DriftFetch to slow down`
+    }, so downloads from it are paused for about ${minutes} minutes to protect your account. ${
+      isAccountWarning(raw)
+        ? `Open ${source} in your browser and clear any security prompt first; if you were signed out, sign in again there or in Settings → Sites & sign-ins. `
+        : ""
+    }${
       resumes
         ? "They resume by themselves. Press Retry to continue now, or Cancel to stop."
         : "Press Retry to continue, or Cancel to stop."
@@ -218,11 +364,11 @@ export class Queue {
       failureCode: failureCode(raw),
       checkedEngineVersion: this.engine.info.version,
     });
-    // Everything else waiting on the same source holds too; running ones fail on their own.
+    // Everything else waiting on the same sign-in holds too; running ones fail on their own.
     for (const other of this.jobs)
       if (
         other !== job &&
-        this.siteOf(other.source) === this.siteOf(source) &&
+        this.accountOf(other) === this.accountOf({ ...job, source }) &&
         ["queued", "resolving"].includes(other.status) &&
         !this.running.has(other.id)
       )
@@ -235,12 +381,35 @@ export class Queue {
   }
   private fail(job: Job, err: unknown, stage: "extraction" | "download") {
     const raw = String(err),
-      attempts = job.retryCount || 0;
+      attempts = job.retryCount || 0,
+      source = job.source || domainOf(job.originalUrl);
     if (
-      isProtectedSource(job.source || domainOf(job.originalUrl)) &&
-      isRateLimited(raw)
+      isProtectedSource(source) &&
+      (isRateLimited(raw) || isAccountWarning(raw))
     ) {
       this.holdSource(job, raw, stage);
+      return;
+    }
+    // The usual sign-in cannot see this profile: try once more with the
+    // private-profiles one, which only ever handles such profiles.
+    if (
+      isPrivateProfile(raw) &&
+      !job.usePrivateAccount &&
+      this.sessions.hasPrivate(source)
+    ) {
+      // The account is now known for this link: remember it until its download finishes,
+      // so later checks go straight to the private-profiles sign-in.
+      this.privateLinks.add(job.originalUrl);
+      this.save(job, {
+        // A link not yet checked goes back to checking, now with the private-profiles sign-in.
+        status: job.mediaKey ? "queued" : "resolving",
+        usePrivateAccount: true,
+        error: undefined,
+        failureStage: undefined,
+        retryAt: undefined,
+        speed: undefined,
+        eta: undefined,
+      });
       return;
     }
     const delay = this.settings.automaticRetries
@@ -262,9 +431,30 @@ export class Queue {
       eta: undefined,
     });
   }
+  /**
+   * Whether this profile was saved completely before (by this or another
+   * download), so everything older than the newest saved posts is on disk.
+   * Without that history the profile is read in full, which is always safe.
+   */
+  private syncedBefore(job: Job) {
+    return (
+      job.linkType === "profile" &&
+      this.jobs.some(
+        (other) =>
+          other.mediaKey === job.mediaKey &&
+          !!other.finishedAt &&
+          (!other.partialFailure || other.partialFailure.filesOnly),
+      )
+    );
+  }
   /** When each job was last written to SQLite, so progress ticks can skip it. */
   private persistedAt = new WeakMap<Job, number>();
   save(job: Job, patch: Partial<Job> = {}, persist = true) {
+    // A finished download no longer needs its link check, so the cache entry goes with it.
+    if (patch.status === "completed") {
+      this.checkCache.delete(this.checkKey(job, job.originalUrl));
+      this.privateLinks.delete(job.originalUrl);
+    }
     Object.assign(job, patch, { updatedAt: Date.now() });
     if (persist) {
       this.store.saveJob(job);
@@ -394,10 +584,11 @@ export class Queue {
       let auth: Awaited<ReturnType<Sessions["argumentsFor"]>> | undefined;
       try {
         const url = job.resolvedUrl || job.originalUrl;
-        auth = await this.sessions.argumentsFor(url);
+        auth = await this.sessions.argumentsFor(url, job.usePrivateAccount);
         if (token.stop) return;
         token.process = this.engine.probe(url, auth.args);
         const result = await token.process.done;
+        this.countRequests(job);
         if (token.stop) return;
         if (result.timedOut) throw new Error("DRIFTFETCH_TIMEOUT");
         if (result.code !== 0) throw new Error(result.stderr);
@@ -461,6 +652,7 @@ export class Queue {
       !this.engine.info.available
     )
       return;
+    this.scheduleWake();
     for (const job of this.jobs) {
       if (
         job.status === "resolving" &&
@@ -489,6 +681,7 @@ export class Queue {
         job.status === "queued" &&
         !this.running.has(job.id) &&
         !this.cooling(job) &&
+        !this.overLimit(job) &&
         (this.settings.concurrency === 0 ||
           active < this.settings.concurrency) &&
         this.sourceHasRoom(job)
@@ -562,11 +755,12 @@ export class Queue {
     let auth: Awaited<ReturnType<Sessions["argumentsFor"]>> | undefined;
     const controller = (token.controller = new AbortController());
     let expired = false;
-    const deadline = setTimeout(() => {
+    const expire = () => {
       expired = true;
       controller.abort();
       void token.process?.stop();
-    }, 120_000);
+    };
+    let deadline = setTimeout(expire, 120_000);
     try {
       this.save(job, {
         collectionReadAttempts: undefined,
@@ -580,13 +774,19 @@ export class Queue {
           (domain, fields) => this.sessions.credentialsFor(domain, fields),
           (collectionReadAttempts) =>
             this.save(job, { collectionReadAttempts }),
-          (outcome) =>
+          (outcome) => {
             this.save(job, {
               extensionChecks: [
                 ...(job.extensionChecks || []),
                 { stage, outcome },
               ],
-            }),
+            });
+            // A long search reads hundreds of pages; give a matched extension far longer than a normal link.
+            if (outcome === "selected") {
+              clearTimeout(deadline);
+              deadline = setTimeout(expire, 30 * 60_000);
+            }
+          },
         );
       const extension = await readExtension(job.originalUrl, "submitted");
       if (token.stop) return;
@@ -661,8 +861,15 @@ export class Queue {
         this.acceptCollection(job, gallery);
         return;
       }
+      if (this.privateLinks.has(job.originalUrl) && !job.usePrivateAccount)
+        this.save(job, { usePrivateAccount: true });
+      // A check already made for this link and sign-in is reused until its download finishes.
+      const cachedCheck = this.checkCache.get(
+        this.checkKey(job, job.originalUrl),
+      );
+      if (cachedCheck) return this.finishCheck(job, { ...cachedCheck }, url);
       job.resolvedUrl = url;
-      auth = await this.sessions.argumentsFor(url);
+      auth = await this.sessions.argumentsFor(url, job.usePrivateAccount);
       if (token.stop) return;
       controller.signal.throwIfAborted();
       // Reddit blocks yt-dlp (HTTP 403) and counts the attempt against its small
@@ -676,6 +883,7 @@ export class Queue {
       const result = token.process
         ? await token.process.done
         : { code: 1, stdout: "", stderr: "", timedOut: false };
+      if (token.process) this.countRequests(job);
       if (token.stop) return;
       controller.signal.throwIfAborted();
       if (result.timedOut) throw new Error("DRIFTFETCH_TIMEOUT");
@@ -690,18 +898,29 @@ export class Queue {
         (metadata.status === "collection" &&
           /(^|\.)instagram\.com$/i.test(domainOf(url)))
       ) {
+        // Ordinary sites that rate limit a listing are best left to gallery-dl, which waits the
+        // announced time and carries on; restarting from scratch only trips the limit again.
+        // Accounts that can be flagged (Instagram and the like) still stop at the first announced wait.
+        const careful = isProtectedSource(domainOf(url));
         token.process = this.engine.listImages(
           url,
           auth.args,
           sourceLimits(this.settings, domainOf(url)).requestDelaySec,
+          careful ? 120_000 : 30 * 60_000,
         );
-        stopOnRateLimit(token.process);
+        if (careful) stopOnRateLimit(token.process);
+        else {
+          clearTimeout(deadline);
+          deadline = setTimeout(expire, 30.5 * 60_000);
+        }
         const listed = await token.process?.done;
+        // The listing is a request to the account too, so it counts against today's limit.
+        if (listed) this.countRequests(job);
         if (token.stop) return;
         controller.signal.throwIfAborted();
         // The source announced a wait: fail now so the job retries after it,
         // instead of sitting in the engine until the lookup deadline.
-        if (listed && rateLimitWait(listed.stderr) !== undefined)
+        if (listed?.code && rateLimitWait(listed.stderr) !== undefined)
           throw new Error(listed.stderr);
         if (listed?.timedOut)
           throw new Error(
@@ -739,6 +958,7 @@ export class Queue {
           const targetAuth = await this.sessions.argumentsFor(target);
           token.process = this.engine.probe(target, targetAuth.args);
           const probed = await token.process.done;
+          this.countRequests(job);
           await targetAuth.cleanup().catch(() => {});
           if (token.stop) return;
           controller.signal.throwIfAborted();
@@ -778,36 +998,11 @@ export class Queue {
         throw extractionError instanceof Error
           ? extractionError
           : new Error(String(extractionError));
-      metadata.formatsCheckedAt = Date.now();
-      metadata.checkedEngineVersion = this.engine.info.version;
-      if (domainOf(job.originalUrl) !== domainOf(metadata.resolvedUrl || url))
-        metadata.linkType = "redirect";
-      if (metadata.status === "collection") {
-        this.acceptCollection(job, metadata);
-        return;
-      }
-      const duplicate = this.jobs.find(
-        (j) =>
-          j.id !== job.id &&
-          j.mediaKey === metadata.mediaKey &&
-          !["cancelled", "duplicate", "failed"].includes(j.status),
-      );
-      this.save(job, {
-        ...metadata,
-        ...(job.entryTitle ? { title: job.entryTitle } : {}),
-        status:
-          duplicate && !job.force
-            ? "duplicate"
-            : (this.autoFor(metadata.source) && !job.holdForReview) ||
-                job.startRequested
-              ? "queued"
-              : "review",
-        startRequested: false,
-        duplicateOf: duplicate?.id,
-        error: undefined,
-        failureStage: undefined,
-        retryAt: undefined,
-      });
+      if (metadata.status !== "collection")
+        this.checkCache.set(this.checkKey(job, job.originalUrl), {
+          ...metadata,
+        });
+      this.finishCheck(job, metadata, url);
     } catch (err) {
       if (!token.stop)
         this.fail(
@@ -819,6 +1014,39 @@ export class Queue {
       clearTimeout(deadline);
       await auth?.cleanup().catch(() => {});
     }
+  }
+  /** Saves a finished link check to the job: a collection's entries, or the file metadata that queues it. */
+  private finishCheck(job: Job, metadata: Partial<Job>, url: string) {
+    metadata.formatsCheckedAt = Date.now();
+    metadata.checkedEngineVersion = this.engine.info.version;
+    if (domainOf(job.originalUrl) !== domainOf(metadata.resolvedUrl || url))
+      metadata.linkType = "redirect";
+    if (metadata.status === "collection") {
+      this.acceptCollection(job, metadata);
+      return;
+    }
+    const duplicate = this.jobs.find(
+      (j) =>
+        j.id !== job.id &&
+        j.mediaKey === metadata.mediaKey &&
+        !["cancelled", "duplicate", "failed"].includes(j.status),
+    );
+    this.save(job, {
+      ...metadata,
+      ...(job.entryTitle ? { title: job.entryTitle } : {}),
+      status:
+        duplicate && !job.force
+          ? "duplicate"
+          : (this.autoFor(metadata.source) && !job.holdForReview) ||
+              job.startRequested
+            ? "queued"
+            : "review",
+      startRequested: false,
+      duplicateOf: duplicate?.id,
+      error: undefined,
+      failureStage: undefined,
+      retryAt: undefined,
+    });
   }
   private async download(job: Job, token: Token) {
     let auth: Awaited<ReturnType<Sessions["argumentsFor"]>> | undefined;
@@ -866,7 +1094,7 @@ export class Queue {
           .some((e) => e.id === job.extensionId && e.enabled)
       )
         throw new Error("DRIFTFETCH_EXTENSION_REQUIRED");
-      auth = await this.sessions.argumentsFor(sourceUrl);
+      auth = await this.sessions.argumentsFor(sourceUrl, job.usePrivateAccount);
       if (job.imageSearch && this.extensions) {
         const hidden = await hideSecretOptions(
           await this.extensions.galleryArguments(sourceUrl, (domain, fields) =>
@@ -885,6 +1113,20 @@ export class Queue {
         this.save(job, { scheduleHeld: true });
         return;
       }
+      // A stopped gallery-dl run resumes after the files it already saved, so it
+      // does not ask the site about each of them again (see Engine.download).
+      // Not profiles: gallery-dl applies the range to each part (posts, reels,
+      // stories) separately, and their download archive already skips saved items.
+      const resumeFrom =
+        job.mediaKey?.startsWith("GalleryDL:") &&
+        !job.galleryRange &&
+        job.linkType !== "profile"
+          ? job.filesSaved || 0
+          : 0;
+      // A retry of only a profile's failed parts adds to what is already saved.
+      const earlierBytes = job.partialFailure?.parts.length
+        ? job.totalBytes || 0
+        : 0;
       this.save(job, {
         status: "downloading",
         speedLimitKiB: rule?.speedLimitKiB ?? this.settings.speedLimitKiB,
@@ -892,6 +1134,11 @@ export class Queue {
           rule?.fragmentConcurrency ?? this.settings.fragmentConcurrency,
         requestDelaySec: sourceLimits(this.settings, job.source)
           .requestDelaySec,
+        includeStories: this.settings.instagramStories,
+        // A partial retry asks for only its failed parts, so it reads them in full.
+        stopAtSaved: job.partialFailure?.parts.length
+          ? false
+          : this.syncedBefore(job),
         scheduleHeld: false,
         retryAt: undefined,
         error: undefined,
@@ -905,7 +1152,7 @@ export class Queue {
         ...(job.linkType === "profile" ||
         job.imageSearch ||
         job.imageUrls?.length
-          ? { filePath: undefined, filesSaved: 0 }
+          ? { filePath: undefined, filesSaved: resumeFrom }
           : {}),
       });
       token.process = this.engine.download(job, auth.args, (line) => {
@@ -927,9 +1174,12 @@ export class Queue {
                 status,
                 downloadedBytes: downloaded,
                 totalBytes: total || undefined,
-                progress: total
-                  ? Math.min(99.9, (downloaded / total) * 100)
-                  : 0,
+                // An image list shows files saved out of files chosen, below.
+                progress: expectedFiles
+                  ? job.progress
+                  : total
+                    ? Math.min(99.9, (downloaded / total) * 100)
+                    : 0,
                 speed: Number(p.speed) || undefined,
                 eta: Number(p.eta) || undefined,
               },
@@ -944,7 +1194,13 @@ export class Queue {
               savedPaths.set(reported.key, reported.file);
               this.save(job, {
                 filePath: reported.file,
-                filesSaved: savedPaths.size,
+                filesSaved: resumeFrom + savedPaths.size,
+                ...(expectedFiles && {
+                  progress: Math.min(
+                    99.9,
+                    ((resumeFrom + savedPaths.size) / expectedFiles) * 100,
+                  ),
+                }),
               });
             }
           } else if (line.startsWith("DRIFTFETCH_FORMAT_ID:")) {
@@ -962,6 +1218,7 @@ export class Queue {
         }
       });
       const result = await token.process.done;
+      this.countRequests(job, result.requests);
       if (token.stop) return;
       if (result.timedOut) throw new Error("DRIFTFETCH_TIMEOUT");
       if (job.collectionKind === "images" || expectedFiles !== undefined) {
@@ -985,15 +1242,66 @@ export class Queue {
           throw new Error("DRIFTFETCH_INCOMPLETE_DISCOVERY");
       }
       const profile = job.linkType === "profile";
-      // An archive can mean no new files, but any engine error is still a failure.
-      if (result.code !== 0) throw new Error(result.stderr);
+      // gallery-dl only warns, then finds nothing, when the account does not follow a private profile.
+      if (profile && !savedPaths.size && isPrivateProfile(result.stderr))
+        throw new Error("DRIFTFETCH_PRIVATE");
+      // gallery-dl moves on when one part of a profile (say, reels) cannot be
+      // read; what the other parts saved still counts, and Retry asks again
+      // for only the failed parts. A rate limit still fails, so it waits and
+      // retries on its own.
+      const partialFailure =
+        result.code !== 0 &&
+        profile &&
+        // A retry of only the failed parts keeps what the earlier run saved.
+        (savedPaths.size || job.partialFailure) &&
+        !rateLimited(
+          [result.stderr, ...Object.values(result.partErrors ?? {})].join("\n"),
+        )
+          ? partialProfileFailure(result)
+          : // Other sites report no parts: a run where only single files failed
+            // still read the whole profile, so it ends here instead of re-walking
+            // it on every automatic retry.
+            result.code !== 0 &&
+              profile &&
+              !result.partErrors &&
+              onlyFileFailures(result.stderr) &&
+              !rateLimited(result.stderr)
+            ? {
+                parts: [],
+                error: friendlyError(result.stderr),
+                filesOnly: true as const,
+              }
+            : undefined;
+      // An archive can mean no new files, but any other engine error is still a failure.
+      if (result.code !== 0 && !partialFailure) throw new Error(result.stderr);
       if (job.imageSearch && !job.filePath)
         throw new Error("DRIFTFETCH_NO_IMAGES");
-      if (profile && !job.filePath) {
+      if (profile) {
+        // A profile is a folder: its size is every file this run saved or found,
+        // and no single file stands for it. gallery-dl reports a DASH video by its
+        // .mp4 name, but yt-dlp merges it into .mkv.
+        let total = earlierBytes,
+          last: string | undefined;
+        for (const reported of savedPaths.values()) {
+          for (const file of [reported, reported.replace(/\.mp4$/i, ".mkv")]) {
+            const stat = await fs.stat(file).catch(() => null);
+            if (!stat?.isFile()) continue;
+            total += stat.size;
+            last = file;
+            break;
+          }
+        }
+        if (token.stop) return;
         this.save(job, {
           status: "completed",
           finishedAt: Date.now(),
           progress: 100,
+          partialFailure,
+          filePath: last,
+          quality: undefined,
+          totalBytes: total || undefined,
+          downloadedBytes: total || undefined,
+          fileMissing: false,
           retryCount: 0,
           retryAt: undefined,
           speed: undefined,
@@ -1023,6 +1331,7 @@ export class Queue {
         retryCount: 0,
         retryAt: undefined,
         fileMissing: false,
+        partialFailure,
         quality,
         totalBytes: file.size,
         downloadedBytes: file.size,
@@ -1067,6 +1376,7 @@ export class Queue {
         "again",
         "remove",
         "next",
+        "force",
       ].includes(action)
     )
       throw new Error("Invalid queue action.");
@@ -1111,6 +1421,10 @@ export class Queue {
             speed: undefined,
             eta: undefined,
           });
+      } else if (action === "force") {
+        // Past today's limit on purpose: the user accepts the account risk for this download.
+        if (job.status === "queued")
+          this.save(job, { overrideLimit: true, limitHeld: undefined });
       } else if (action === "again") {
         this.addLinks(job.originalUrl, {
           force: true,
@@ -1121,8 +1435,24 @@ export class Queue {
           },
         });
       } else if (
+        action === "start" &&
+        job.status === "collection" &&
+        !this.running.has(id)
+      ) {
+        // Search again: read the link from scratch. Clearing the old list means a failed read retries as a read.
+        this.save(job, {
+          status: "resolving",
+          mediaKey: undefined,
+          entries: undefined,
+          discoveredItems: undefined,
+          collectionLimited: undefined,
+          error: undefined,
+          retryCount: 0,
+        });
+      } else if (
         !this.running.has(id) &&
-        ["review", "paused", "failed", "cancelled"].includes(job.status)
+        (["review", "paused", "failed", "cancelled"].includes(job.status) ||
+          (job.status === "completed" && job.partialFailure))
       ) {
         // Retry is the user's "keep going": lift the pause for this source.
         this.cooldowns.delete(
@@ -1189,7 +1519,13 @@ export class Queue {
           job.thumbnailUrl ||
           available.find((entry) => entry.thumbnail)?.thumbnail,
         entries: undefined,
-        imageUrls: entries.map((entry) => entry.url),
+        // The post ID rides in the URL fragment so the file name can carry it
+        // (gallery-dl indexes are not source IDs, so those are left alone).
+        imageUrls: entries.map((entry) =>
+          /^\d{1,20}$/.test(entry.id) && !job.mediaKey?.startsWith("GalleryDL:")
+            ? entry.url.replace(/#.*$/, "") + "#" + entry.id
+            : entry.url,
+        ),
         selectedAll: entries.length === available.length,
         discoveredItems: available.length,
         expectedFiles: new Set(entries.map((entry) => entry.url)).size,

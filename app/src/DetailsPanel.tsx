@@ -27,6 +27,7 @@ import {
   collectionNoun,
   countdown,
   failureSummary,
+  missingParts,
   needsSignIn,
   time,
   when,
@@ -107,6 +108,13 @@ export function DetailsPanel({
   const settings = state?.settings;
 
   const card = (): Card => {
+    if (detail.partialFailure && detail.status === "completed")
+      return {
+        tone: "wait",
+        icon: <CircleAlert size={16} strokeWidth={2} />,
+        label: "Saved with gaps",
+        sub: `${missingParts(detail)} couldn’t be read · ${detail.source}`,
+      };
     if (missing)
       return {
         tone: "wait",
@@ -368,12 +376,21 @@ export function DetailsPanel({
         );
         break;
       case "completed":
+        if (detail.partialFailure)
+          list.push(
+            b(
+              <RotateCw size={15} />,
+              `Retry ${missingParts(detail).toLowerCase()}`,
+              () => void act(id, "start"),
+              "primary",
+            ),
+          );
         list.push(
           b(
             <Play size={15} />,
             "Open file",
             () => void execute(() => window.driftfetch.openFile(detail.id)),
-            "primary",
+            detail.partialFailure ? undefined : "primary",
           ),
           b(
             <FolderOpen size={15} />,
@@ -473,6 +490,7 @@ export function DetailsPanel({
           "empty-page": "API returned an empty page",
           "repeated-page": "API kept repeating the same posts",
           "page-limit": "Page limit reached",
+          "read-error": "The source stopped answering",
         }[discovery.stopReason],
       ],
     );
@@ -572,7 +590,9 @@ export function DetailsPanel({
                   )
                 }
                 onClick={() =>
-                  void execute(() => window.driftfetch.refreshFormats(detail.id))
+                  void execute(() =>
+                    window.driftfetch.refreshFormats(detail.id),
+                  )
                 }
               >
                 {detail.refreshing ? "Checking formats…" : "Recheck formats"}

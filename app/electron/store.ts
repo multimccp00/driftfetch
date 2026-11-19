@@ -1,6 +1,7 @@
 import { DatabaseSync, type StatementSync } from "node:sqlite";
 import fs from "node:fs";
 import { migrate } from "./migrations";
+import { sessionKey } from "../src/shared";
 import type { Job, Settings, SessionInfo, Capture } from "../src/shared";
 export class Store {
   db: DatabaseSync;
@@ -40,6 +41,9 @@ export class Store {
       db.exec(
         "CREATE TABLE IF NOT EXISTS captures(id TEXT PRIMARY KEY, at INTEGER NOT NULL, data TEXT NOT NULL)",
       );
+      db.exec(
+        "CREATE TABLE IF NOT EXISTS usage(key TEXT PRIMARY KEY, count INTEGER NOT NULL)",
+      );
       migrate(db);
       return db;
     } catch (error) {
@@ -62,6 +66,24 @@ export class Store {
     );
     this.db.exec(
       "DELETE FROM captures WHERE id NOT IN (SELECT id FROM captures ORDER BY at DESC, rowid DESC LIMIT 100)",
+    );
+  }
+  /** Requests counted under a key such as "instagram:usual:2026-10-21". */
+  usage(key: string): number {
+    return (
+      (
+        this.stmt("SELECT count FROM usage WHERE key=?").get(key) as
+          { count: number } | undefined
+      )?.count ?? 0
+    );
+  }
+  addUsage(key: string, count: number) {
+    this.stmt(
+      "INSERT INTO usage VALUES (?,?) ON CONFLICT(key) DO UPDATE SET count=count+excluded.count",
+    ).run(key, count);
+    // Only today's counts matter; keep the table tiny.
+    this.stmt("DELETE FROM usage WHERE key NOT LIKE ?").run(
+      `%:${key.split(":").pop()}`,
     );
   }
   clearCaptures() {
@@ -98,16 +120,17 @@ export class Store {
   saveSession(info: SessionInfo, secret?: Buffer) {
     this.stmt(
       "INSERT INTO sessions VALUES (?,?,?) ON CONFLICT(domain) DO UPDATE SET data=excluded.data,secret=excluded.secret",
-    ).run(info.domain, JSON.stringify(info), secret ?? null);
+    ).run(sessionKey(info), JSON.stringify(info), secret ?? null);
   }
-  sessionSecret(domain: string): Buffer | undefined {
+  /** By session key (see sessionKey); the column is still named domain. */
+  sessionSecret(key: string): Buffer | undefined {
     const r = this.stmt("SELECT secret FROM sessions WHERE domain=?").get(
-      domain,
+      key,
     ) as { secret: Uint8Array | null } | undefined;
     return r?.secret ? Buffer.from(r.secret) : undefined;
   }
-  removeSession(domain: string) {
-    this.stmt("DELETE FROM sessions WHERE domain=?").run(domain);
+  removeSession(key: string) {
+    this.stmt("DELETE FROM sessions WHERE domain=?").run(key);
   }
   close() {
     this.statements.clear();

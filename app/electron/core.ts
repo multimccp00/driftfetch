@@ -6,7 +6,7 @@ import { rateLimitWait } from "../shared/transfer-policy";
  * and broadcast to the renderer, so a 100,000-post search would stall both.
  * ponytail: hard cap, flagged via collectionLimited; page the list if users need more.
  */
-export const maxCollectionEntries = 5000;
+export const maxCollectionEntries = 100_000;
 export const defaultSettings = (downloads: string): Settings => ({
   warnBelowHeight: 720,
   speedLimitKiB: 0,
@@ -29,7 +29,10 @@ export const defaultSettings = (downloads: string): Settings => ({
   grouping: "source",
   filenameTemplate: "{title} [{id}]",
   launchAtLogin: false,
+  instagramStories: false,
+  instagramDailyRequests: 800,
   autoUpdateEngines: true,
+  autoUpdateApp: true,
   theme: "dark",
   privacyNoticeVersion: 0,
 });
@@ -39,6 +42,14 @@ export function normalizeUrl(input: string): string | null {
     if (!["https:", "http:"].includes(u.protocol) || u.username || u.password)
       return null;
     u.hash = "";
+    // Share buttons add a fresh tracking value each time, so the same link would
+    // look new and cost a request to find out it is a repeat.
+    for (const key of [...u.searchParams.keys()])
+      if (
+        /^(utm_|fbclid$|gclid$|igsh$|igshid$|mc_[ce]id$)/i.test(key) ||
+        (key === "si" && /(^|\.)(youtube\.com|youtu\.be)$/i.test(u.hostname))
+      )
+        u.searchParams.delete(key);
     return u.href;
   } catch {
     return null;
@@ -221,7 +232,9 @@ export function validateSettings(
       "autoDownloadCollections",
       "previewCollections",
       "launchAtLogin",
+      "instagramStories",
       "autoUpdateEngines",
+      "autoUpdateApp",
       "automaticRetries",
       "scheduleEnabled",
     ].some((k) => typeof s[k as keyof Settings] !== "boolean")
@@ -239,6 +252,12 @@ export function validateSettings(
   )
     // 0 means no limit.
     throw new Error("Choose 1 to 8 simultaneous downloads, or Unlimited.");
+  if (
+    !Number.isInteger(s.instagramDailyRequests) ||
+    s.instagramDailyRequests < 0 ||
+    s.instagramDailyRequests > 100_000
+  )
+    throw new Error("Choose a daily Instagram request limit, or No limit.");
   if (
     !Number.isInteger(s.fragmentConcurrency) ||
     s.fragmentConcurrency < 1 ||
@@ -400,6 +419,20 @@ export function redditFeed(url: string): string | undefined {
   if (!m) return;
   return `reddit_${/^r$/i.test(m[1]) ? "" : "u_"}${m[2]}`;
 }
+/** Engine output that says the source is limiting requests. */
+export const rateLimited = (raw: string) =>
+  rateLimitWait(raw) !== undefined ||
+  /\b429\b|too many requests|rate limit/i.test(raw);
+/** True when every error gallery-dl printed is one file that could not be saved, so the run itself read everything. */
+export function onlyFileFailures(stderr: string): boolean {
+  const errors = stderr
+    .split(/\r?\n/)
+    .filter((l) => /\[error\]|^ERROR /i.test(l));
+  return (
+    errors.length > 0 &&
+    errors.every((l) => /Failed to download|\[download\] Got error/i.test(l))
+  );
+}
 export function friendlyError(raw: string): string {
   if (/DRIFTFETCH_EXTENSION_REQUIRED/.test(raw))
     return "The extension for this collection is disabled or missing. Enable it in Settings → Advanced → Extensions and retry.";
@@ -407,6 +440,8 @@ export function friendlyError(raw: string): string {
     return "The collection is incomplete: some selected files could not be verified on disk. Saved files are kept. Retry to check or download the missing files.";
   if (/DRIFTFETCH_INCOMPLETE_DISCOVERY/.test(raw))
     return "The collection could not be fully read. Check the source counts and pagination details. Saved files are kept. Use Download again for a fresh lookup.";
+  if (/DRIFTFETCH_PRIVATE|\bposts are private\b/.test(raw))
+    return "This profile is private and the signed-in account does not follow it. Add an account that follows it as the private-profiles sign-in in Settings → Sites & sign-ins, then retry.";
   if (/DRIFTFETCH_REMOVED/.test(raw))
     return "This post or its media was removed or deleted at the source, so nothing is left to download.";
   if (/DRIFTFETCH_NOTHING_READ/.test(raw))
@@ -443,8 +478,10 @@ export function friendlyError(raw: string): string {
   const wait = rateLimitWait(raw);
   if (wait !== undefined)
     return `The source is limiting requests and asked for a wait of about ${Math.max(1, Math.round(wait / 60_000))} minute(s). DriftFetch retries automatically about a minute and a half after that when automatic retries are on; otherwise retry later.`;
-  if (/\b429\b|too many requests|rate limit/i.test(raw))
+  if (rateLimited(raw))
     return "The source is limiting requests (HTTP 429). Wait before retrying and reduce simultaneous downloads for this source.";
+  if (/redirect to (?:home|challenge) page/i.test(raw))
+    return "The site sent the request to its home page instead of answering. This is often temporary, or a change on the site that needs an engine update. Retry later.";
   if (/\b403\b|forbidden|captcha|cloudflare/i.test(raw))
     return "The source refused access to this request (HTTP 403 or a browser check). Open the page in Chrome to check access. If sign-in is required, refresh its session in Settings → Sites & sign-ins. Retrying cannot bypass the site's restrictions.";
   if (

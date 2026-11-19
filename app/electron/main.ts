@@ -25,6 +25,8 @@ import { diagnosticReport } from "../shared/diagnostics";
 import {
   chooseUpdate,
   createShortcut,
+  downloadUpdate,
+  findUpdate,
   isNewer,
   packagedAppUserModelId,
   verifyInstaller,
@@ -32,7 +34,12 @@ import {
 import { Store } from "./store";
 import { Engine } from "./engine";
 import { Queue } from "./queue";
-import { accountsPartition, Sessions } from "./sessions";
+import {
+  browserUserAgent,
+  parseSessionKey,
+  partitionFor,
+  Sessions,
+} from "./sessions";
 import { Extensions } from "./extensions";
 import {
   ClipboardTracker,
@@ -43,7 +50,13 @@ import {
   validateDomain,
   validateSettings,
 } from "./core";
-import type { Job, Settings, Snapshot, VideoFormat } from "../src/shared";
+import type {
+  AppUpdateInfo,
+  Job,
+  Settings,
+  Snapshot,
+  VideoFormat,
+} from "../src/shared";
 
 // Explicit troubleshooting option; normal launches use Electron's graphics defaults.
 if (process.env.DRIFTFETCH_SOFTWARE_RENDERING === "1")
@@ -73,6 +86,68 @@ let quitting = false,
 let chromeProfiles: string[] = [];
 let popup: CapturePopup | undefined;
 let updateInstaller: string | undefined;
+/** A newer installer already downloaded and checked; "Install app update" uses it before asking for a file. */
+let readyUpdate: string | undefined;
+let appUpdate: AppUpdateInfo = { status: "idle" };
+let updateCheck: Promise<void> | undefined;
+/** Installed copies only: the portable build has no installer to run, and a dev run has no version to compare. */
+const canSelfUpdate = () => app.isPackaged && !portableDir;
+/** Looks on GitHub for a newer release and downloads it. Runs once at a time; the result is shown in Settings. */
+function checkAppUpdate(quiet = false) {
+  if (!canSelfUpdate()) {
+    appUpdate = {
+      status: "error",
+      message: "Updates need the installed version of DriftFetch.",
+    };
+    changed();
+    return Promise.resolve();
+  }
+  return (updateCheck ??= (async () => {
+    const controller = new AbortController();
+    const stop = setTimeout(() => controller.abort(), 10 * 60_000);
+    appUpdate = { status: "checking" };
+    changed();
+    try {
+      const update = await findUpdate(app.getVersion(), controller.signal);
+      if (!update) {
+        appUpdate = { status: "current" };
+        return;
+      }
+      appUpdate = { status: "downloading", version: update.version };
+      changed();
+      readyUpdate = await downloadUpdate(
+        update,
+        path.join(app.getPath("userData"), "updates"),
+        controller.signal,
+      );
+      appUpdate = { status: "ready", version: update.version };
+      if (quiet)
+        popup?.notify({
+          title: `DriftFetch ${update.version} is ready`,
+          lines: [
+            "The update was downloaded and checked.",
+            "Open Settings > Advanced > App and press Install when no downloads are running.",
+          ],
+          tone: "ok",
+        });
+    } catch (error) {
+      // Our own messages (HTTP status, rate limit, checksum) are safe to show; anything else is a network failure.
+      const reason =
+        error instanceof Error &&
+        /^(?:Update |GitHub's|The (?:update|installer))/.test(error.message)
+          ? error.message
+          : "Could not reach GitHub.";
+      appUpdate = {
+        status: "error",
+        message: quiet ? undefined : `Could not check for updates. ${reason}`,
+      };
+    } finally {
+      clearTimeout(stop);
+      updateCheck = undefined;
+      changed();
+    }
+  })());
+}
 let backupBusy = false;
 const completionTracker = new CompletionTracker();
 const collectionPreviews = new CollectionPreviews();
@@ -110,14 +185,23 @@ const windowIcon = () =>
     : path.join(app.getAppPath(), "resources", "icon.ico");
 const snapshot = (): Snapshot => ({
   appVersion: app.getVersion(),
+  appUpdate,
   captures: store!.captures(),
   jobs: queue!.jobs.map(listed).sort((a, b) => b.createdAt - a.createdAt),
   settings: queue!.settings,
   sessions: store!.sessions(),
   engine: engine!.info,
   chromeProfiles,
+  instagramUsage: queue!.instagramUsage(),
   extensions: extensions?.list() || [],
 });
+// A minimized or tray-hidden window can still report focus, so it must also be on screen.
+const userIsLooking = () =>
+  !!window &&
+  !window.isDestroyed() &&
+  window.isVisible() &&
+  !window.isMinimized() &&
+  window.isFocused();
 // Completions gathered between broadcasts, so a 50-item batch is one toast.
 let finishedIds: string[] = [];
 function changed() {
@@ -128,13 +212,7 @@ function changed() {
   broadcastTimer = setTimeout(() => {
     broadcastTimer = undefined;
     // Someone looking at DriftFetch already sees the list; the popup is for when it is in the background.
-    if (
-      finishedIds.length &&
-      window &&
-      !window.isDestroyed() &&
-      window.isFocused()
-    )
-      finishedIds = [];
+    if (finishedIds.length && userIsLooking()) finishedIds = [];
     if (finishedIds.length) {
       popup?.finished(finishedIds);
       finishedIds = [];
@@ -284,7 +362,7 @@ async function init() {
     popup?.notify({
       title: `Paused ${source}`,
       lines: [
-        `${source} asked DriftFetch to slow down, so its downloads are paused for about ${minutes} minutes to protect your account.`,
+        `${source} pushed back on DriftFetch's requests, so its downloads are paused for about ${minutes} minutes to protect your account.`,
         "Open DriftFetch and press Retry to continue now, or leave it paused.",
       ],
       tone: "warn",
@@ -299,6 +377,11 @@ async function init() {
       .update()
       .catch(() => {}) // The reason stays in the engine panel's message.
       .finally(() => queue?.pump());
+  if (
+    queue.settings.autoUpdateApp &&
+    process.env.DRIFTFETCH_NO_ENGINE_UPDATE !== "1"
+  )
+    void checkAppUpdate(true);
   completionTracker.update(queue.jobs);
   // Later checks happen when History opens; a sleeping disk stays asleep.
   void queue.checkFiles();
@@ -310,15 +393,15 @@ async function init() {
     (_wc, _permission, callback) => callback(false),
   );
   session.defaultSession.setPermissionCheckHandler(() => false);
-  const accounts = session.fromPartition(accountsPartition);
-  accounts.setPermissionRequestHandler((_wc, _permission, callback) =>
-    callback(false),
-  );
-  accounts.setPermissionCheckHandler(() => false);
-  // Sites often refuse logins from browsers that identify as embedded apps.
-  accounts.setUserAgent(
-    accounts.getUserAgent().replace(/\s(?:DriftFetch|Electron)\/\S+/g, ""),
-  );
+  for (const isPrivate of [false, true]) {
+    const accounts = session.fromPartition(partitionFor(isPrivate));
+    accounts.setPermissionRequestHandler((_wc, _permission, callback) =>
+      callback(false),
+    );
+    accounts.setPermissionCheckHandler(() => false);
+    // Sites often refuse logins from browsers that identify as embedded apps.
+    accounts.setUserAgent(browserUserAgent(accounts.getUserAgent()));
+  }
   window = new BrowserWindow({
     width: 1380,
     height: 880,
@@ -598,8 +681,9 @@ async function init() {
   });
   handle("app-action", async (action) => {
     if (action === "shortcut") return createShortcut(launcher);
+    if (action === "check") return checkAppUpdate();
     if (action !== "update") throw new Error("Unknown app action.");
-    const installer = await chooseUpdate(window!);
+    const installer = readyUpdate ?? (await chooseUpdate(window!));
     if (installer) {
       updateInstaller = installer;
       app.quit();
@@ -727,29 +811,29 @@ async function init() {
     await sessions!.setChrome(domain, profile);
     changed();
   });
-  handle("import-session", async (domain) => {
-    domain = validateDomain(domain);
+  handle("import-session", async (key) => {
+    parseSessionKey(key);
     const result = await dialog.showOpenDialog(window!, {
       title: "Import cookies for this source",
       filters: [{ name: "Cookie file", extensions: ["txt"] }],
       properties: ["openFile"],
     });
     if (result.canceled) return false;
-    await sessions!.importFile(domain, result.filePaths[0]);
+    await sessions!.importFile(key, result.filePaths[0]);
     changed();
     return true;
   });
-  handle("browser-session", async (domain) => {
-    domain = validateDomain(domain);
+  handle("browser-session", async (key) => {
+    const { domain, isPrivate } = parseSessionKey(key);
     const login = new BrowserWindow({
       parent: window,
       width: 520,
       height: 760,
-      title: `Sign in · ${domain}`,
+      title: `Sign in · ${domain}${isPrivate ? " · private profiles" : ""}`,
       icon: windowIcon(),
       autoHideMenuBar: true,
       webPreferences: {
-        partition: accountsPartition,
+        partition: partitionFor(isPrivate),
         nodeIntegration: false,
         contextIsolation: true,
         sandbox: true,
@@ -760,7 +844,7 @@ async function init() {
     );
     login.loadURL(`https://${domain}/`).catch(() => {});
     await closed;
-    await sessions!.saveBrowser(domain);
+    await sessions!.saveBrowser(key);
     changed();
   });
   handle("save-account", async (domain, values) => {
@@ -911,7 +995,7 @@ async function init() {
       if (links.length) {
         const before = new Set(store!.captures().map((c) => c.id));
         queue!.addLinks(links.join("\n"), { origin: "clipboard" });
-        if (queue!.settings.captureNotifications && !window!.isFocused())
+        if (queue!.settings.captureNotifications && !userIsLooking())
           popup!.show(
             store!
               .captures()
@@ -1031,11 +1115,16 @@ async function start() {
           // The file was checked when chosen; check it again so a swap in between cannot run.
           await verifyInstaller(updateInstaller);
           await new Promise<void>((resolve, reject) => {
-            const child = spawn(updateInstaller!, [], {
-              shell: false,
-              detached: true,
-              stdio: "ignore",
-            });
+            // Silent update that reopens DriftFetch when it finishes (the installer's own switches).
+            const child = spawn(
+              updateInstaller!,
+              ["/S", "--updated", "--force-run"],
+              {
+                shell: false,
+                detached: true,
+                stdio: "ignore",
+              },
+            );
             child.once("error", reject);
             child.once("spawn", () => {
               child.unref();

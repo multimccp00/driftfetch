@@ -115,6 +115,14 @@ export class CapturePopup {
       });
       this.window.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
       this.window.webContents.on("will-navigate", (e) => e.preventDefault());
+      // The window sits hidden for hours; if its page process dies, showing it again would
+      // show nothing. Drop it so the next capture builds a fresh one.
+      const created = this.window;
+      this.window.webContents.on("render-process-gone", () => {
+        if (this.window !== created) return;
+        this.window = undefined;
+        if (!created.isDestroyed()) created.destroy();
+      });
       this.window.once("ready-to-show", () => {
         if (!this.dismissed) {
           this.position();

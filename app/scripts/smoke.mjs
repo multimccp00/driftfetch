@@ -645,7 +645,11 @@ try {
           (f) => f.includes(job.id.slice(0, 8)) && f.endsWith(".part"),
         ),
       );
-      await page.evaluate((id) => window.driftfetch.action([id], "start"), job.id);
+      // With nothing running, the toolbar's Pause all becomes Start all.
+      await page
+        .locator('nav[aria-label="Main"] button', { hasText: "Downloads" })
+        .click();
+      await page.locator("button.btn.sm", { hasText: "Start all" }).click();
       await until(
         (s) => s.jobs.find((j) => j.id === job.id)?.status === "completed",
       );

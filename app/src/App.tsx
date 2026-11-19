@@ -79,7 +79,8 @@ export function App() {
   const shiftHeld = useRef(false);
   const [full, setFull] = useState<Job>();
   useEffect(() => {
-    if (page === "history") void window.driftfetch?.checkFiles().catch(() => {});
+    if (page === "history")
+      void window.driftfetch?.checkFiles().catch(() => {});
   }, [page]);
   useEffect(() => window.driftfetch?.onNavigate(setPage), []);
   useEffect(
@@ -189,7 +190,8 @@ export function App() {
     const paste = (e: ClipboardEvent) => {
       const target = e.target as HTMLElement | null;
       if (target?.closest("input, textarea, select, [contenteditable]")) return;
-      if (document.querySelector('[role="dialog"]')) return;
+      // The details side panel is a dialog too, but a pasted link is still welcome behind it.
+      if (document.querySelector('[role="dialog"]:not(.side-panel)')) return;
       const text = e.clipboardData?.getData("text") || "";
       if (!/https?:\/\//i.test(text)) return;
       e.preventDefault();
@@ -203,7 +205,10 @@ export function App() {
         return;
       }
       void execute(async () => {
-        const result = await window.driftfetch.addLinks(text, page === "review");
+        const result = await window.driftfetch.addLinks(
+          text,
+          page === "review",
+        );
         setToast(addedToast(result));
       });
     };
@@ -244,7 +249,8 @@ export function App() {
       byId.set(j.id, j);
       sources.add(j.source);
       if (terminal.includes(j.status)) hasFinished = true;
-      else queueJobs.push(j);
+      // A profile saved with gaps stays in Downloads until a retry fills them.
+      if (!terminal.includes(j.status) || j.partialFailure) queueJobs.push(j);
       if (["downloading", "processing"].includes(j.status)) active.push(j);
       if (j.status === "completed") completed.push(j);
       if (j.status === "failed" && !j.retryAt) attention.push(j);

@@ -1,6 +1,11 @@
 import { vi, describe, it, expect } from "vitest";
 vi.mock("electron", () => ({ safeStorage: {} }));
-import { filterCookies, netscapeCookies } from "../electron/sessions";
+import {
+  browserUserAgent,
+  filterCookies,
+  netscapeCookies,
+} from "../electron/sessions";
+import { galleryDelayArgs, loggedRequests } from "../electron/engine";
 describe("cookie isolation", () => {
   it("exports sign-in window cookies in a format the engines accept", () => {
     const text = netscapeCookies([
@@ -52,4 +57,32 @@ describe("cookie isolation", () => {
       ),
     ).toThrow();
   });
+});
+
+describe("matching the sign-in browser", () => {
+  it("sends the agent real Chrome would, without app or Electron tokens", () => {
+    expect(
+      browserUserAgent(
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) DriftFetch/0.9.1 Chrome/142.0.7444.59 Electron/44.7.2 Safari/537.36",
+      ),
+    ).toBe(
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+    );
+  });
+  it("randomises the wait between requests above the configured delay", () => {
+    expect(galleryDelayArgs(10)).toEqual(["--sleep-request", "10-15"]);
+  });
+});
+
+it("counts a profile run's site requests from gallery-dl's debug log", () => {
+  expect(
+    loggedRequests(
+      [
+        "posts\tSleeping 11.20 seconds (request)",
+        "posts\tCursor: abc",
+        "reels\tSleeping 10.00 seconds (request)",
+        "posts\tSleeping 2.00 seconds (download)",
+      ].join("\n"),
+    ),
+  ).toBe(3);
 });

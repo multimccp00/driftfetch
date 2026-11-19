@@ -44,6 +44,13 @@ it("turns a failure into a short reason", () => {
   expect(reason("The source refused access (HTTP 403)", "HTTP_403")).toBe(
     "Site refused access",
   );
+  // The real 403 message advises signing in only "if required"; it is not a sign-in problem.
+  expect(
+    reason(
+      "The source refused access to this request (HTTP 403 or a browser check). Open the page in Chrome to check access. If sign-in is required, refresh its session in Settings → Sites & sign-ins.",
+      "HTTP_403",
+    ),
+  ).toBe("Site refused access");
   expect(reason("The destination disk is full.")).toBe("Not enough disk space");
   // The "nothing read" message mentions the login, but must not be labelled as a sign-in problem.
   expect(

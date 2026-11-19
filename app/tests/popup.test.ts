@@ -3,11 +3,17 @@ import { expect, it, vi } from "vitest";
 // A stand-in for Electron: just enough window and IPC for the popup's own logic.
 const handlers = new Map<string, (event: unknown, action: unknown) => void>();
 const sent: { channel: string; payload: any }[] = [];
+const seen = vi.hoisted(() => ({
+  windows: 0,
+  gone: undefined as undefined | (() => void),
+}));
 const webContents = {
   mainFrame: {},
   send: (channel: string, payload: unknown) => sent.push({ channel, payload }),
   setWindowOpenHandler: () => {},
-  on: () => {},
+  on: (event: string, fn: () => void) => {
+    if (event === "render-process-gone") seen.gone = fn;
+  },
   loadURL: () => {},
 };
 vi.mock("electron", () => ({
@@ -21,6 +27,9 @@ vi.mock("electron", () => ({
   ipcMain: { on: (name: string, fn: any) => handlers.set(name, fn) },
   BrowserWindow: class {
     webContents = webContents;
+    constructor() {
+      seen.windows++;
+    }
     once(_event: string, fn: () => void) {
       fn();
     }
@@ -93,4 +102,21 @@ it("still opens the app and ignores messages from other windows", () => {
   expect(opened).toHaveBeenCalledOnce();
   handlers.get("popup-action")!({ sender: {}, senderFrame: {} }, "open");
   expect(opened).toHaveBeenCalledOnce();
+});
+it("builds a fresh window when the hidden one's page process died", () => {
+  const { opened } = make();
+  const before = seen.windows;
+  // Same popup again: its window is reused.
+  const popup = new CapturePopup(
+    () => ({ captures: [], jobs: [], theme: "dark" }),
+    opened,
+    async () => null,
+    () => {},
+  );
+  popup.show([]);
+  popup.show([]);
+  expect(seen.windows).toBe(before + 1);
+  seen.gone!();
+  popup.show([]);
+  expect(seen.windows).toBe(before + 2);
 });

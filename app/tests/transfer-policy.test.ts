@@ -1,4 +1,6 @@
 import {
+  isAccountWarning,
+  isPrivateProfile,
   isProtectedSource,
   isRateLimited,
   protectedCooldown,
@@ -136,6 +138,11 @@ it("reads the wait a source announces and retries after it", () => {
     "[reddit][warning] API rate limit exceeded\n[reddit][info] Waiting for 4 minutes until 14:09:58 (rate limit)\n";
   expect(rateLimitWait(raw)).toBe(240_000);
   expect(rateLimitWait("Waiting for 30 seconds (rate limit)")).toBe(30_000);
+  expect(
+    rateLimitWait(
+      "[example][info] Waiting for 1 minutes until 13:56:27 (429 Too Many Requests)",
+    ),
+  ).toBe(60_000);
   expect(rateLimitWait("HTTP Error 429")).toBeUndefined();
   expect(retryDelay(raw, 0)).toBe(330_000);
   expect(retryDelay(raw, 9)).toBe(330_000); // no attempt cap: the source sets the wait
@@ -155,4 +162,27 @@ it("holds a protected source for at least the cooldown after a rate limit", () =
   expect(protectedCooldown("429")).toBe(protectedCooldownMs);
   const long = "Waiting for 3 hours until 14:09:58 (rate limit)";
   expect(protectedCooldown(long)).toBe(3 * 3_600_000 + 90_000);
+});
+
+it("keeps Instagram requests at least 6 s apart whatever a rule says", () => {
+  const base = defaultSettings("C:/Downloads");
+  const settings = {
+    ...base,
+    sourceRules: [{ source: "instagram.com", requestDelaySec: 1 }],
+  };
+  expect(limitsFor(settings, "www.instagram.com").requestDelaySec).toBe(6);
+  expect(
+    limitsFor({ ...base, sourceRules: [] }, "www.instagram.com")
+      .requestDelaySec,
+  ).toBe(10);
+});
+it("recognises Instagram's account warnings and private profiles", () => {
+  expect(
+    isAccountWarning("AbortExtraction: HTTP redirect to login page (x)"),
+  ).toBe(true);
+  expect(isAccountWarning("HTTP Error 404")).toBe(false);
+  expect(
+    isPrivateProfile("[instagram][warning] nasa's posts are private"),
+  ).toBe(true);
+  expect(isPrivateProfile("private_user profile")).toBe(false);
 });

@@ -2,11 +2,11 @@ import { spawn, type ChildProcess } from "node:child_process";
 import { createHash, randomUUID } from "node:crypto";
 import os from "node:os";
 import fs from "node:fs/promises";
-import { existsSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { createInterface } from "node:readline";
 import type { EngineInfo, Job, Entry } from "../src/shared";
-import { domainOf, normalizeUrl } from "./core";
+import { domainOf, maxCollectionEntries, normalizeUrl } from "./core";
 import { preferredLabelFormat } from "../shared/quality";
 import { verifyDetached, type SigningKey } from "./signature";
 import { ytDlpKeyFingerprint, ytDlpPublicKey } from "./yt-dlp-public-key";
@@ -20,6 +20,10 @@ interface ProcessResult {
   stdout: string;
   stderr: string;
   timedOut?: boolean;
+  /** Instagram profile parts (posts, reels, ...) that failed in this run, with gallery-dl's reason. */
+  partErrors?: Record<string, string>;
+  /** Requests gallery-dl sent to the site in this run (Instagram profiles only). */
+  requests?: number;
 }
 export interface Running {
   child: ChildProcess;
@@ -28,6 +32,8 @@ export interface Running {
 }
 // The frozen Windows engine otherwise writes the local code page, which loses
 // Unicode output paths. Its own settings work even when Python env vars do not.
+/** Saved items in a row after which a repeat profile sync stops a part. */
+export const stopAtSavedItems = 20;
 const galleryOutputArgs = [
   "--config-ignore",
   "--no-colors",
@@ -38,6 +44,70 @@ const galleryOutputArgs = [
   "--option",
   "output.mode=pipe",
 ];
+/** The last pagination cursor gallery-dl logged for each part of a profile (posts, reels, ...); an empty one starts that part over. */
+export function savedCursors(log: string): Record<string, string> {
+  const cursors: Record<string, string> = {};
+  for (const [, part, cursor] of log.matchAll(/^(\w+)\tCursor: ?(\S*)$/gm))
+    if (cursor) cursors[part] = cursor;
+    else delete cursors[part];
+  return cursors;
+}
+/**
+ * Cursor lines that send a part back to the page where its first file failed,
+ * not to the top of the profile. A file that already failed in an earlier run is
+ * left behind, or one broken file would re-walk the profile on every retry.
+ */
+export function rewindCursors(previousLog: string, runLog: string): string[] {
+  const lines: string[] = [];
+  const failed = (log: string) =>
+    new Set(
+      Array.from(
+        log.matchAll(/^(\w+)\tERROR Failed to download (\S+)/gm),
+        (m) => `${m[1]}\t${m[2]}`,
+      ),
+    );
+  const before = failed(previousLog);
+  const parts = new Set<string>();
+  const cursorOf: Record<string, string[]> = {};
+  // Each part starts on the cursor saved before this run, then moves one page per Cursor line.
+  const start = savedCursors(previousLog);
+  for (const line of runLog.split(/\r?\n/)) {
+    const cursor = /^(\w+)\tCursor: ?(\S*)$/.exec(line);
+    if (cursor) {
+      (cursorOf[cursor[1]] ??= [start[cursor[1]] ?? ""]).push(cursor[2]);
+      continue;
+    }
+    const fail = /^(\w+)\tERROR Failed to download (\S+)/.exec(line);
+    if (!fail || parts.has(fail[1]) || before.has(`${fail[1]}\t${fail[2]}`))
+      continue;
+    parts.add(fail[1]);
+    const seen = (cursorOf[fail[1]] ??= [start[fail[1]] ?? ""]);
+    // The last Cursor line is the next page's; the failed file is on the one before.
+    lines.push(`${fail[1]}\tCursor: ${seen.length > 1 ? seen[seen.length - 2] : seen[0]}`);
+  }
+  return lines;
+}
+/**
+ * A random wait of 1 to 1.5 times the delay between gallery-dl requests: a
+ * fixed beat is easier to tell apart from a person browsing.
+ */
+export const galleryDelayArgs = (seconds: number) => [
+  "--sleep-request",
+  `${seconds}-${Math.round(seconds * 15) / 10}`,
+];
+/**
+ * Requests in a profile run's debug log: gallery-dl waits before every site
+ * request but the first, and file downloads from the media servers are not
+ * among them.
+ */
+export const loggedRequests = (log: string) =>
+  1 + (log.match(/\tSleeping [\d.]+ seconds \(request\)$/gm)?.length ?? 0);
+export function partErrors(log: string): Record<string, string> {
+  const errors: Record<string, string> = {};
+  for (const [, part, message] of log.matchAll(/^(\w+)\tERROR (.+)$/gm))
+    errors[part] ??= message.trim();
+  return errors;
+}
 export function runProcess(
   exe: string,
   args: string[],
@@ -282,14 +352,16 @@ export function galleryDlMetadata(
     status: "collection",
     linkType: videos === files.length ? "video page" : "image gallery",
     collectionKind: "images",
-    entries: files.slice(0, 100).map(([, url, file], index) => ({
-      id: String(index),
-      title: `${video(url, file) ? "Video" : "Image"} ${index + 1}`,
-      url,
-      thumbnail:
-        normalizeUrl(file?.thumbnail || file?.preview_url || "") || undefined,
-    })),
-    collectionLimited: files.length > 100,
+    entries: files
+      .slice(0, maxCollectionEntries)
+      .map(([, url, file], index) => ({
+        id: String(index),
+        title: `${video(url, file) ? "Video" : "Image"} ${index + 1}`,
+        url,
+        thumbnail:
+          normalizeUrl(file?.thumbnail || file?.preview_url || "") || undefined,
+      })),
+    collectionLimited: files.length > maxCollectionEntries,
   };
 }
 
@@ -589,6 +661,7 @@ export class Engine {
     url: string,
     auth: string[] = [],
     requestDelaySec = 0,
+    timeoutMs = 120000,
   ): Running | undefined {
     const exe = this.galleryExecutable;
     if (!existsSync(exe)) return;
@@ -598,20 +671,48 @@ export class Engine {
       [
         ...galleryOutputArgs,
         "--dump-json",
-        ...(requestDelaySec
-          ? ["--sleep-request", String(requestDelaySec)]
-          : []),
+        ...(requestDelaySec ? galleryDelayArgs(requestDelaySec) : []),
         ...auth,
         "--",
         url,
       ],
       undefined,
-      120000,
+      timeoutMs,
     );
   }
+  /** Where this run's lines start in a profile job's cursor log. */
+  private runLogStart = new Map<string, number>();
+  /** Requests the running profile job has sent so far (0 when it keeps no log). */
+  liveRequests(job: Job) {
+    const start = this.runLogStart.get(job.id);
+    if (start === undefined) return 0;
+    try {
+      return loggedRequests(
+        readFileSync(
+          path.join(this.directory, "..", `gallery-dl-cursor-${job.id}.log`),
+          "utf8",
+        ).slice(start),
+      );
+    } catch {
+      return 0;
+    }
+  }
   download(job: Job, auth: string[], onLine: (line: string) => void): Running {
-    if (job.mediaKey?.startsWith("GalleryDL:"))
-      return runProcess(
+    if (job.mediaKey?.startsWith("GalleryDL:")) {
+      const instagramProfile =
+        job.linkType === "profile" && /(^|\.)instagram\.com$/i.test(job.source);
+      // Instagram walks every page again on a restart (and asks for each reel
+      // separately), so the pagination cursors it logs let a stopped run continue.
+      const cursorLog = instagramProfile
+        ? path.join(this.directory, "..", `gallery-dl-cursor-${job.id}.log`)
+        : undefined;
+      const previousLog =
+        cursorLog && existsSync(cursorLog)
+          ? readFileSync(cursorLog, "utf8")
+          : "";
+      const cursors = savedCursors(previousLog);
+      if (cursorLog) this.runLogStart.set(job.id, previousLog.length);
+      const running = runProcess(
         this.galleryExecutable,
         [
           ...galleryOutputArgs,
@@ -619,7 +720,56 @@ export class Engine {
           job.targetDir!,
           "--filename",
           "{username|category}_{shortcode|id|filename}_{num|filename}.{extension}",
-          ...(job.galleryRange ? ["--range", job.galleryRange] : []),
+          // filesSaved carries over from a stopped run. Sites that support it skip
+          // whole pages up to the range start instead of fetching each post.
+          ...(job.galleryRange
+            ? ["--range", job.galleryRange]
+            : job.filesSaved
+              ? ["--range", `${job.filesSaved + 1}-`]
+              : []),
+          // Reels are not part of gallery-dl's default "posts"; the archive drops repeats.
+          // A retry after a partial run asks only for the parts that failed.
+          ...(instagramProfile
+            ? [
+                "--option",
+                `extractor.instagram.include=${
+                  job.partialFailure?.parts.length
+                    ? job.partialFailure.parts.join(",")
+                    : `posts,reels${job.includeStories ? ",stories,highlights" : ""}`
+                }`,
+              ]
+            : []),
+          // Builds reels from the reels list instead of asking Instagram for
+          // each one (resources/gallery-dl-modules); null keeps gallery-dl's own.
+          ...(instagramProfile
+            ? [
+                "--option",
+                `extractor.module-sources=${JSON.stringify([
+                  path.join(this.bundled, "..", "gallery-dl-modules"),
+                  null,
+                ])}`,
+              ]
+            : []),
+          ...Object.entries(cursors).flatMap(([part, cursor]) => [
+            "--option",
+            `extractor.instagram.${part}.cursor=${JSON.stringify(cursor)}`,
+          ]),
+          ...(cursorLog
+            ? [
+                "--option",
+                `output.logfile=${JSON.stringify({
+                  path: cursorLog,
+                  mode: "a",
+                  level: 10,
+                  format: {
+                    debug: "{extractor.subcategory}\t{message}",
+                    info: "",
+                    warning: "",
+                    error: "{extractor.subcategory}\tERROR {message}",
+                  },
+                })}`,
+              ]
+            : []),
           // Remembers saved profile items so later runs fetch only new posts.
           ...(job.linkType === "profile"
             ? [
@@ -627,12 +777,13 @@ export class Engine {
                 path.join(this.directory, "..", "gallery-dl-archive.sqlite3"),
               ]
             : []),
+          // Each part (posts, reels) stops after this many saved items in a row
+          // instead of paging through the whole profile again.
+          ...(job.stopAtSaved ? ["--abort", String(stopAtSavedItems)] : []),
           ...(job.speedLimitKiB
             ? ["--limit-rate", `${job.speedLimitKiB}k`]
             : []),
-          ...(job.requestDelaySec
-            ? ["--sleep-request", String(job.requestDelaySec)]
-            : []),
+          ...(job.requestDelaySec ? galleryDelayArgs(job.requestDelaySec) : []),
           ...this.galleryVideoArgs(),
           ...auth,
           "--",
@@ -647,6 +798,33 @@ export class Engine {
         0,
         job.imageSearch ? 120_000 : 0,
       );
+      if (!cursorLog) return running;
+      return {
+        ...running,
+        // A finished run starts over next time; a stopped or failed one keeps its place.
+        done: running.done.then(async (result) => {
+          const log = await fs.readFile(cursorLog, "utf8").catch(() => "");
+          // Only this run's lines: the log is appended to across runs.
+          const runLog = log.startsWith(previousLog)
+            ? log.slice(previousLog.length)
+            : log;
+          result.requests = loggedRequests(runLog);
+          if (result.code === 0) await fs.rm(cursorLog, { force: true });
+          else {
+            result.partErrors = partErrors(runLog);
+            // A part that lost a file reads again from that file's page, once. A part
+            // that was cut off (a redirect, a rate limit) keeps its place, so each
+            // retry gets further.
+            const rewind = rewindCursors(previousLog, runLog);
+            if (rewind.length)
+              await fs
+                .appendFile(cursorLog, rewind.join("\n") + "\n")
+                .catch(() => {});
+          }
+          return result;
+        }),
+      };
+    }
     if (job.imageUrls?.length) {
       // Outside the download folder, so a crash leaves nothing behind there.
       const batchFile = path.join(
@@ -661,9 +839,10 @@ export class Engine {
           "--directory",
           job.targetDir!,
           "--filename",
-          // Direct image URLs have no post id. Hash the URL to distinguish
-          // identical basenames, with stable names when retrying the same job.
-          "\fF {filename[:80]}_{hash_sha1(_url)[:16]}.{extension}",
+          // Direct image URLs have no post id except the fragment the queue adds,
+          // which leads the name. Hash the URL to distinguish identical basenames,
+          // with stable names when retrying the same job.
+          "\fF {fragment[:20] + '_' if fragment else ''}{filename[:80]}_{hash_sha1(_url)[:16]}.{extension}",
           "--windows-filenames",
           "--option",
           `downloader.http.headers.Referer=${job.resolvedUrl || job.originalUrl}`,
